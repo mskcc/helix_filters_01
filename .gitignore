@@ -1,0 +1,9 @@
+*/output*/*
+nextflow
+.nextflow/
+.nextflow.log
+work/
+nextflow
+.nextflow.log*
+output/
+test_input_data/

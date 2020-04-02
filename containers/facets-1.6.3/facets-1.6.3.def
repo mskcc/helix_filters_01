@@ -1,0 +1,54 @@
+BootStrap: docker
+From: alpine:3.8
+
+%files
+    install-packages.R /install-packages.R
+    runscript.sh /runscript.sh
+    run_test.sh /run_test.sh
+
+%post
+    mv /install-packages.R /tmp/install-packages.R
+    mv /runscript.sh /usr/bin/runscript.sh
+    export FACETS_SUITE_VERSION=1.6.3
+    export FACETS_VERSION=0.5.14
+    export PCTGCDATA=0.2.0
+    apk add --update \
+            && apk add bash \
+            && apk add ca-certificates openssl \
+            && apk add build-base musl-dev python py-pip python-dev \
+            && apk add cairo cairo-dev libxt-dev libxml2-dev font-xfree86-type1 msttcorefonts-installer \
+            && update-ms-fonts \
+            && fc-cache -f \
+            && apk add R R-dev \
+            && cd /tmp \
+                && wget https://github.com/mskcc/facets/archive/v${FACETS_VERSION}.tar.gz \
+                && wget https://github.com/mskcc/pctGCdata/archive/v${PCTGCDATA}.tar.gz \
+                && wget https://github.com/mskcc/facets-suite/archive/${FACETS_SUITE_VERSION}.tar.gz \
+                && tar xvzf v${FACETS_VERSION}.tar.gz \
+                && tar xvzf v${PCTGCDATA}.tar.gz \
+                && tar xvzf ${FACETS_SUITE_VERSION}.tar.gz \
+                && cd /tmp/pctGCdata-${PCTGCDATA} \
+                && R CMD INSTALL . \
+                && cd /tmp/facets-${FACETS_VERSION} \
+                && R CMD INSTALL . \
+                && cd /tmp \
+                && Rscript --vanilla install-packages.R \
+                && cd /tmp/facets-suite-${FACETS_SUITE_VERSION} \
+                    && sed -i "s/# parser/parser/g" geneLevel.R \
+                    && sed -i "s/opt\/common\/CentOS_6-dev\/R\/R-3.2.2\//usr\//g" *.R \
+                    && sed -i "s/opt\/common\/CentOS_6-dev\/R\/R-3.4.1\//usr\//g" *.R \
+                    && sed -i "s/opt\/common\/CentOS_6-dev\/R\/R-3.1.3\//usr\//g" *.R \
+                    && sed -i "s/opt\/common\/CentOS_6-dev\/python\/python-2.7.10\/bin\/python/usr\/bin\/env python/g" facets \
+                    && sed -i "s/opt\/common\/CentOS_6-dev\/bin\/current\/python/usr\/bin\/env python/g" summarize_project.py \
+                    && mkdir -p /usr/bin/facets-suite/ \
+                    && cp -r /tmp/facets-suite-${FACETS_SUITE_VERSION}/* /usr/bin/facets-suite/ \
+            && rm -rf /var/cache/apk/* /tmp/* \
+            && chmod +x /usr/bin/runscript.sh \
+            && exec /run_test.sh
+
+%environment
+    export FACETS_SUITE_VERSION=1.6.3
+    export FACETS_VERSION=0.5.14
+    export PCTGCDATA=0.2.0
+    export PYTHONNOUSERSITE=set
+    export FACETS_OVERRIDE_EXITCODE=set
