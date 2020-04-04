@@ -40,7 +40,7 @@ roslin_resources = jsonSlurper.parseText(roslin_resourcesJSON)
 maf_files = Channel.fromPath( "${params.maf_directory}/*.muts.maf" )
 copy_number_files = Channel.fromPath( "${params.facets_directory}/*_hisens.cncf.txt" ) // generate_discrete_copy_number_data // need Facets container with bash
 segment_files = Channel.fromPath( "${params.facets_directory}/*_hisens.seg" )
-
+segment_files.collectFile(keepHeader: true, name: "segments.combined.txt").set { combined_segments }
 
 process generate_cbioportal_stable_ID {
     // need to check if the provided project ID is ok for use in cBioPortal (not already in use)
@@ -110,15 +110,6 @@ process filter_maf {
     """
 }
 
-
-// copy_number_files
-// output dir: portal_dir
-// output file: 'data_CNA.txt'
-// analysis_gene_cna_file = os.path.join(analysis_dir, portal_config_data['ProjectID'] + '.gene.cna.txt')
-
-
-segment_files.collectFile(keepHeader: true, name: "segments.combined.txt").set { combined_segments }
-
 process fix_segment_file {
     // need to adjust the number of significant figures in the decimal place for the segment file
     publishDir "${params.outputPortalDir}", mode: 'copy', pattern: "${segmented_data_file}"
@@ -152,10 +143,28 @@ process fix_segment_file {
     """
 }
 
+
+// copy_number_files
+// output dir: portal_dir
+// output file: 'data_CNA.txt'
+// analysis_gene_cna_file = os.path.join(analysis_dir, portal_config_data['ProjectID'] + '.gene.cna.txt')
+
 process generate_discrete_copy_number_data {
     echo true
+
+    input:
+    file(items: "*") from copy_number_files.collect()
+
+    output:
+    file("${output_file}")
+
     script:
+    output_file = 'data_CNA.txt'
     """
-    /usr/bin/facets-suite/geneLevel.R -h
+    python /usr/bin/facets-suite/facets geneLevel \
+    -o "${output_file}" \
+    --cnaMatrix \
+    -f ${items}
     """
+    // --targetFile
 }
