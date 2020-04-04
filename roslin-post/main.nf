@@ -151,3 +151,11 @@ process fix_segment_file {
     cp "${segmented_data_file}" "${analysis_seg_file}"
     """
 }
+
+process generate_discrete_copy_number_data {
+    echo true
+    script:
+    """
+    /usr/bin/facets-suite/geneLevel.R -h
+    """
+}
