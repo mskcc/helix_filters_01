@@ -26,9 +26,11 @@ params.project_title = 'ProjectTitle_1'
 params.tumor_type = ''
 params.version = '2.x'
 params.is_impact = "" //"True"
-params.maf_directory = 'test_input_data/maf'
-params.facets_directory = 'test_input_data/facets'
+params.inputDir = 'input'
+params.maf_directory = "${params.inputDir}/maf"
+params.facets_directory = "${params.inputDir}/facets"
 params.roslin_resources = "roslin_resources.json"
+
 
 // load the resources JSON for reference files
 def roslin_resources
@@ -58,7 +60,6 @@ process generate_cbioportal_stable_ID {
     """
 }
 
-
 // read the ID from the file
 // use '.first()' to create a value channel we can read from many times
 cbioportal_stable_ID_txt.map { txt ->
@@ -68,29 +69,7 @@ cbioportal_stable_ID_txt.map { txt ->
     // TODO: do we have to strip trailing newline here?
     line
 }.first().set { cbioportal_id }
-
-//  ~~~~~~~~~ TESTING STUFF HERE: ~~~~~~~~~
-// cbioportal_id.subscribe { println "${it}" }
-
-process foo {
-    // echo true
-    input:
-    val(id) from cbioportal_id
-    script:
-    """
-    echo "${id}"
-    """
-}
-process bar {
-    // echo true
-    input:
-    val(id) from cbioportal_id
-    script:
-    """
-    echo "${id}"
-    """
-}
-//  ~~~~~~~~~~~~~~~~~~
+// TODO: consider replacing this with stdout or env process output; https://www.nextflow.io/docs/edge/process.html#output-stdout-special-file
 
 process strip_maf_comments {
     // need to strip the '#' comment lines from the .maf files headers
@@ -146,7 +125,8 @@ process fix_segment_file {
     publishDir "${params.outputAnalysisDir}", mode: 'copy', pattern: "${analysis_seg_file}"
 
     input:
-    set file(segments), val(cbio_id) from combined_segments.combine(cbioportal_id)
+    file(segments) from combined_segments
+    val(cbio_id) from cbioportal_id
 
     output:
     file("${segmented_data_file}")
@@ -156,6 +136,7 @@ process fix_segment_file {
     segmented_data_file = "${cbio_id}_data_cna_hg19.seg"
     analysis_seg_file = "${params.project_id}.seg.cna.txt"
     """
+    # print out the file with fewer digits after the decimal in the seg.mean column
     python -c "
     import csv, sys;
     reader = csv.DictReader(open('${segments}'), delimiter = '\t');
@@ -166,6 +147,7 @@ process fix_segment_file {
     \twriter.writerow(row)
     " > "${segmented_data_file}"
 
+    # make a copy of the file with a different name for cBio portal to use
     cp "${segmented_data_file}" "${analysis_seg_file}"
     """
 }

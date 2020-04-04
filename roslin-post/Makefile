@@ -15,7 +15,11 @@ install: ./nextflow
 
 run: install
 	@source "$(ENV)"
-	nextflow run main.nf
+	nextflow run main.nf \
+	--maf_directory test_input_data/maf \
+	--facets_directory test_input_data/facets \
+	--containerDir ../../containers \
+	-profile juno
 
 clean:
 	rm -f .nextflow.log*
