@@ -7,3 +7,4 @@ nextflow
 .nextflow.log*
 output/
 test_input_data/
+*.sif
