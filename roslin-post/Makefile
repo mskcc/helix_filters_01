@@ -16,9 +16,10 @@ install: ./nextflow
 run: install
 	@source "$(ENV)"
 	nextflow run main.nf \
+	--targets IMPACT468_b37 \
 	--maf_directory test_input_data/maf \
 	--facets_directory test_input_data/facets \
-	--containerDir ../../containers \
+	--containerDir /juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/containers \
 	-profile juno
 
 clean:

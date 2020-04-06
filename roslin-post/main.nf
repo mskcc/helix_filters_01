@@ -1,5 +1,10 @@
-import groovy.json.JsonSlurper;
-def jsonSlurper = new JsonSlurper()
+// import groovy.json.JsonSlurper;
+// def jsonSlurper = new JsonSlurper()
+// params.roslin_resources = "roslin_resources.json"
+// load the resources JSON for reference files
+// def roslin_resources
+// String roslin_resourcesJSON = new File("${params.roslin_resources}").text
+// roslin_resources = jsonSlurper.parseText(roslin_resourcesJSON)
 
 // python roslin_analysis_helper.py --facets_directory test_input_data/facets --inputs temp_inputs.yaml --log_directory test_input_data/log --results_directory test_input_data/ --output_directory test_input_data/ --maf_directory test_input_data/maf --sample_summary octad_inputs/Proj_OCTAD_SampleSummary.txt --clinical_data octad_inputs/Proj_OCTAD_sample_data_clinical.txt
 
@@ -19,8 +24,9 @@ def jsonSlurper = new JsonSlurper()
 params.outputDir = "output"
 params.outputPortalDir = "${params.outputDir}/portal"
 params.outputAnalysisDir = "${params.outputDir}/analysis"
-params.assay = ''
-params.pi = 'Bob Sagat'
+params.assay = null
+params.targets = null
+params.pi = ''
 params.project_id = 'ProjectID_1'
 params.project_title = 'ProjectTitle_1'
 params.tumor_type = ''
@@ -29,18 +35,49 @@ params.is_impact = "" //"True"
 params.inputDir = 'input'
 params.maf_directory = "${params.inputDir}/maf"
 params.facets_directory = "${params.inputDir}/facets"
-params.roslin_resources = "roslin_resources.json"
 
+// globals
+def targetsList
+def targets = [
+AgilentExon_51MB_b37_v3: "/juno/work/ci/resources/roslin_resources/targets/AgilentExon_51MB_b37_v3/b37/AgilentExon_51MB_b37_v3_targets.intervals",
+IDT_Exome_v1_FP_b37: "/juno/work/ci/resources/roslin_resources/targets/IDT_Exome_v1_FP/b37/IDT_Exome_v1_FP_b37_targets.ilist",
+E90_NimbleGeneV3_WES: "/juno/work/ci/resources/roslin_resources/targets/E90_NimbleGeneV3_WES/b37/E90_NimbleGeneV3_WES_b37_targets.ilist",
+IMPACT341_b37: "/juno/work/ci/resources/roslin_resources/targets/IMPACT341/b37/picard_targets.interval_list",
+IMPACT410_b37: "/juno/work/ci/resources/roslin_resources/targets/IMPACT410/b37/picard_targets.interval_list",
+IMPACT468_b37: "/juno/work/ci/resources/roslin_resources/targets/IMPACT468/b37/picard_targets.interval_list",
+IMPACT468_b37_mm10: "/juno/work/ci/resources/genomes/GRCh37_mm10/targets/picard_targets.interval_list",
+IMPACT505: "/juno/work/ci/resources/roslin_resources/targets/IMPACT505/b37/IMPACT505_b37_targets.ilist",
+IMPACT468_08390: "/juno/work/ci/resources/roslin_resources/targets/IMPACT468_08390/b37/IMPACT468_08390_b37_targets.ilist",
+IMPACT468_08050: "/juno/work/ci/resources/roslin_resources/targets/IMPACT468_08050/b37/IMPACT468_08050_b37_targets.ilist",
+IMPACT468_08954: "/juno/work/ci/resources/roslin_resources/targets/IMPACT468_08954/b37/IMPACT468_08954_b37_targets.ilist",
+Agilent_v4_51MB_Human: "/juno/work/ci/resources/roslin_resources/targets/Agilent_v4_51MB_Human/b37/Agilent_v4_51MB_Human_b37_targets.ilist",
+AgilentExon_v2: "/juno/work/ci/resources/roslin_resources/targets/AgilentExon_v2/b37/AgilentExon_v2_b37_targets.ilist",
+AgilentExon_v5: "/juno/work/ci/resources/roslin_resources/targets/AgilentExon_v5/b37/AgilentExon_v5_b37_targets.ilist",
+IlluminaExome_38MB: "/juno/work/ci/resources/roslin_resources/targets/IlluminaExome_38MB/b37/IlluminaExome_38MB_b37_targets.ilist",
+SeqCap_EZ_Exome_v3: "/juno/work/ci/resources/roslin_resources/targets/SeqCap_EZ_Exome_v3/b37/SeqCap_EZ_Exome_v3_b37_targets.ilist",
+HemePACT_v3: "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v3/b37/HemePACT_v3_b37_targets.ilist",
+HemePACT_v4: "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist"
+]
 
-// load the resources JSON for reference files
-def roslin_resources
-String roslin_resourcesJSON = new File("${params.roslin_resources}").text
-roslin_resources = jsonSlurper.parseText(roslin_resourcesJSON)
+if (! targets.containsKey(params.targets)){
+    log.error("Value '${params.targets}' is not a registered value for 'targets'")
+    log.error("Choose one of these: ${targets.keySet()}")
+    exit 1
+}
 
+targetsList = targets[params.targets]
+
+log.info("\n")
+log.info("Rosling Post Processing Workflow")
+log.info("targetsList: ${targetsList}")
+log.info("\n")
+
+targets_list = Channel.fromPath( "${targetsList}" ).first()
 maf_files = Channel.fromPath( "${params.maf_directory}/*.muts.maf" )
-copy_number_files = Channel.fromPath( "${params.facets_directory}/*_hisens.cncf.txt" ) // generate_discrete_copy_number_data // need Facets container with bash
+copy_number_files = Channel.fromPath( "${params.facets_directory}/*_hisens.cncf.txt" )
 segment_files = Channel.fromPath( "${params.facets_directory}/*_hisens.seg" )
 segment_files.collectFile(keepHeader: true, name: "segments.combined.txt").set { combined_segments }
+
 
 process generate_cbioportal_stable_ID {
     // need to check if the provided project ID is ok for use in cBioPortal (not already in use)
@@ -154,6 +191,7 @@ process generate_discrete_copy_number_data {
 
     input:
     file(items: "*") from copy_number_files.collect()
+    file(targets_list_file) from targets_list
 
     output:
     file("${output_file}")
@@ -164,7 +202,7 @@ process generate_discrete_copy_number_data {
     python /usr/bin/facets-suite/facets geneLevel \
     -o "${output_file}" \
     --cnaMatrix \
-    -f ${items}
+    -f ${items} \
+    --targetFile "${targets_list_file}"
     """
-    // --targetFile
 }
