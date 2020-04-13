@@ -13,14 +13,28 @@ export PATH:=$(CURDIR):$(PATH)
 
 install: ./nextflow
 
+INPUT_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data
+MAF_DIR:=$(INPUT_DIR)/maf
+FACETS_DIR:=$(INPUT_DIR)/facets
+
+OUTPUT_DIR:=$(CURDIR)/output
+PORTAL_DIR:=$(OUTPUT_DIR)/portal
+ANALYSIS_DIR:=$(OUTPUT_DIR)/analysis
+
+CONTAINER_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/containers
 run: install
 	@source "$(ENV)"
 	nextflow run main.nf \
+	-resume \
+	-profile juno \
 	--targets IMPACT468_b37 \
-	--maf_directory test_input_data/maf \
-	--facets_directory test_input_data/facets \
-	--containerDir /juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/containers \
-	-profile juno
+	--inputDir $(INPUT_DIR) \
+	--maf_directory $(MAF_DIR) \
+	--facets_directory $(FACETS_DIR) \
+	--containerDir $(CONTAINER_DIR) \
+	--outputDir $(OUTPUT_DIR) \
+	--outputPortalDir $(PORTAL_DIR) \
+	--outputAnalysisDir $(ANALYSIS_DIR)
 
 clean:
 	rm -f .nextflow.log*

@@ -70,6 +70,8 @@ targetsList = targets[params.targets]
 log.info("\n")
 log.info("Rosling Post Processing Workflow")
 log.info("targetsList: ${targetsList}")
+// log.info("params: ${params}")
+params.each{ k, v -> log.info("${k}: ${v}") }
 log.info("\n")
 
 targets_list = Channel.fromPath( "${targetsList}" ).first()
@@ -181,28 +183,28 @@ process fix_segment_file {
 }
 
 
-// copy_number_files
-// output dir: portal_dir
-// output file: 'data_CNA.txt'
-// analysis_gene_cna_file = os.path.join(analysis_dir, portal_config_data['ProjectID'] + '.gene.cna.txt')
-
 process generate_discrete_copy_number_data {
-    echo true
+    publishDir "${params.outputPortalDir}", mode: 'copy', pattern: "${portal_CNA_file}"
+    publishDir "${params.outputAnalysisDir}", mode: 'copy', pattern: "${analysis_gene_cna_file}"
 
     input:
     file(items: "*") from copy_number_files.collect()
     file(targets_list_file) from targets_list
 
     output:
-    file("${output_file}")
+    file("${portal_CNA_file}")
+    file("${analysis_gene_cna_file}")
 
     script:
-    output_file = 'data_CNA.txt'
+    portal_CNA_file = 'data_CNA.txt'
+    analysis_gene_cna_file ="${params.project_id}.gene.cna.txt"
     """
     python /usr/bin/facets-suite/facets geneLevel \
-    -o "${output_file}" \
+    -o "${portal_CNA_file}" \
     --cnaMatrix \
     -f ${items} \
     --targetFile "${targets_list_file}"
+
+    cp "${portal_CNA_file}" "${analysis_gene_cna_file}"
     """
 }
