@@ -8,3 +8,7 @@ nextflow
 output/
 test_input_data/
 *.sif
+input.json
+*.json
+conda
+files.txt*
