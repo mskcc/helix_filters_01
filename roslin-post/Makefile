@@ -16,6 +16,7 @@ install: ./nextflow
 INPUT_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data
 MAF_DIR:=$(INPUT_DIR)/maf
 FACETS_DIR:=$(INPUT_DIR)/facets
+INPUTS_YAML:=$(INPUT_DIR)/inputs/inputs.yaml
 
 OUTPUT_DIR:=$(CURDIR)/output
 PORTAL_DIR:=$(OUTPUT_DIR)/portal
@@ -34,7 +35,8 @@ run: install
 	--containerDir $(CONTAINER_DIR) \
 	--outputDir $(OUTPUT_DIR) \
 	--outputPortalDir $(PORTAL_DIR) \
-	--outputAnalysisDir $(ANALYSIS_DIR)
+	--outputAnalysisDir $(ANALYSIS_DIR) \
+	--inputs_yaml $(INPUTS_YAML)
 
 clean:
 	rm -f .nextflow.log*

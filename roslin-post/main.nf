@@ -1,3 +1,5 @@
+@Grab('org.yaml:snakeyaml:1.17')
+import org.yaml.snakeyaml.Yaml
 // import groovy.json.JsonSlurper;
 // def jsonSlurper = new JsonSlurper()
 // params.roslin_resources = "roslin_resources.json"
@@ -16,11 +18,8 @@
 // /juno/work/ci/roslin-pipelines/core/2.1.2/config/variant/2.5.7/settings.sh
 // /juno/work/ci/roslin-pipelines/variant/2.5.7/bin/scripts/roslin_resources.json
 
-// /juno/work/ci/roslin-pipelines/variant/2.5.7/bin/img/facets/1.6.3/facets.sif
-// !!! Uses alpine Linux; no bash; cant use with Nextflow !!
-// https://github.com/mskcc/roslin-variant/blob/2.6.x/build/containers/facets/1.6.3/Dockerfile
 
-// available command line arguments
+// ~~~~~ Available command line arguments ~~~~~ //
 params.outputDir = "output"
 params.outputPortalDir = "${params.outputDir}/portal"
 params.outputAnalysisDir = "${params.outputDir}/analysis"
@@ -35,9 +34,32 @@ params.is_impact = "" //"True"
 params.inputDir = 'input'
 params.maf_directory = "${params.inputDir}/maf"
 params.facets_directory = "${params.inputDir}/facets"
+params.inputs_yaml = null
 
-// globals
-def targetsList
+
+// ~~~~~ Global Variables ~~~~~ //
+// populate config with CLI params
+def config = [:]
+config << params
+
+// try to load the inputs_yaml
+def inputs_config
+if ( new File("${params.inputs_yaml}").exists() ){
+    log.info("Loading configs from ${params.inputs_yaml}")
+    Yaml parser = new Yaml()
+    inputs_config = parser.load(("${params.inputs_yaml}" as File).text)
+
+    // check if 'assay' is present
+    if ( inputs_config.containsKey('meta') ) {
+        if ( inputs_config.meta.containsKey('Assay') ) {
+            log.info("Loading assay from ${params.inputs_yaml}")
+            config.assay = inputs_config.meta.Assay
+        }
+    }
+}
+
+// Reference targets list files
+// def targetsList
 def targets = [
 AgilentExon_51MB_b37_v3: "/juno/work/ci/resources/roslin_resources/targets/AgilentExon_51MB_b37_v3/b37/AgilentExon_51MB_b37_v3_targets.intervals",
 IDT_Exome_v1_FP_b37: "/juno/work/ci/resources/roslin_resources/targets/IDT_Exome_v1_FP/b37/IDT_Exome_v1_FP_b37_targets.ilist",
@@ -59,34 +81,39 @@ HemePACT_v3: "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v3/b37/H
 HemePACT_v4: "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist"
 ]
 
-if (! targets.containsKey(params.targets)){
-    log.error("Value '${params.targets}' is not a registered value for 'targets'")
+// get the targets to use from the CLI args
+if (! targets.containsKey(config.targets)){
+    log.error("Value '${config.targets}' is not a registered value for 'targets'")
     log.error("Choose one of these: ${targets.keySet()}")
     exit 1
 }
 
-targetsList = targets[params.targets]
+config["targetsList"] = targets[config.targets]
 
+
+
+// ~~~~~ Print Logging Messages ~~~~~ //
 log.info("\n")
 log.info("Rosling Post Processing Workflow")
-log.info("targetsList: ${targetsList}")
-// log.info("params: ${params}")
-params.each{ k, v -> log.info("${k}: ${v}") }
+config.each{ k, v -> log.info("${k}: ${v}") }
 log.info("\n")
 
-targets_list = Channel.fromPath( "${targetsList}" ).first()
-maf_files = Channel.fromPath( "${params.maf_directory}/*.muts.maf" )
-copy_number_files = Channel.fromPath( "${params.facets_directory}/*_hisens.cncf.txt" )
-segment_files = Channel.fromPath( "${params.facets_directory}/*_hisens.seg" )
+
+// ~~~~~ Input Data Channels ~~~~~ //
+targets_list = Channel.fromPath( "${config.targetsList}" ).first()
+maf_files = Channel.fromPath( "${config.maf_directory}/*.muts.maf" )
+copy_number_files = Channel.fromPath( "${config.facets_directory}/*_hisens.cncf.txt" )
+segment_files = Channel.fromPath( "${config.facets_directory}/*_hisens.seg" )
 segment_files.collectFile(keepHeader: true, name: "segments.combined.txt").set { combined_segments }
 
 
+// ~~~~~ Workflow Tasks ~~~~~ //
 process generate_cbioportal_stable_ID {
     // need to check if the provided project ID is ok for use in cBioPortal (not already in use)
     // otherwise, generate a new ID. This ID will be saved in the Google Sheet for cBioPortal
 
     input:
-    val(project_id) from "${params.project_id}"
+    val(project_id) from "${config.project_id}"
 
     output:
     file("${output_file}") into cbioportal_stable_ID_txt
@@ -131,8 +158,8 @@ stripped_mafs.collectFile(keepHeader: true, name: "data_mutations_extended.combi
 process filter_maf {
     // filter the maf file contents
     // this will create two filtered output files
-    publishDir "${params.outputPortalDir}", mode: 'copy', pattern: "${portal_file}"
-    publishDir "${params.outputAnalysisDir}", mode: 'copy', pattern: "${analysis_mut_file}"
+    publishDir "${config.outputPortalDir}", mode: 'copy', pattern: "${portal_file}"
+    publishDir "${config.outputAnalysisDir}", mode: 'copy', pattern: "${analysis_mut_file}"
 
     input:
     file(maf) from combined_maf
@@ -142,17 +169,17 @@ process filter_maf {
     file("${portal_file}")
 
     script:
-    analysis_mut_file = "${params.project_id}.muts.maf"
+    analysis_mut_file = "${config.project_id}.muts.maf"
     portal_file = "data_mutations_extended.txt"
     """
-    maf_filter.py "${maf}" "${params.version}" "${params.is_impact}" "${analysis_mut_file}" "${portal_file}"
+    maf_filter.py "${maf}" "${config.version}" "${config.is_impact}" "${analysis_mut_file}" "${portal_file}"
     """
 }
 
 process fix_segment_file {
     // need to adjust the number of significant figures in the decimal place for the segment file
-    publishDir "${params.outputPortalDir}", mode: 'copy', pattern: "${segmented_data_file}"
-    publishDir "${params.outputAnalysisDir}", mode: 'copy', pattern: "${analysis_seg_file}"
+    publishDir "${config.outputPortalDir}", mode: 'copy', pattern: "${segmented_data_file}"
+    publishDir "${config.outputAnalysisDir}", mode: 'copy', pattern: "${analysis_seg_file}"
 
     input:
     file(segments) from combined_segments
@@ -164,7 +191,7 @@ process fix_segment_file {
 
     script:
     segmented_data_file = "${cbio_id}_data_cna_hg19.seg"
-    analysis_seg_file = "${params.project_id}.seg.cna.txt"
+    analysis_seg_file = "${config.project_id}.seg.cna.txt"
     """
     # print out the file with fewer digits after the decimal in the seg.mean column
     python -c "
@@ -184,8 +211,8 @@ process fix_segment_file {
 
 
 process generate_discrete_copy_number_data {
-    publishDir "${params.outputPortalDir}", mode: 'copy', pattern: "${portal_CNA_file}"
-    publishDir "${params.outputAnalysisDir}", mode: 'copy', pattern: "${analysis_gene_cna_file}"
+    publishDir "${config.outputPortalDir}", mode: 'copy', pattern: "${portal_CNA_file}"
+    publishDir "${config.outputAnalysisDir}", mode: 'copy', pattern: "${analysis_gene_cna_file}"
 
     input:
     file(items: "*") from copy_number_files.collect()
@@ -197,7 +224,7 @@ process generate_discrete_copy_number_data {
 
     script:
     portal_CNA_file = 'data_CNA.txt'
-    analysis_gene_cna_file ="${params.project_id}.gene.cna.txt"
+    analysis_gene_cna_file ="${config.project_id}.gene.cna.txt"
     """
     python /usr/bin/facets-suite/facets geneLevel \
     -o "${portal_CNA_file}" \
