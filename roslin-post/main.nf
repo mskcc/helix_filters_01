@@ -25,12 +25,13 @@ params.outputPortalDir = "${params.outputDir}/portal"
 params.outputAnalysisDir = "${params.outputDir}/analysis"
 params.assay = null
 params.targets = null
-params.pi = ''
-params.project_id = 'ProjectID_1'
-params.project_title = 'ProjectTitle_1'
-params.tumor_type = ''
+params.pi = null
+params.project_id = null
+params.project_title = null
+params.project_desc = null
+params.tumor_type = null
 params.version = '2.x'
-params.is_impact = "" //"True"
+params.is_impact = '' //"True"
 params.inputDir = 'input'
 params.maf_directory = "${params.inputDir}/maf"
 params.facets_directory = "${params.inputDir}/facets"
@@ -42,19 +43,102 @@ params.inputs_yaml = null
 def config = [:]
 config << params
 
+def clinical_data
+def pairs
+def groups
+def runparams
+
 // try to load the inputs_yaml
 def inputs_config
-if ( new File("${params.inputs_yaml}").exists() ){
-    log.info("Loading configs from ${params.inputs_yaml}")
+if ( new File("${config.inputs_yaml}").exists() ){
+    log.info("Loading configs from ${config.inputs_yaml}")
     Yaml parser = new Yaml()
-    inputs_config = parser.load(("${params.inputs_yaml}" as File).text)
+    inputs_config = parser.load(("${config.inputs_yaml}" as File).text)
 
     // check if 'assay' is present
-    if ( inputs_config.containsKey('meta') ) {
-        if ( inputs_config.meta.containsKey('Assay') ) {
-            log.info("Loading assay from ${params.inputs_yaml}")
-            config.assay = inputs_config.meta.Assay
+    if ( config.assay == null ) {
+        if ( inputs_config.containsKey('meta') ) {
+            if ( inputs_config.meta.containsKey('Assay') ) {
+                log.info("Loading assay from ${config.inputs_yaml}")
+                config.assay = inputs_config.meta.Assay
+            }
         }
+    }
+
+    // check if project ID is present
+    if ( config.project_id == null ){
+        if ( inputs_config.containsKey('meta') ) {
+            if ( inputs_config.meta.containsKey('ProjectID') ) {
+                log.info("Loading project_id from ${config.inputs_yaml}")
+                config.project_id = inputs_config.meta.ProjectID
+            }
+        }
+    }
+
+    // check if tumor_type is present
+    if ( config.tumor_type == null ){
+        if ( inputs_config.containsKey('meta') ) {
+            if ( inputs_config.meta.containsKey('TumorType') ) {
+                log.info("Loading tumor_type from ${config.inputs_yaml}")
+                config.tumor_type = inputs_config.meta.TumorType
+            }
+        }
+    }
+
+    // check if project_title is present
+    if ( config.project_title == null ){
+        if ( inputs_config.containsKey('meta') ) {
+            if ( inputs_config.meta.containsKey('ProjectTitle') ) {
+                log.info("Loading project_title from ${config.inputs_yaml}")
+                config.project_title = inputs_config.meta.ProjectTitle
+            }
+        }
+    }
+
+    // check if PI is present
+    if ( config.pi == null ){
+        if ( inputs_config.containsKey('meta') ) {
+            if ( inputs_config.meta.containsKey('PI') ) {
+                log.info("Loading pi from ${config.inputs_yaml}")
+                config.pi = inputs_config.meta.PI
+            }
+        }
+    }
+
+    // check if ProjectDesc is present
+    if ( config.project_desc == null ){
+        if ( inputs_config.containsKey('meta') ) {
+            if ( inputs_config.meta.containsKey('ProjectDesc') ) {
+                log.info("Loading project_desc from ${config.inputs_yaml}")
+                config.project_desc = inputs_config.meta.ProjectDesc
+            }
+        }
+    }
+
+    // check if clinical_data is present
+    if ( inputs_config.containsKey('meta') ) {
+        if ( inputs_config.meta.containsKey('clinical_data') ) {
+            log.info("Loading clinical_data from ${config.inputs_yaml}")
+            clinical_data = inputs_config.meta.clinical_data
+        }
+    }
+
+    // check if pairs is present
+    if ( inputs_config.containsKey('pairs') ) {
+        log.info("Loading pairs from ${config.inputs_yaml}")
+        pairs = inputs_config.pairs
+    }
+
+    // check if groups is present
+    if ( inputs_config.containsKey('groups') ) {
+        log.info("Loading groups from ${config.inputs_yaml}")
+        groups = inputs_config.groups
+    }
+
+    // check if runparams is present
+    if ( inputs_config.containsKey('runparams') ) {
+        log.info("Loading runparams from ${config.inputs_yaml}")
+        runparams = inputs_config.runparams
     }
 }
 
@@ -94,7 +178,7 @@ config["targetsList"] = targets[config.targets]
 
 // ~~~~~ Print Logging Messages ~~~~~ //
 log.info("\n")
-log.info("Rosling Post Processing Workflow")
+log.info(">>> Rosling Post Processing Workflow <<<")
 config.each{ k, v -> log.info("${k}: ${v}") }
 log.info("\n")
 
