@@ -20,9 +20,6 @@ import org.yaml.snakeyaml.Yaml
 
 
 // ~~~~~ Available command line arguments ~~~~~ //
-params.outputDir = "output"
-params.outputPortalDir = "${params.outputDir}/portal"
-params.outputAnalysisDir = "${params.outputDir}/analysis"
 params.assay = null
 params.targets = null
 params.pi = null
@@ -35,15 +32,18 @@ params.is_impact = '' //"True"
 params.inputDir = 'input'
 params.maf_directory = "${params.inputDir}/maf"
 params.facets_directory = "${params.inputDir}/facets"
-params.inputs_yaml = null
-
+params.inputs_yaml = null // inputs.yaml
+params.sample_summary = null // _SampleSummary.txt
+params.clinical_data = null // _data_clinical.txt
+params.outputDir = "output"
+params.outputPortalDir = "${params.outputDir}/portal"
+params.outputAnalysisDir = "${params.outputDir}/analysis"
 
 // ~~~~~ Global Variables ~~~~~ //
 // populate config with CLI params
 def config = [:]
 config << params
 
-def clinical_data
 def pairs
 def groups
 def runparams
@@ -116,12 +116,12 @@ if ( new File("${config.inputs_yaml}").exists() ){
     }
 
     // check if clinical_data is present
-    if ( inputs_config.containsKey('meta') ) {
-        if ( inputs_config.meta.containsKey('clinical_data') ) {
-            log.info("Loading clinical_data from ${config.inputs_yaml}")
-            clinical_data = inputs_config.meta.clinical_data
-        }
-    }
+    // if ( inputs_config.containsKey('meta') ) {
+    //     if ( inputs_config.meta.containsKey('clinical_data') ) {
+    //         log.info("Loading clinical_data from ${config.inputs_yaml}")
+    //         clinical_data = inputs_config.meta.clinical_data
+    //     }
+    // }
 
     // check if pairs is present
     if ( inputs_config.containsKey('pairs') ) {
@@ -174,7 +174,10 @@ if (! targets.containsKey(config.targets)){
 
 config["targetsList"] = targets[config.targets]
 
-
+// check_if_impact
+if ( "${config.assay}".contains("IMPACT") || "${config.assay}".contains("HemePACT") ){
+    config.is_impact = "True"
+}
 
 // ~~~~~ Print Logging Messages ~~~~~ //
 log.info("\n")

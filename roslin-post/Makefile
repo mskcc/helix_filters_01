@@ -43,3 +43,7 @@ clean:
 
 clean-all: clean
 	rm -rf work .nextflow
+
+
+DOCKERTAG:=helix_filter
+docker-build:
