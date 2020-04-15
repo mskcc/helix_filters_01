@@ -47,7 +47,10 @@ run:
 	"maf_files":$$files}
 	' \
 	> input.json && \
-	cwl-runner cwl/workflow.cwl input.json
+	cwl-runner \
+	--leave-tmpdir \
+	--tmpdir-prefix $(CURDIR)/tmp \
+	cwl/workflow.cwl input.json
 # cwl-runner cwl/maf_filter.cwl input.json
 
 # --arg maf_file "$(maf_file)" \

@@ -25,15 +25,20 @@ steps:
       input_file: maf_files
     out:
       [output_file]
+  concat_maf:
+    run: concat.cwl
+    in:
+      input_files: strip_maf/output_file
+    out:
+      [output_file]
   maf_filter:
     run: maf_filter.cwl
-    scatter: maf_file
     in:
-      maf_file: strip_maf/output_file
+      maf_file: concat_maf/output_file
       roslin_version_string: roslin_version_string
       is_impact: is_impact
       analyst_file: analyst_file
       portal_file: portal_file
-    out: []
+    out: [analyst_file, portal_file]
 
 outputs: []
