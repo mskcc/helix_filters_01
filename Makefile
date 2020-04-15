@@ -31,7 +31,6 @@ install: conda
 PROJ_ID:=Project_1
 MAF_DIR:=../test_data/maf
 run:
-	set -x
 	ls -1 $(MAF_DIR)/*.muts.maf | \
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > files.txt && \
 	jq -n \
@@ -51,10 +50,6 @@ run:
 	--leave-tmpdir \
 	--tmpdir-prefix $(CURDIR)/tmp \
 	cwl/workflow.cwl input.json
-# cwl-runner cwl/maf_filter.cwl input.json
-
-# --arg maf_file "$(maf_file)" \
-# "maf_file": {"class": "File", "path":$$maf_file} }
 
 bash:
 	bash
