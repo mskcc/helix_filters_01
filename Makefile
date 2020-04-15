@@ -33,10 +33,9 @@ MAF_DIR:=../test_data/maf
 run:
 	set -x
 	ls -1 $(MAF_DIR)/*.muts.maf | \
-	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' | \
-	jq -s '.'  > files.json && \
+	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > files.txt && \
 	jq -n \
-	--slurpfile files files.json \
+	--slurpfile files files.txt \
 	--arg roslin_version_string "2.x" \
 	--arg is_impact "True" \
 	--arg analyst_file "$(PROJ_ID).muts.maf" \
@@ -47,7 +46,8 @@ run:
 	"portal_file":$$portal_file,
 	"maf_files":$$files}
 	' \
-	> input.json
+	> input.json && \
+	cwl-runner cwl/workflow.cwl input.json
 # cwl-runner cwl/maf_filter.cwl input.json
 
 # --arg maf_file "$(maf_file)" \
