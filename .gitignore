@@ -12,3 +12,6 @@ input.json
 *.json
 conda
 files.txt*
+cache/
+muts.maf.txt
+hisens.cncf.txt
