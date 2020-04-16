@@ -49,6 +49,7 @@ run:
 	cwl-runner \
 	--leave-tmpdir \
 	--tmpdir-prefix $(CURDIR)/tmp \
+	--preserve-environment PATH \
 	cwl/workflow.cwl input.json
 
 bash:
