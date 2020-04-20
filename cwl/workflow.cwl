@@ -47,7 +47,7 @@ steps:
     # concat all the maf files into a single table
     run: concat.cwl
     in:
-      input_files: strip_maf/output_file
+      input_files: maf_filter/analyst_file
     out:
       [output_file]
 
