@@ -8,6 +8,8 @@
 #
 #   cp "${portal_CNA_file}" "${analysis_gene_cna_file}"
 
+# NOTE: Beware of massive CLI arg lists with large amounts of files
+
 cwlVersion: v1.0
 class: CommandLineTool
 baseCommand: ["python", "/usr/bin/facets-suite/facets", "geneLevel", "--cnaMatrix"]
