@@ -1,10 +1,11 @@
-SHELL:=/bin/bash
+export SHELL:=/bin/bash
+.ONESHELL:
+export SHELLOPTS:=$(if $(SHELLOPTS),$(SHELLOPTS):)pipefail:errexit
 UNAME:=$(shell uname)
 export SINGULARITY_CACHEDIR:=/juno/work/ci/singularity_images
 export PATH:=$(CURDIR)/conda/bin:$(CURDIR)/bin:$(PATH)
 unexport PYTHONPATH
 unexport PYTHONHOME
-.ONESHELL:
 
 ifeq ($(UNAME), Darwin)
 CONDASH:=Miniconda3-4.5.4-MacOSX-x86_64.sh
@@ -35,18 +36,20 @@ FACETS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/
 TARGETS_LIST:=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist
 # .maf input files JSON
 muts.maf.txt:
-	ls -1 $(MAF_DIR)/*.muts.maf | \
+	find $(MAF_DIR) -type f -name "*.muts.maf" | \
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > muts.maf.txt
 .PHONY: muts.maf.txt
 
 # the copy_number_files input JSON
 hisens.cncf.txt:
-	ls -1 $(FACETS_DIR)/*_hisens.cncf.txt | \
+	find $(FACETS_DIR) -type f -name "*_hisens.cncf.txt" | \
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > hisens.cncf.txt
 .PHONY: hisens.cncf.txt
 
 # the input for the pipeline
 input.json: muts.maf.txt hisens.cncf.txt
+	if [ "$$(cat muts.maf.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File muts.maf.txt is empty"; exit 1; fi
+	if [ "$$(cat hisens.cncf.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File muts.maf.txt is empty"; exit 1; fi
 	jq -n \
 	--slurpfile maf_files muts.maf.txt \
 	--slurpfile hisens_cncfs hisens.cncf.txt \
@@ -72,7 +75,11 @@ input.json: muts.maf.txt hisens.cncf.txt
 TMP_DIR:=$(CURDIR)/tmp/
 OUTPUT_DIR:=$(CURDIR)/output/
 CACHE_DIR:=$(CURDIR)/cache/
-run: input.json
+
+$(OUTPUT_DIR):
+	mkdir -p "$(OUTPUT_DIR)"
+
+run: input.json $(OUTPUT_DIR)
 	module load singularity/3.3.0 && \
 	cwl-runner \
 	--leave-tmpdir \
