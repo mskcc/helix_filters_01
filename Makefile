@@ -29,9 +29,9 @@ install: conda
 	cwltool==2.0.20200126090152 \
 	cwlref-runner==1.0
 
-PROJ_ID:=Project_1
-MAF_DIR:=../test_data/maf
-FACETS_DIR:=../test_data/facets
+PROJ_ID:=Proj_08390_G
+MAF_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/maf
+FACETS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/facets
 TARGETS_LIST:=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist
 # .maf input files JSON
 muts.maf.txt:
@@ -87,3 +87,6 @@ run: input.json
 
 bash:
 	bash
+
+clean:
+	rm -rf cache tmp
