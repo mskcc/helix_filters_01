@@ -92,6 +92,9 @@ run: input.json $(OUTPUT_DIR)
 	--preserve-environment SINGULARITY_CACHEDIR \
 	cwl/workflow.cwl input.json
 
+# example:
+# make run PROJ_ID=10753_B MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist OUTPUT_DIR=/path/to/helix_filters
+
 bash:
 	bash
 
