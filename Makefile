@@ -9,6 +9,10 @@ This repo contains scripts and workflows for usage with the Roslin pipeline in o
 
 The subdir "roslin-post" is meant to include the main helix filter workflow + extra cBio Portal file generations (in development)
 
+Dependencies can be installed with:
+
+make install
+
 Example usage of this helix filter workflow:
 
 make run PROJ_ID=My_Project MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets OUTPUT_DIR=/path/to/helix_filters TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist
