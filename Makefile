@@ -1,6 +1,26 @@
 export SHELL:=/bin/bash
 .ONESHELL:
 export SHELLOPTS:=$(if $(SHELLOPTS),$(SHELLOPTS):)pipefail:errexit
+
+define help
+This is the Makefile for helix filters
+
+This repo contains scripts and workflows for usage with the Roslin pipeline in order to filter variant calling results
+
+The subdir "roslin-post" is meant to include the main helix filter workflow + extra cBio Portal file generations (in development)
+
+Example usage of this helix filter workflow:
+
+make run PROJ_ID=My_Project MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets OUTPUT_DIR=/path/to/helix_filters TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist
+
+check the file 'ref/roslin_resources.json' to find the correct target set for your assay type
+
+endef
+export help
+help:
+	@printf "$$help"
+.PHONY : help
+
 UNAME:=$(shell uname)
 export SINGULARITY_CACHEDIR:=/juno/work/ci/singularity_images
 export PATH:=$(CURDIR)/conda/bin:$(CURDIR)/bin:$(PATH)
@@ -79,6 +99,8 @@ CACHE_DIR:=$(CURDIR)/cache/
 $(OUTPUT_DIR):
 	mkdir -p "$(OUTPUT_DIR)"
 
+# example:
+# make run PROJ_ID=10753_B MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist OUTPUT_DIR=/path/to/helix_filters
 run: input.json $(OUTPUT_DIR)
 	module load singularity/3.3.0 && \
 	cwl-runner \
@@ -91,9 +113,6 @@ run: input.json $(OUTPUT_DIR)
 	--preserve-environment PATH \
 	--preserve-environment SINGULARITY_CACHEDIR \
 	cwl/workflow.cwl input.json
-
-# example:
-# make run PROJ_ID=10753_B MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist OUTPUT_DIR=/path/to/helix_filters
 
 bash:
 	bash
