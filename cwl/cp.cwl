@@ -5,7 +5,7 @@ class: CommandLineTool
 baseCommand: cp
 requirements:
   DockerRequirement:
-    dockerPull: mskcc/helix_filters_01:dev
+    dockerPull: mskcc/helix_filters_01:1.0.0
 inputs:
   input_file:
     type: File

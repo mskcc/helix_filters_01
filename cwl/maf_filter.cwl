@@ -9,7 +9,7 @@ baseCommand: /usr/bin/helix_filters_01/bin/maf_filter.py
 
 requirements:
   DockerRequirement:
-    dockerPull: mskcc/helix_filters_01:dev
+    dockerPull: mskcc/helix_filters_01:1.0.0
 
 inputs:
   maf_file:
