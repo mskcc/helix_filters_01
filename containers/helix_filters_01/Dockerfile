@@ -1,4 +1,4 @@
-FROM continuumio/miniconda:4.5.4
+FROM continuumio/miniconda3:4.5.4
 
 ARG COMMIT_VERSION="master"
 
