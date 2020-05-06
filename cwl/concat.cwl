@@ -7,6 +7,8 @@ class: CommandLineTool
 baseCommand: ["bash", "concat.sh"]
 
 requirements:
+  DockerRequirement:
+    dockerPull: mskcc/helix_filters_01:dev
   InlineJavascriptRequirement: {}
   InitialWorkDirRequirement:
     listing:
