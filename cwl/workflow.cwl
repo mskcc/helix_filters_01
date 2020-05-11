@@ -78,13 +78,28 @@ steps:
     out:
       [output_file]
 
+  make_portal_dir:
+    # put some files into portal dir
+    run: put_in_dir.cwl
+    in:
+      portal_cna_file: copy_number/output_portal_CNA_file
+      output_directory_name: "portal"
+      files: [ inputs.portal_cna_file ]
+    out: [ directory ]
+
+  make_analysis_dir:
+    run: put_in_dir.cwl
+    in:
+      analyst_file: rename_analyst_file/output_file
+      gene_cna_file: copy_cna_file/output_file
+      output_directory_name: "analysis"
+      files: [ inputs.analyst_file, inputs.gene_cna_file ]
+    out: [ directory ]
+
 outputs:
-  analyst_file:
-    type: File
-    outputSource: rename_analyst_file/output_file
-  output_portal_CNA_file:
-    type: File
-    outputSource: copy_number/output_portal_CNA_file
-  analysis_gene_cna_file:
-    type: File
-    outputSource: copy_cna_file/output_file
+  portal_dir:
+    type: Directory
+    outputSource: make_portal_dir/directory
+  analysis_dir:
+    type: Directory
+    outputSource: make_analysis_dir/directory
