@@ -15,3 +15,4 @@ files.txt*
 cache/
 muts.maf.txt
 hisens.cncf.txt
+*.pyc
