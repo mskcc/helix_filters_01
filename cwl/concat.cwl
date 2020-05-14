@@ -14,7 +14,7 @@ requirements:
     listing:
       - entryname: concat.sh
         entry: |-
-          grep -v '#' $(inputs.input_files[1].path) | head -1  > output.txt
+          grep -v '#' $(inputs.input_files[0].path) | head -1  > output.txt
           for i in ${ var output = []; for (var i = 0; i < inputs.input_files.length; i++){ output=output.concat(inputs.input_files[i]['path']); } return output.join(' ');}; do
           grep -v '#' \$i | tail -n +2 >> output.txt
           done
