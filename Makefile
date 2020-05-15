@@ -105,7 +105,8 @@ $(OUTPUT_DIR):
 
 # example:
 # make run PROJ_ID=10753_B MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist OUTPUT_DIR=/path/to/helix_filters
-run: input.json $(OUTPUT_DIR)
+INPUT_JSON:=input.json
+run: $(INPUT_JSON) $(OUTPUT_DIR)
 	module load singularity/3.3.0 && \
 	cwl-runner \
 	--leave-tmpdir \
@@ -116,7 +117,7 @@ run: input.json $(OUTPUT_DIR)
 	--singularity \
 	--preserve-environment PATH \
 	--preserve-environment SINGULARITY_CACHEDIR \
-	cwl/workflow.cwl input.json
+	cwl/workflow.cwl $(INPUT_JSON)
 
 bash:
 	bash
