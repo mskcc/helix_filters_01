@@ -13,15 +13,6 @@ from .settings import CWL_DIR, CWL_ARGS
 cwl_file = os.path.join(CWL_DIR, 'put_in_dir.cwl')
 
 class TestPutInDir(unittest.TestCase):
-    # @classmethod
-    # def setUpClass(cls):
-    #     """
-    #     setUp class for the tests; this will only execute once and will be available for
-    #     the tests to access the results
-    #     """
-    #     super(TestPutInDir, cls).setUpClass()
-    #     # cls.flagstat = flagstat.Flagstat(txt = demo_flagstat)
-
     def test_put_two_files_in_dir(self):
         """
         Test that two files are put in the dir correctly

@@ -120,6 +120,7 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 	cwl/workflow.cwl $(INPUT_JSON)
 
 test:
+	module load singularity/3.3.0 && \
 	python test.py
 
 bash:
