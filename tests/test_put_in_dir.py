@@ -13,17 +13,18 @@ from .settings import CWL_DIR, CWL_ARGS
 cwl_file = os.path.join(CWL_DIR, 'put_in_dir.cwl')
 
 class TestPutInDir(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        """
-        setUp class for the tests; this will only execute once and will be available for
-        the tests to access the results
-        """
-        super(TestPutInDir, cls).setUpClass()
-        # cls.flagstat = flagstat.Flagstat(txt = demo_flagstat)
+    # @classmethod
+    # def setUpClass(cls):
+    #     """
+    #     setUp class for the tests; this will only execute once and will be available for
+    #     the tests to access the results
+    #     """
+    #     super(TestPutInDir, cls).setUpClass()
+    #     # cls.flagstat = flagstat.Flagstat(txt = demo_flagstat)
 
     def test_put_two_files_in_dir(self):
         """
+        Test that two files are put in the dir correctly
         """
         with TemporaryDirectory() as tmpdir, NamedTemporaryFile() as file1, NamedTemporaryFile() as file2:
             # set path to the dir which this CWL should to output to
@@ -72,3 +73,34 @@ class TestPutInDir(unittest.TestCase):
             self.assertEqual(len(os.listdir(output_json['directory']['path'])), 2)
             self.assertTrue(os.path.basename(file1.name)in os.listdir(output_json['directory']['path']) )
             self.assertTrue(os.path.basename(file2.name)in os.listdir(output_json['directory']['path']) )
+
+    def test_put_one_file1_in_dir(self):
+        """
+        Test that one file is put in the dir correctly
+        """
+        with TemporaryDirectory() as tmpdir, NamedTemporaryFile() as file1:
+            output_dir = os.path.join(tmpdir, "output")
+            input_json = {
+                "output_directory_name": output_dir,
+                "files": [
+                    {
+                      "class": "File",
+                      "path": file1.name
+                    },
+                ]
+            }
+            input_json_file = os.path.join(tmpdir, "input.json")
+            json.dump(input_json, open(input_json_file, "w"))
+            command = [ "cwl-runner", *CWL_ARGS, cwl_file, input_json_file ]
+            returncode, proc_stdout, proc_stderr = run_command(command)
+            output_json = json.loads(proc_stdout)
+
+            # test that command ran successfully
+            self.assertEqual(returncode, 0)
+            # make sure the dir exists
+            self.assertTrue(os.path.exists( output_json['directory']['path'] ))
+            self.assertTrue(os.path.isdir( output_json['directory']['path'] ))
+            self.assertEqual(output_dir, output_json['directory']['path'])
+            # make sure both files were output to the dir
+            self.assertEqual(len(os.listdir(output_json['directory']['path'])), 1)
+            self.assertTrue(os.path.basename(file1.name)in os.listdir(output_json['directory']['path']) )
