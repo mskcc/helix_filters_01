@@ -119,6 +119,9 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 	--preserve-environment SINGULARITY_CACHEDIR \
 	cwl/workflow.cwl $(INPUT_JSON)
 
+test:
+	python test.py
+
 bash:
 	bash
 
