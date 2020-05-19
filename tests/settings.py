@@ -28,8 +28,8 @@ DATA_SETS = {
         "MAF_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "maf"),
         "FACETS_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "facets"),
         "INPUTS_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "inputs"),
-        # "targets_list": "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist",
-        # "analyst_file": "Proj_08390_G.muts.maf",
-        # "analysis_gene_cna_file": "Proj_08390_G.gene.cna.txt",
+        "targets_list": "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist",
+        "analyst_file": "Proj_08390_G.muts.maf",
+        "analysis_gene_cna_file": "Proj_08390_G.gene.cna.txt",
     }
 }
