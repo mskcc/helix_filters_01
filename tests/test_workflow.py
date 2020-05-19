@@ -17,9 +17,41 @@ class TestWorkflow(unittest.TestCase):
         """
         Test that the workflow works correctly when run with a single maf
         """
-        input_json_file = os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "input.one_maf.json")
+        input_json = {
+            "analyst_file": "Proj_08390_G.muts.maf",
+            "is_impact": "True",
+            "portal_file": "data_mutations_extended.txt",
+            "roslin_version_string": "2.x",
+            "portal_CNA_file": "data_CNA.txt",
+            "maf_files": [
+                {
+                    "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "maf/Sample1.Sample2.muts.maf"),
+                    "class": "File"
+                }
+            ],
+            "hisens_cncfs": [
+                {
+                    "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "facets/Sample2.rg.md.abra.printreads__Sample1.rg.md.abra.printreads_hisens.cncf.txt"),
+                    "class": "File"
+                },
+                {
+                    "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "facets/Sample3.rg.md.abra.printreads__Sample4.rg.md.abra.printreads_hisens.cncf.txt"),
+                    "class": "File"
+                }
+            ],
+            "analysis_gene_cna_file": "Proj_08390_G.gene.cna.txt",
+            "targets_list": {
+                "path": "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist",
+                "class": "File"
+            }
+        }
 
         with TemporaryDirectory() as tmpdir:
+
+            input_json_file = os.path.join(tmpdir, "input.json")
+            with open(input_json_file, "w") as json_out:
+                json.dump(input_json, json_out)
+            # input_json_file = os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "input.one_maf.2.json")
 
             output_dir = os.path.join(tmpdir, "output")
             tmp_dir = os.path.join(tmpdir, "tmp")
@@ -35,8 +67,9 @@ class TestWorkflow(unittest.TestCase):
                 ]
 
             returncode, proc_stdout, proc_stderr = run_command(command)
-            # print(returncode, proc_stdout, proc_stderr)
+
             output_json = json.loads(proc_stdout)
+            # print(returncode, proc_stdout, proc_stderr, output_json)
 
             self.assertEqual(returncode, 0)
 
@@ -86,8 +119,43 @@ class TestWorkflow(unittest.TestCase):
         """
         Test that the workflow works correctly when run with a
         """
-        input_json_file = os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "input.all.json")
+        input_json = {
+            "analyst_file": "Proj_08390_G.muts.maf",
+            "is_impact": "True",
+            "portal_file": "data_mutations_extended.txt",
+            "roslin_version_string": "2.x",
+            "portal_CNA_file": "data_CNA.txt",
+            "maf_files": [
+                {
+                    "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "maf/Sample1.Sample2.muts.maf"),
+                    "class": "File"
+                },
+                {
+                    "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "maf/Sample4.Sample3.muts.maf"),
+                    "class": "File"
+                }
+            ],
+            "hisens_cncfs": [
+                {
+                    "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "facets/Sample2.rg.md.abra.printreads__Sample1.rg.md.abra.printreads_hisens.cncf.txt"),
+                    "class": "File"
+                },
+                {
+                    "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "facets/Sample3.rg.md.abra.printreads__Sample4.rg.md.abra.printreads_hisens.cncf.txt"),
+                    "class": "File"
+                }
+            ],
+            "analysis_gene_cna_file": "Proj_08390_G.gene.cna.txt",
+            "targets_list": {
+                "path": "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist",
+                "class": "File"
+            }
+        }
         with TemporaryDirectory() as tmpdir:
+            # input_json_file = os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "input.all.json")
+            input_json_file = os.path.join(tmpdir, "input.json")
+            with open(input_json_file, "w") as json_out:
+                json.dump(input_json, json_out)
 
             output_dir = os.path.join(tmpdir, "output")
             tmp_dir = os.path.join(tmpdir, "tmp")
@@ -105,6 +173,7 @@ class TestWorkflow(unittest.TestCase):
             returncode, proc_stdout, proc_stderr = run_command(command)
 
             output_json = json.loads(proc_stdout)
+            # print(returncode, proc_stdout, proc_stderr, output_json)
 
             self.assertEqual(returncode, 0)
 
