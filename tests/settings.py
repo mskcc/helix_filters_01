@@ -23,7 +23,7 @@ DATA_SETS = {
         "FACETS_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "facets"),
         "INPUTS_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "inputs"),
         "targets_list": "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist",
-        "roslin_version_string": "2.x",
+        "argos_version_string": "2.x",
         "is_impact": True,
         "analyst_file": "Proj_08390_G.muts.maf",
         "analysis_gene_cna_file": "Proj_08390_G.gene.cna.txt",

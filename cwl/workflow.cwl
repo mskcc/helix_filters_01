@@ -10,7 +10,7 @@ requirements:
 
 inputs:
   maf_files: File[]
-  roslin_version_string:
+  argos_version_string:
     type: string
   is_impact:
     type: string
@@ -39,7 +39,7 @@ steps:
     scatter: maf_file
     in:
       maf_file: strip_maf/output_file
-      roslin_version_string: roslin_version_string
+      argos_version_string: argos_version_string
       is_impact: is_impact
       analyst_file: analyst_file
       portal_file: portal_file

@@ -16,7 +16,7 @@ inputs:
     type: File
     inputBinding:
       position: 1
-  roslin_version_string:
+  argos_version_string:
     type: string
     inputBinding:
       position: 2

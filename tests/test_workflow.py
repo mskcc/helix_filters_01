@@ -21,7 +21,7 @@ class TestWorkflow(unittest.TestCase):
             "analyst_file": "Proj_08390_G.muts.maf",
             "is_impact": "True",
             "portal_file": "data_mutations_extended.txt",
-            "roslin_version_string": "2.x",
+            "argos_version_string": "2.x",
             "portal_CNA_file": "data_CNA.txt",
             "maf_files": [
                 {
@@ -123,7 +123,7 @@ class TestWorkflow(unittest.TestCase):
             "analyst_file": "Proj_08390_G.muts.maf",
             "is_impact": "True",
             "portal_file": "data_mutations_extended.txt",
-            "roslin_version_string": "2.x",
+            "argos_version_string": "2.x",
             "portal_CNA_file": "data_CNA.txt",
             "maf_files": [
                 {
