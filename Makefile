@@ -19,6 +19,12 @@ make run PROJ_ID=My_Project MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/out
 
 check the file 'ref/roslin_resources.json' to find the correct target set for your assay type
 
+Run the test suite:
+
+make test
+
+NOTE: requires the fixtures directory on juno
+
 endef
 export help
 help:
@@ -128,3 +134,5 @@ bash:
 
 clean:
 	rm -rf cache tmp
+clean-all: clean
+	rm -rf output portal analysis

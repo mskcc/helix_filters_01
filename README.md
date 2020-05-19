@@ -17,3 +17,11 @@ See the 'help' text in the Makefile for the most up to date instructions;
 ```
 make help
 ```
+
+## Run the test suite
+
+```
+make test
+```
+
+- NOTE: requires the fixtures directory on juno
