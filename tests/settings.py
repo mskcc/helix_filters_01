@@ -14,7 +14,13 @@ CWL_ARGS = [
 ]
 
 # location on the filesystem for static fixtures
-FIXTURES_DIR = '/juno/work/ci/helix_filters_01/fixtures'
+FIXTURES_DIR = os.environ.get('FIXTURES_DIR', '/juno/work/ci/helix_filters_01/fixtures')
+
+ARGOS_VERSION_STRING = os.environ.get('ARGOS_VERSION_STRING', '2.x')
+IS_IMPACT = os.environ.get('IS_IMPACT', "True")
+PORTAL_FILE = os.environ.get('PORTAL_FILE', 'data_mutations_extended.txt')
+PORTAL_CNA_FILE = os.environ.get('PORTAL_CNA_FILE', 'data_CNA.txt')
+
 
 DATA_SETS = {
     "Proj_08390_G": {
@@ -22,12 +28,8 @@ DATA_SETS = {
         "MAF_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "maf"),
         "FACETS_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "facets"),
         "INPUTS_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "inputs"),
-        "targets_list": "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist",
-        "argos_version_string": "2.x",
-        "is_impact": True,
-        "analyst_file": "Proj_08390_G.muts.maf",
-        "analysis_gene_cna_file": "Proj_08390_G.gene.cna.txt",
-        "portal_file": "data_mutations_extended.txt",
-        "portal_CNA_file": "data_CNA.txt",
+        # "targets_list": "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist",
+        # "analyst_file": "Proj_08390_G.muts.maf",
+        # "analysis_gene_cna_file": "Proj_08390_G.gene.cna.txt",
     }
 }

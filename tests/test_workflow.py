@@ -8,7 +8,7 @@ import json
 import unittest
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 from .tools import run_command
-from .settings import CWL_DIR, CWL_ARGS, DATA_SETS
+from .settings import CWL_DIR, CWL_ARGS, DATA_SETS, ARGOS_VERSION_STRING, IS_IMPACT, PORTAL_FILE, PORTAL_CNA_FILE
 
 cwl_file = os.path.join(CWL_DIR, 'workflow.cwl')
 
@@ -19,10 +19,10 @@ class TestWorkflow(unittest.TestCase):
         """
         input_json = {
             "analyst_file": "Proj_08390_G.muts.maf",
-            "is_impact": "True",
-            "portal_file": "data_mutations_extended.txt",
-            "argos_version_string": "2.x",
-            "portal_CNA_file": "data_CNA.txt",
+            "is_impact": IS_IMPACT,
+            "portal_file": PORTAL_FILE,
+            "argos_version_string": ARGOS_VERSION_STRING,
+            "portal_CNA_file": PORTAL_CNA_FILE,
             "maf_files": [
                 {
                     "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "maf/Sample1.Sample2.muts.maf"),
@@ -70,6 +70,9 @@ class TestWorkflow(unittest.TestCase):
 
             output_json = json.loads(proc_stdout)
             # print(returncode, proc_stdout, proc_stderr, output_json)
+
+            if returncode != 0:
+                print(proc_stdout, proc_stderr)
 
             self.assertEqual(returncode, 0)
 
@@ -121,10 +124,10 @@ class TestWorkflow(unittest.TestCase):
         """
         input_json = {
             "analyst_file": "Proj_08390_G.muts.maf",
-            "is_impact": "True",
-            "portal_file": "data_mutations_extended.txt",
-            "argos_version_string": "2.x",
-            "portal_CNA_file": "data_CNA.txt",
+            "is_impact": IS_IMPACT,
+            "portal_file": PORTAL_FILE,
+            "argos_version_string": ARGOS_VERSION_STRING,
+            "portal_CNA_file": PORTAL_CNA_FILE,
             "maf_files": [
                 {
                     "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "maf/Sample1.Sample2.muts.maf"),
@@ -174,6 +177,9 @@ class TestWorkflow(unittest.TestCase):
 
             output_json = json.loads(proc_stdout)
             # print(returncode, proc_stdout, proc_stderr, output_json)
+
+            if returncode != 0:
+                print(proc_stdout, proc_stderr)
 
             self.assertEqual(returncode, 0)
 
