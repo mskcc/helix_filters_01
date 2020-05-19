@@ -77,14 +77,14 @@ input.json: muts.maf.txt hisens.cncf.txt
 	jq -n \
 	--slurpfile maf_files muts.maf.txt \
 	--slurpfile hisens_cncfs hisens.cncf.txt \
-	--arg roslin_version_string "2.x" \
+	--arg argos_version_string "2.x" \
 	--arg is_impact "True" \
 	--arg analyst_file "$(PROJ_ID).muts.maf" \
 	--arg analysis_gene_cna_file "$(PROJ_ID).gene.cna.txt" \
 	--arg portal_file "data_mutations_extended.txt" \
 	--arg portal_CNA_file "data_CNA.txt" \
 	--arg targets_list "$(TARGETS_LIST)" \
-	'{"roslin_version_string":$$roslin_version_string,
+	'{"argos_version_string":$$argos_version_string,
 	"is_impact":$$is_impact,
 	"analyst_file":$$analyst_file,
 	"portal_file":$$portal_file,
