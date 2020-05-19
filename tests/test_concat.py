@@ -160,7 +160,7 @@ class TestMafFilter(unittest.TestCase):
                     fout.write(line + '\n')
 
             input_lines2 = ["#comment2", "header2", "foo2", "bar2", "baz2"]
-            input_file2 = os.path.join(tmpdir, "input1.txt")
+            input_file2 = os.path.join(tmpdir, "input2.txt")
             with open(input_file2, "w") as fout:
                 for line in input_lines2:
                     fout.write(line + '\n')
@@ -215,8 +215,8 @@ class TestMafFilter(unittest.TestCase):
                     'location': 'file://' + os.path.join(output_dir, 'output.txt'),
                     'basename': 'output.txt',
                     'class': 'File',
-                    'checksum': 'sha1$0562f08aef399135936d6fb4eb0cc7bc1890d5b4',
-                    'size': 12,
+                    'checksum': 'sha1$acaa1f09ca0678b8b7c136ce776c04efb6890f6a',
+                    'size': 38,
                     'path': os.path.join(output_dir, 'output.txt')
                     }
                 }
@@ -236,7 +236,7 @@ class TestMafFilter(unittest.TestCase):
                     fout.write(line + '\n')
 
             input_lines2 = ["#comment2", "header2", "foo2", "bar2", "baz2"]
-            input_file2 = os.path.join(tmpdir, "input1.txt")
+            input_file2 = os.path.join(tmpdir, "input2.txt")
             with open(input_file2, "w") as fout:
                 for line in input_lines2:
                     fout.write(line + '\n')
@@ -291,8 +291,8 @@ class TestMafFilter(unittest.TestCase):
                     'location': 'file://' + os.path.join(output_dir, 'output.txt'),
                     'basename': 'output.txt',
                     'class': 'File',
-                    'checksum': 'sha1$0562f08aef399135936d6fb4eb0cc7bc1890d5b4',
-                    'size': 12,
+                    'checksum': 'sha1$acaa1f09ca0678b8b7c136ce776c04efb6890f6a',
+                    'size': 38,
                     'path': os.path.join(output_dir, 'output.txt')
                     }
                 }
@@ -313,13 +313,13 @@ class TestMafFilter(unittest.TestCase):
                     fout.write(line + '\n')
 
             input_lines2 = ["#comment2", "header2", "foo2", "bar2", "baz2"]
-            input_file2 = os.path.join(tmpdir, "input1.txt")
+            input_file2 = os.path.join(tmpdir, "input2.txt")
             with open(input_file2, "w") as fout:
                 for line in input_lines2:
                     fout.write(line + '\n')
 
             input_lines3 = ["#comment3", "header3", "foo3", "bar3", "baz3"]
-            input_file3 = os.path.join(tmpdir, "input1.txt")
+            input_file3 = os.path.join(tmpdir, "input3.txt")
             with open(input_file3, "w") as fout:
                 for line in input_lines3:
                     fout.write(line + '\n')
@@ -379,8 +379,8 @@ class TestMafFilter(unittest.TestCase):
                     'location': 'file://' + os.path.join(output_dir, 'output.txt'),
                     'basename': 'output.txt',
                     'class': 'File',
-                    'checksum': 'sha1$0562f08aef399135936d6fb4eb0cc7bc1890d5b4',
-                    'size': 12,
+                    'checksum': 'sha1$b115b7b40aa8a2e08e30a55abf60d742e05e62b4',
+                    'size': 53,
                     'path': os.path.join(output_dir, 'output.txt')
                     }
                 }

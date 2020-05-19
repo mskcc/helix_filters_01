@@ -15,13 +15,7 @@ requirements:
       - entryname: concat.sh
         entry: |-
           grep -v '#' $(inputs.input_files[0].path) | head -1  > output.txt
-          for item in ${
-            var output = [];
-            for (var i = 0; i < inputs.input_files.length; i++){
-              output.push(inputs.input_files[i]['path']);
-              };
-              return output.join(' ');
-              }; do
+          for item in ${ return inputs.input_files.map(file => file.path).join(' ') }; do
           grep -v '#' \$item | tail -n +2 >> output.txt
           done
 
