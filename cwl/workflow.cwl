@@ -7,6 +7,7 @@ requirements:
   ScatterFeatureRequirement: {}
   StepInputExpressionRequirement: {}
   InlineJavascriptRequirement: {}
+  SubworkflowFeatureRequirement: {}
 
 inputs:
   maf_files: File[]
@@ -85,7 +86,7 @@ steps:
     run: put_in_dir.cwl
     in:
       portal_cna_file: copy_number/output_portal_CNA_file
-      output_directory_name: 
+      output_directory_name:
         valueFrom: ${ return "portal"; }
       files:
         valueFrom: ${return [ inputs.portal_cna_file ]}
@@ -96,9 +97,9 @@ steps:
     in:
       analyst_file: rename_analyst_file/output_file
       gene_cna_file: copy_cna_file/output_file
-      output_directory_name: 
+      output_directory_name:
         valueFrom: ${ return "analysis"; }
-      files: 
+      files:
         valueFrom: ${ return [ inputs.analyst_file, inputs.gene_cna_file ]}
     out: [ directory ]
 
