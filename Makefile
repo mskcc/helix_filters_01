@@ -137,6 +137,7 @@ test:
 	python test.py
 
 bash:
+	module load singularity/3.3.0 && \
 	bash
 
 clean:

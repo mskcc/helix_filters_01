@@ -7,8 +7,16 @@ import os
 import json
 import unittest
 from tempfile import TemporaryDirectory, NamedTemporaryFile
-from .tools import run_command
-from .settings import CWL_DIR, CWL_ARGS, DATA_SETS, ARGOS_VERSION_STRING, IS_IMPACT, PORTAL_FILE, PORTAL_CNA_FILE
+
+
+# relative imports, from CLI and from parent project
+if __name__ != "__main__":
+    from .tools import run_command
+    from .settings import CWL_DIR, CWL_ARGS, DATA_SETS, ARGOS_VERSION_STRING, IS_IMPACT, PORTAL_FILE, PORTAL_CNA_FILE
+
+if __name__ == "__main__":
+    from tools import run_command
+    from settings import CWL_DIR, CWL_ARGS, DATA_SETS, ARGOS_VERSION_STRING, IS_IMPACT, PORTAL_FILE, PORTAL_CNA_FILE
 
 cwl_file = os.path.join(CWL_DIR, 'workflow.cwl')
 
@@ -68,13 +76,13 @@ class TestWorkflow(unittest.TestCase):
 
             returncode, proc_stdout, proc_stderr = run_command(command)
 
-            output_json = json.loads(proc_stdout)
-            # print(returncode, proc_stdout, proc_stderr, output_json)
-
             if returncode != 0:
                 print(proc_stdout, proc_stderr)
 
             self.assertEqual(returncode, 0)
+
+            output_json = json.loads(proc_stdout)
+            # print(returncode, proc_stdout, proc_stderr, output_json)
 
             expected_output = {
                 'analysis_dir': {
@@ -175,13 +183,13 @@ class TestWorkflow(unittest.TestCase):
 
             returncode, proc_stdout, proc_stderr = run_command(command)
 
-            output_json = json.loads(proc_stdout)
-            # print(returncode, proc_stdout, proc_stderr, output_json)
-
             if returncode != 0:
                 print(proc_stdout, proc_stderr)
 
             self.assertEqual(returncode, 0)
+
+            output_json = json.loads(proc_stdout)
+            # print(returncode, proc_stdout, proc_stderr, output_json)
 
             expected_output = {
                 "analysis_dir": {
@@ -227,3 +235,6 @@ class TestWorkflow(unittest.TestCase):
             }
             self.maxDiff = None
             self.assertDictEqual(output_json, expected_output)
+
+if __name__ == "__main__":
+    unittest.main()

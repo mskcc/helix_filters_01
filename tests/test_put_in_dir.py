@@ -7,8 +7,15 @@ import os
 import json
 import unittest
 from tempfile import TemporaryDirectory, NamedTemporaryFile
-from .tools import run_command
-from .settings import CWL_DIR, CWL_ARGS
+
+# relative imports, from CLI and from parent project
+if __name__ != "__main__":
+    from .tools import run_command
+    from .settings import CWL_DIR, CWL_ARGS
+
+if __name__ == "__main__":
+    from tools import run_command
+    from settings import CWL_DIR, CWL_ARGS
 
 cwl_file = os.path.join(CWL_DIR, 'put_in_dir.cwl')
 
@@ -95,3 +102,7 @@ class TestPutInDir(unittest.TestCase):
             # make sure both files were output to the dir
             self.assertEqual(len(os.listdir(output_json['directory']['path'])), 1)
             self.assertTrue(os.path.basename(file1.name)in os.listdir(output_json['directory']['path']) )
+
+
+if __name__ == "__main__":
+    unittest.main()
