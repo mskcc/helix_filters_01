@@ -79,7 +79,7 @@ hisens.cncf.txt:
 # the input for the pipeline
 export ANALYST_FILE:=$(PROJ_ID).muts.maf
 export ANALYST_GENE_CNA_FILE:=$(PROJ_ID).gene.cna.txt
-export ROSLIN_VERSION_STRING:=2.x
+export ARGOS_VERSION_STRING:=2.x
 export IS_IMPACT:=True
 export PORTAL_FILE:=data_mutations_extended.txt
 export PORTAL_CNA_FILE:=data_CNA.txt
@@ -89,14 +89,14 @@ input.json: muts.maf.txt hisens.cncf.txt
 	jq -n \
 	--slurpfile maf_files muts.maf.txt \
 	--slurpfile hisens_cncfs hisens.cncf.txt \
-	--arg roslin_version_string "$(ROSLIN_VERSION_STRING)" \
+	--arg argos_version_string "$(ARGOS_VERSION_STRING)" \
 	--arg is_impact "$(IS_IMPACT)" \
 	--arg analyst_file "$(ANALYST_FILE)" \
 	--arg analysis_gene_cna_file "$(ANALYST_GENE_CNA_FILE)" \
 	--arg portal_file "$(PORTAL_FILE)" \
 	--arg portal_CNA_file "$(PORTAL_CNA_FILE)" \
 	--arg targets_list "$(TARGETS_LIST)" \
-	'{"roslin_version_string":$$roslin_version_string,
+	'{"argos_version_string":$$argos_version_string,
 	"is_impact":$$is_impact,
 	"analyst_file":$$analyst_file,
 	"portal_file":$$portal_file,
