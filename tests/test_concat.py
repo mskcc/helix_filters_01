@@ -58,7 +58,7 @@ class TestMafFilter(unittest.TestCase):
             returncode, proc_stdout, proc_stderr = run_command(command)
 
             if returncode != 0:
-                print(proc_stderr)
+                print(proc_stdout)
 
             self.assertEqual(returncode, 0)
 
@@ -121,7 +121,7 @@ class TestMafFilter(unittest.TestCase):
             returncode, proc_stdout, proc_stderr = run_command(command)
 
             if returncode != 0:
-                print(proc_stderr)
+                print(proc_stdout)
 
             self.assertEqual(returncode, 0)
 
@@ -209,7 +209,6 @@ class TestMafFilter(unittest.TestCase):
 
             self.assertEqual(output_lines, ["header1", "foo1", "bar1", "baz1", "foo2", "bar2", "baz2"])
 
-            # TODO: update this once the above ^^^ passes
             expected_output = {
                 'output_file': {
                     'location': 'file://' + os.path.join(output_dir, 'output.txt'),
@@ -285,7 +284,6 @@ class TestMafFilter(unittest.TestCase):
 
             self.assertEqual(output_lines, ["header1", "foo1", "bar1", "baz1", "foo2", "bar2", "baz2"])
 
-            # TODO: update this once the above ^^^ passes
             expected_output = {
                 'output_file': {
                     'location': 'file://' + os.path.join(output_dir, 'output.txt'),
@@ -385,6 +383,9 @@ class TestMafFilter(unittest.TestCase):
                     }
                 }
             self.assertDictEqual(output_json, expected_output)
+
+
+
 
 if __name__ == "__main__":
     unittest.main()
