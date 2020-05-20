@@ -40,8 +40,8 @@ class TestMafFilter(unittest.TestCase):
                     },
                 "argos_version_string": ARGOS_VERSION_STRING,
                 "is_impact": IS_IMPACT,
-                "analyst_file": DATA_SETS['Proj_08390_G']['analyst_file'],
-                "portal_file": PORTAL_FILE
+                "analyst_filename": DATA_SETS['Proj_08390_G']['analyst_file'],
+                "portal_filename": PORTAL_FILE
             }
             input_json_file = os.path.join(tmpdir, "input.json")
             json.dump(input_json, open(input_json_file, "w"))
@@ -62,7 +62,7 @@ class TestMafFilter(unittest.TestCase):
             returncode, proc_stdout, proc_stderr = run_command(command)
 
             if returncode != 0:
-                print(proc_stdout)
+                print(proc_stderr)
 
             self.assertEqual(returncode, 0)
 
@@ -112,8 +112,8 @@ class TestMafFilter(unittest.TestCase):
                     },
                 "argos_version_string": "3.2.0",
                 "is_impact": IS_IMPACT,
-                "analyst_file": DATA_SETS['Proj_08390_G']['analyst_file'],
-                "portal_file": PORTAL_FILE
+                "analyst_filename": DATA_SETS['Proj_08390_G']['analyst_file'],
+                "portal_filename": PORTAL_FILE
             }
             input_json_file = os.path.join(tmpdir, "input.json")
             json.dump(input_json, open(input_json_file, "w"))
@@ -134,7 +134,7 @@ class TestMafFilter(unittest.TestCase):
             returncode, proc_stdout, proc_stderr = run_command(command)
 
             if returncode != 0:
-                print(proc_stdout)
+                print(proc_stderr)
 
             self.assertEqual(returncode, 0)
 
@@ -185,8 +185,8 @@ class TestMafFilter(unittest.TestCase):
                     },
                 "argos_version_string": ARGOS_VERSION_STRING,
                 "is_impact": "False",
-                "analyst_file": DATA_SETS['Proj_08390_G']['analyst_file'],
-                "portal_file": PORTAL_FILE
+                "analyst_filename": DATA_SETS['Proj_08390_G']['analyst_file'],
+                "portal_filename": PORTAL_FILE
             }
             input_json_file = os.path.join(tmpdir, "input.json")
             json.dump(input_json, open(input_json_file, "w"))
@@ -207,7 +207,7 @@ class TestMafFilter(unittest.TestCase):
             returncode, proc_stdout, proc_stderr = run_command(command)
 
             if returncode != 0:
-                print(proc_stdout)
+                print(proc_stderr)
 
             self.assertEqual(returncode, 0)
 
