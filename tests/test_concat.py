@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
 cwl_file = os.path.join(CWL_DIR, 'concat.cwl')
 
-class TestMafFilter(unittest.TestCase):
+class TestConcat(unittest.TestCase):
     def test_concat_simple_file(self):
         """
         Test that a single file with no header comes out looking as expected
