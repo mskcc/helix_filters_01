@@ -19,6 +19,12 @@ make run PROJ_ID=My_Project MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/out
 
 check the file 'ref/roslin_resources.json' to find the correct target set for your assay type
 
+Run the test suite:
+
+make test
+
+NOTE: requires the fixtures directory on juno
+
 endef
 export help
 help:
@@ -71,18 +77,24 @@ hisens.cncf.txt:
 .PHONY: hisens.cncf.txt
 
 # the input for the pipeline
+export ANALYST_FILE:=$(PROJ_ID).muts.maf
+export ANALYST_GENE_CNA_FILE:=$(PROJ_ID).gene.cna.txt
+export ROSLIN_VERSION_STRING:=2.x
+export IS_IMPACT:=True
+export PORTAL_FILE:=data_mutations_extended.txt
+export PORTAL_CNA_FILE:=data_CNA.txt
 input.json: muts.maf.txt hisens.cncf.txt
 	if [ "$$(cat muts.maf.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File muts.maf.txt is empty"; exit 1; fi
 	if [ "$$(cat hisens.cncf.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File muts.maf.txt is empty"; exit 1; fi
 	jq -n \
 	--slurpfile maf_files muts.maf.txt \
 	--slurpfile hisens_cncfs hisens.cncf.txt \
-	--arg roslin_version_string "2.x" \
-	--arg is_impact "True" \
-	--arg analyst_file "$(PROJ_ID).muts.maf" \
-	--arg analysis_gene_cna_file "$(PROJ_ID).gene.cna.txt" \
-	--arg portal_file "data_mutations_extended.txt" \
-	--arg portal_CNA_file "data_CNA.txt" \
+	--arg roslin_version_string "$(ROSLIN_VERSION_STRING)" \
+	--arg is_impact "$(IS_IMPACT)" \
+	--arg analyst_file "$(ANALYST_FILE)" \
+	--arg analysis_gene_cna_file "$(ANALYST_GENE_CNA_FILE)" \
+	--arg portal_file "$(PORTAL_FILE)" \
+	--arg portal_CNA_file "$(PORTAL_CNA_FILE)" \
 	--arg targets_list "$(TARGETS_LIST)" \
 	'{"roslin_version_string":$$roslin_version_string,
 	"is_impact":$$is_impact,
@@ -106,9 +118,10 @@ $(OUTPUT_DIR):
 # example:
 # make run PROJ_ID=10753_B MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist OUTPUT_DIR=/path/to/helix_filters
 INPUT_JSON:=input.json
+DEBUG:=
 run: $(INPUT_JSON) $(OUTPUT_DIR)
 	module load singularity/3.3.0 && \
-	cwl-runner \
+	cwl-runner $(DEBUG) \
 	--leave-tmpdir \
 	--tmpdir-prefix $(TMP_DIR) \
 	--outdir $(OUTPUT_DIR) \
@@ -119,8 +132,16 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 	--preserve-environment SINGULARITY_CACHEDIR \
 	cwl/workflow.cwl $(INPUT_JSON)
 
+export FIXTURES_DIR:=/juno/work/ci/helix_filters_01/fixtures
+test:
+	module load singularity/3.3.0 && \
+	python test.py
+
 bash:
+	module load singularity/3.3.0 && \
 	bash
 
 clean:
 	rm -rf cache tmp
+clean-all: clean
+	rm -rf output portal analysis
