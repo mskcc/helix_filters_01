@@ -6,7 +6,7 @@ baseCommand: [ cat ]
 requirements:
   DockerRequirement:
     dockerPull: mskcc/helix_filters_01:1.0.0
-stdout: $(inputs.input_files.length).cat.txt
+stdout: output.txt
 inputs:
   input_files:
     type: File[]
