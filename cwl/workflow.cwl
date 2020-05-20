@@ -39,8 +39,8 @@ steps:
       maf_file: strip_maf/output_file
       roslin_version_string: roslin_version_string
       is_impact: is_impact
-      analyst_file: analyst_file
-      portal_file: portal_file
+      analyst_filename: analyst_file
+      portal_filename: portal_file
     out: [analyst_file]
 
   concat_maf:

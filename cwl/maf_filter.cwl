@@ -19,11 +19,11 @@ inputs:
     type: string
     inputBinding:
       position: 3
-  analyst_file:
+  analyst_filename:
     type: string
     inputBinding:
       position: 4
-  portal_file:
+  portal_filename:
     type: string
     inputBinding:
       position: 5
@@ -31,8 +31,8 @@ outputs:
   analyst_file:
     type: File
     outputBinding:
-      glob: $(inputs.analyst_file)
+      glob: $(inputs.analyst_filename)
   portal_file:
     type: File
     outputBinding:
-      glob: $(inputs.portal_file)
+      glob: $(inputs.portal_filename)
