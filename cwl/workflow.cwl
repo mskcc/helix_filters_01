@@ -7,6 +7,7 @@ requirements:
   ScatterFeatureRequirement: {}
   StepInputExpressionRequirement: {}
   InlineJavascriptRequirement: {}
+  SubworkflowFeatureRequirement: {}
 
 inputs:
   maf_files: File[]

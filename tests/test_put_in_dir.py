@@ -45,7 +45,8 @@ class TestPutInDir(unittest.TestCase):
 
             # write input data
             input_json_file = os.path.join(tmpdir, "input.json")
-            json.dump(input_json, open(input_json_file, "w"))
+            with open(input_json_file, "w") as input_json_file_data:
+                json.dump(input_json, input_json_file_data)
 
             # command args to run CWL
             command = [ "cwl-runner", *CWL_ARGS, cwl_file, input_json_file ]
@@ -88,7 +89,8 @@ class TestPutInDir(unittest.TestCase):
                 ]
             }
             input_json_file = os.path.join(tmpdir, "input.json")
-            json.dump(input_json, open(input_json_file, "w"))
+            with open(input_json_file, "w") as input_json_file_data:
+                json.dump(input_json, input_json_file_data)
             command = [ "cwl-runner", *CWL_ARGS, cwl_file, input_json_file ]
             returncode, proc_stdout, proc_stderr = run_command(command)
             output_json = json.loads(proc_stdout)
