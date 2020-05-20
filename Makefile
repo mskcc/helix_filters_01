@@ -134,7 +134,7 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 
 export FIXTURES_DIR:=/juno/work/ci/helix_filters_01/fixtures
 test:
-	module load singularity/3.3.0 && \
+	export PATH=/opt/local/singularity/3.3.0/bin:$PATH && \
 	python test.py
 
 bash:
