@@ -77,7 +77,7 @@ class TestWorkflow(unittest.TestCase):
             returncode, proc_stdout, proc_stderr = run_command(command)
 
             if returncode != 0:
-                print(proc_stdout, proc_stderr)
+                print(proc_stderr)
 
             self.assertEqual(returncode, 0)
 
@@ -85,45 +85,33 @@ class TestWorkflow(unittest.TestCase):
             # print(returncode, proc_stdout, proc_stderr, output_json)
 
             expected_output = {
-                'analysis_dir': {
-                    'class': 'Directory',
-                    'basename': 'analysis',
-                    'listing': [
-                        {
-                        'location': 'file://' + os.path.join(output_dir, 'analysis/Proj_08390_G.muts.maf'),
-                        'basename': 'Proj_08390_G.muts.maf',
-                        'class': 'File',
-                        'checksum': 'sha1$7a1dbde2f538e72d1dcb9baa7def46922e7454d9',
-                        'size': 27901,
-                        'path': os.path.join(output_dir, 'analysis/Proj_08390_G.muts.maf')
-                        },
-                        {
-                        'location': 'file://' + os.path.join(output_dir, 'analysis/Proj_08390_G.gene.cna.txt'),
-                        'basename': 'Proj_08390_G.gene.cna.txt',
-                        'class': 'File',
-                        'checksum': 'sha1$ab17d587ad5ae0a87fd6c6d4dd2d5d1701208ce9',
-                        'size': 173982,
-                        'path': os.path.join(output_dir, 'analysis/Proj_08390_G.gene.cna.txt')
-                        }],
-                'location': 'file://' + os.path.join(output_dir, 'analysis'),
-                'path': os.path.join(output_dir, 'analysis')
-                },
-                'portal_dir': {
-                    'class': 'Directory',
-                    'basename': 'portal',
-                    'listing': [
-                        {'location': 'file://' + os.path.join(output_dir, 'portal/data_CNA.txt'),
-                        'basename': 'data_CNA.txt',
-                        'class': 'File',
-                        'checksum': 'sha1$ab17d587ad5ae0a87fd6c6d4dd2d5d1701208ce9',
-                        'size': 173982,
-                        'path': os.path.join(output_dir, 'portal/data_CNA.txt')
-                        }],
-                    'location': 'file://' + os.path.join(output_dir,'portal'),
-                    'path': os.path.join(output_dir, 'portal')
+                'analysis_gene_cna_file': {
+                    'location': 'file://' + os.path.join(output_dir, 'Proj_08390_G.gene.cna.txt'),
+                    'basename': 'Proj_08390_G.gene.cna.txt',
+                    'class': 'File',
+                    'checksum': 'sha1$ab17d587ad5ae0a87fd6c6d4dd2d5d1701208ce9',
+                    'size': 173982,
+                    'path': os.path.join(output_dir, 'Proj_08390_G.gene.cna.txt')
+                    },
+                'analyst_file': {
+                    'location': 'file://' + os.path.join(output_dir, 'Proj_08390_G.muts.maf'),
+                    'basename': 'Proj_08390_G.muts.maf',
+                    'class': 'File',
+                    'checksum': 'sha1$7a1dbde2f538e72d1dcb9baa7def46922e7454d9',
+                    'size': 27901,
+                    'path': os.path.join(output_dir, 'Proj_08390_G.muts.maf')
+                    },
+                'output_portal_CNA_file': {
+                    'location': 'file://' + os.path.join(output_dir, 'data_CNA.txt'),
+                    'basename': 'data_CNA.txt',
+                    'class': 'File',
+                    'checksum': 'sha1$ab17d587ad5ae0a87fd6c6d4dd2d5d1701208ce9',
+                    'size': 173982,
+                    'path': os.path.join(output_dir, 'data_CNA.txt')
                     }
                 }
 
+            self.maxDiff = None
             self.assertDictEqual(output_json, expected_output)
 
     def test_run_worflow_two_mafs(self):
@@ -184,7 +172,7 @@ class TestWorkflow(unittest.TestCase):
             returncode, proc_stdout, proc_stderr = run_command(command)
 
             if returncode != 0:
-                print(proc_stdout, proc_stderr)
+                print(proc_stderr)
 
             self.assertEqual(returncode, 0)
 
@@ -192,47 +180,32 @@ class TestWorkflow(unittest.TestCase):
             # print(returncode, proc_stdout, proc_stderr, output_json)
 
             expected_output = {
-                "analysis_dir": {
-                    "class": "Directory",
-                    "basename": "analysis",
-                    "listing": [
-                        {
-                            "location": 'file://' + os.path.join(output_dir, "analysis/Proj_08390_G.muts.maf"),
-                            "basename": "Proj_08390_G.muts.maf",
-                            "class": "File",
-                            "checksum": "sha1$5b2f8277269026d2b7ea0edc4455cc97c7f68523",
-                            "size": 46695,
-                            "path": os.path.join(output_dir, "analysis/Proj_08390_G.muts.maf")
-                        },
-                        {
-                            "location": 'file://' + os.path.join(output_dir, 'analysis/Proj_08390_G.gene.cna.txt'),
-                            "basename": "Proj_08390_G.gene.cna.txt",
-                            "class": "File",
-                            "checksum": "sha1$ab17d587ad5ae0a87fd6c6d4dd2d5d1701208ce9",
-                            "size": 173982,
-                            "path": os.path.join(output_dir, "analysis/Proj_08390_G.gene.cna.txt")
-                        }
-                    ],
-                    "location": 'file://' + os.path.join(output_dir, "analysis"),
-                    "path": os.path.join(output_dir, "analysis")
-                },
-                "portal_dir": {
-                    "class": "Directory",
-                    "basename": "portal",
-                    "listing": [
-                        {
-                            "location": 'file://' + os.path.join(output_dir, "portal/data_CNA.txt"),
-                            "basename": "data_CNA.txt",
-                            "class": "File",
-                            "checksum": "sha1$ab17d587ad5ae0a87fd6c6d4dd2d5d1701208ce9",
-                            "size": 173982,
-                            "path": os.path.join(output_dir, "portal/data_CNA.txt")
-                        }
-                    ],
-                    "location": 'file://' + os.path.join(output_dir, "portal"),
-                    "path": os.path.join(output_dir, "portal")
+                'analysis_gene_cna_file': {
+                    'location': 'file://' + os.path.join(output_dir, 'Proj_08390_G.gene.cna.txt'),
+                    'basename': 'Proj_08390_G.gene.cna.txt',
+                    'class': 'File',
+                    'checksum': 'sha1$ab17d587ad5ae0a87fd6c6d4dd2d5d1701208ce9',
+                    'size': 173982,
+                    'path': os.path.join(output_dir, 'Proj_08390_G.gene.cna.txt')
+                    },
+                'analyst_file': {
+                    'location': 'file://' + os.path.join(output_dir, 'Proj_08390_G.muts.maf'),
+                    'basename': 'Proj_08390_G.muts.maf',
+                    'class': 'File',
+                    'checksum': 'sha1$5b2f8277269026d2b7ea0edc4455cc97c7f68523',
+                    'size': 46695,
+                    'path': os.path.join(output_dir, 'Proj_08390_G.muts.maf')
+                    },
+                'output_portal_CNA_file': {
+                    'location': 'file://' + os.path.join(output_dir, 'data_CNA.txt'),
+                    'basename': 'data_CNA.txt',
+                    'class': 'File',
+                    'checksum': 'sha1$ab17d587ad5ae0a87fd6c6d4dd2d5d1701208ce9',
+                    'size': 173982,
+                    'path': os.path.join(output_dir, 'data_CNA.txt')
+                    }
                 }
-            }
+
             self.maxDiff = None
             self.assertDictEqual(output_json, expected_output)
 
