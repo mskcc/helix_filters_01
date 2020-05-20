@@ -59,7 +59,7 @@ class TestConcat(unittest.TestCase):
             returncode, proc_stdout, proc_stderr = run_command(command)
 
             if returncode != 0:
-                print(proc_stdout)
+                print(proc_stderr)
 
             self.assertEqual(returncode, 0)
 
@@ -199,7 +199,7 @@ class TestConcat(unittest.TestCase):
             returncode, proc_stdout, proc_stderr = run_command(command)
 
             if returncode != 0:
-                print(proc_stdout)
+                print(proc_stderr)
 
             self.assertEqual(returncode, 0)
 
