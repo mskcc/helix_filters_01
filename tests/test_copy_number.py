@@ -40,7 +40,8 @@ class TestCopyNumber(unittest.TestCase):
                 ],
             }
             input_json_file = os.path.join(tmpdir, "input.json")
-            json.dump(input_json, open(input_json_file, "w"))
+            with open(input_json_file, "w") as input_json_file_data:
+                json.dump(input_json, input_json_file_data)
 
             output_dir = os.path.join(tmpdir, "output")
             tmp_dir = os.path.join(tmpdir, "tmp")
@@ -100,7 +101,8 @@ class TestCopyNumber(unittest.TestCase):
                 ],
             }
             input_json_file = os.path.join(tmpdir, "input.json")
-            json.dump(input_json, open(input_json_file, "w"))
+            with open(input_json_file, "w") as input_json_file_data:
+                json.dump(input_json, input_json_file_data)
 
             output_dir = os.path.join(tmpdir, "output")
             tmp_dir = os.path.join(tmpdir, "tmp")
