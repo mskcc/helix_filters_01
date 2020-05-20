@@ -118,9 +118,10 @@ $(OUTPUT_DIR):
 # example:
 # make run PROJ_ID=10753_B MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist OUTPUT_DIR=/path/to/helix_filters
 INPUT_JSON:=input.json
+DEBUG:=
 run: $(INPUT_JSON) $(OUTPUT_DIR)
 	module load singularity/3.3.0 && \
-	cwl-runner \
+	cwl-runner $(DEBUG) \
 	--leave-tmpdir \
 	--tmpdir-prefix $(TMP_DIR) \
 	--outdir $(OUTPUT_DIR) \
