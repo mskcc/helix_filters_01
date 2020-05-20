@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
 cwl_file = os.path.join(CWL_DIR, 'concat.cwl')
 
-class TestMafFilter(unittest.TestCase):
+class TestConcat(unittest.TestCase):
     def test_concat_simple_file(self):
         """
         Test that a single file with no header comes out looking as expected
@@ -40,7 +40,8 @@ class TestMafFilter(unittest.TestCase):
                     }]
                 }
             input_json_file = os.path.join(tmpdir, "input.json")
-            json.dump(input_json, open(input_json_file, "w"))
+            with open(input_json_file, "w") as input_json_file_data:
+                json.dump(input_json, input_json_file_data)
 
             output_dir = os.path.join(tmpdir, "output")
             tmp_dir = os.path.join(tmpdir, "tmp")
@@ -103,7 +104,8 @@ class TestMafFilter(unittest.TestCase):
                     }]
                 }
             input_json_file = os.path.join(tmpdir, "input.json")
-            json.dump(input_json, open(input_json_file, "w"))
+            with open(input_json_file, "w") as input_json_file_data:
+                json.dump(input_json, input_json_file_data)
 
             output_dir = os.path.join(tmpdir, "output")
             tmp_dir = os.path.join(tmpdir, "tmp")
@@ -146,6 +148,82 @@ class TestMafFilter(unittest.TestCase):
                 }
             self.assertDictEqual(output_json, expected_output)
 
+    def test_concat_two_files_with_headers(self):
+        """
+        Test that a single file with no header comes out looking as expected
+        """
+        with TemporaryDirectory() as tmpdir:
+
+            # make a dummy file with some lines
+            input_lines1 = ["header","foo1", "bar1", "baz1"]
+            input_file1 = os.path.join(tmpdir, "input1.txt")
+            with open(input_file1, "w") as fout:
+                for line in input_lines1:
+                    fout.write(line + '\n')
+
+            input_lines2 = ["header","foo2", "bar2", "baz2"]
+            input_file2 = os.path.join(tmpdir, "input2.txt")
+            with open(input_file2, "w") as fout:
+                for line in input_lines2:
+                    fout.write(line + '\n')
+
+            input_json = {
+                "input_files": [
+                    {
+                      "class": "File",
+                      "path": input_file1
+                    },
+                    {
+                      "class": "File",
+                      "path": input_file2
+                    }
+                    ]
+                }
+            input_json_file = os.path.join(tmpdir, "input.json")
+            with open(input_json_file, "w") as input_json_file_data:
+                json.dump(input_json, input_json_file_data)
+
+            output_dir = os.path.join(tmpdir, "output")
+            tmp_dir = os.path.join(tmpdir, "tmp")
+            cache_dir = os.path.join(tmpdir, "cache")
+
+            command = [
+            "cwl-runner",
+            *CWL_ARGS,
+            "--outdir", output_dir,
+            "--tmpdir-prefix", tmp_dir,
+            "--cachedir", cache_dir,
+            cwl_file, input_json_file
+            ]
+
+            returncode, proc_stdout, proc_stderr = run_command(command)
+
+            if returncode != 0:
+                print(proc_stderr)
+
+            self.assertEqual(returncode, 0)
+
+            output_json = json.loads(proc_stdout)
+
+            # check the contents of the concatenated file; should be the same as the input
+            output_file = output_json['output_file']['path']
+            with open(output_file) as fin:
+                output_lines = [ line.strip() for line in fin ]
+
+            self.assertEqual(output_lines, ["header","foo1", "bar1", "baz1", "foo2", "bar2", "baz2"])
+
+            expected_output = {
+                'output_file': {
+                    'location': 'file://' + os.path.join(output_dir, 'output.txt'),
+                    'basename': 'output.txt',
+                    'class': 'File',
+                    'checksum': 'sha1$34c3af14e6d21e295f22c77ed5e837b60501bae7',
+                    'size': 37,
+                    'path': os.path.join(output_dir, 'output.txt')
+                    }
+                }
+            self.assertDictEqual(output_json, expected_output)
+
     def test_concat_two_files_with_comments(self):
         """
         Test that a two files with headers are concatenated correctly
@@ -178,7 +256,8 @@ class TestMafFilter(unittest.TestCase):
                     ]
                 }
             input_json_file = os.path.join(tmpdir, "input.json")
-            json.dump(input_json, open(input_json_file, "w"))
+            with open(input_json_file, "w") as input_json_file_data:
+                json.dump(input_json, input_json_file_data)
 
             output_dir = os.path.join(tmpdir, "output")
             tmp_dir = os.path.join(tmpdir, "tmp")
@@ -209,7 +288,6 @@ class TestMafFilter(unittest.TestCase):
 
             self.assertEqual(output_lines, ["header1", "foo1", "bar1", "baz1", "foo2", "bar2", "baz2"])
 
-            # TODO: update this once the above ^^^ passes
             expected_output = {
                 'output_file': {
                     'location': 'file://' + os.path.join(output_dir, 'output.txt'),
@@ -254,7 +332,8 @@ class TestMafFilter(unittest.TestCase):
                     ]
                 }
             input_json_file = os.path.join(tmpdir, "input.json")
-            json.dump(input_json, open(input_json_file, "w"))
+            with open(input_json_file, "w") as input_json_file_data:
+                json.dump(input_json, input_json_file_data)
 
             output_dir = os.path.join(tmpdir, "output")
             tmp_dir = os.path.join(tmpdir, "tmp")
@@ -285,7 +364,6 @@ class TestMafFilter(unittest.TestCase):
 
             self.assertEqual(output_lines, ["header1", "foo1", "bar1", "baz1", "foo2", "bar2", "baz2"])
 
-            # TODO: update this once the above ^^^ passes
             expected_output = {
                 'output_file': {
                     'location': 'file://' + os.path.join(output_dir, 'output.txt'),
@@ -341,7 +419,8 @@ class TestMafFilter(unittest.TestCase):
                     ]
                 }
             input_json_file = os.path.join(tmpdir, "input.json")
-            json.dump(input_json, open(input_json_file, "w"))
+            with open(input_json_file, "w") as input_json_file_data:
+                json.dump(input_json, input_json_file_data)
 
             output_dir = os.path.join(tmpdir, "output")
             tmp_dir = os.path.join(tmpdir, "tmp")
@@ -385,6 +464,9 @@ class TestMafFilter(unittest.TestCase):
                     }
                 }
             self.assertDictEqual(output_json, expected_output)
+
+
+
 
 if __name__ == "__main__":
     unittest.main()
