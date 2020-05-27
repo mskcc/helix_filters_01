@@ -157,10 +157,10 @@ class TestGenerateCBioFiles(unittest.TestCase):
         ]
         header_lines = generate_header_lines(keys)
         expected_lines = [
-        '#SAMPLE_ID\tIGO_ID\tPATIENT_ID\tSAMPLE_TYPE\tSAMPLE_CLASS\tGENE_PANEL\tONCOTREE_CODE\tSPECIMEN_PRESERVATION_TYPE\tSEX\tTISSUE_SITE\tREQUEST_ID\tPROJECT_ID\tPIPELINE\tPIPELINE_VERSION',
-        '#SAMPLE_ID\tIGO_ID\tPATIENT_ID\tSAMPLE_TYPE\tSAMPLE_CLASS\tGENE_PANEL\tONCOTREE_CODE\tSPECIMEN_PRESERVATION_TYPE\tSEX\tTISSUE_SITE\tREQUEST_ID\tPROJECT_ID\tPIPELINE\tPIPELINE_VERSION',
-        '#STRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING',
-        '#1\t1\t1\t1\t1\t1\t1\t1\t1\t1\t1\t1\t1\t1'
+        '#SAMPLE_ID\tIGO_ID\tPATIENT_ID\tSAMPLE_TYPE\tSAMPLE_CLASS\tGENE_PANEL\tONCOTREE_CODE\tSPECIMEN_PRESERVATION_TYPE\tSEX\tTISSUE_SITE\tREQUEST_ID\tPROJECT_ID\tPIPELINE\tPIPELINE_VERSION\n',
+        '#SAMPLE_ID\tIGO_ID\tPATIENT_ID\tSAMPLE_TYPE\tSAMPLE_CLASS\tGENE_PANEL\tONCOTREE_CODE\tSPECIMEN_PRESERVATION_TYPE\tSEX\tTISSUE_SITE\tREQUEST_ID\tPROJECT_ID\tPIPELINE\tPIPELINE_VERSION\n',
+        '#STRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\n',
+        '#1\t1\t1\t1\t1\t1\t1\t1\t1\t1\t1\t1\t1\t1\n'
         ]
         self.assertEqual(header_lines, expected_lines)
 
@@ -174,13 +174,13 @@ class TestGenerateCBioFiles(unittest.TestCase):
         ]
         lines = create_file_lines(clinical_data)
         expected_lines = [
-        '#PATIENT_ID\tSEX',
-        '#PATIENT_ID\tSEX',
-        '#STRING\tSTRING',
-        '#1\t1',
-        'PATIENT_ID\tSEX',
-        'Patient1\tM',
-        'Patient2\tF'
+        '#PATIENT_ID\tSEX\n',
+        '#PATIENT_ID\tSEX\n',
+        '#STRING\tSTRING\n',
+        '#1\t1\n',
+        'PATIENT_ID\tSEX\n',
+        'Patient1\tM\n',
+        'Patient2\tF\n'
         ]
         self.assertEqual(lines, expected_lines)
 

@@ -16,6 +16,7 @@ generate_discrete_copy_number_meta
 https://github.com/cBioPortal/cbioportal/blob/master/docs/File-Formats.md#example-sample-data-file
 """
 import csv
+import argparse
 from collections import OrderedDict
 
 # for each of the given header columns in the original data clinical file,
@@ -260,8 +261,8 @@ def generate_header_lines(keys, delimiter = '\t', header_lines_map = header_line
         lines_map["4"] += header_lines_map[key]["4"] + delimiter
     lines = []
     for line in lines_map.values():
-        # remove trailing delimiters
-        lines.append(line.rstrip(delimiter))
+        # remove trailing delimiters, add trailing newline
+        lines.append(line.rstrip(delimiter) + '\n')
     return(lines)
 
 def create_file_lines(clinical_data, delimiter = '\t'):
@@ -288,10 +289,58 @@ def create_file_lines(clinical_data, delimiter = '\t'):
         lines.append(header_line)
 
     # add the dict header line
-    lines.append(delimiter.join(clinical_keys))
+    lines.append(delimiter.join(clinical_keys) + '\n')
 
     # concat the rest of the clinical data values based on the delimiter
     for row in clinical_data:
         line = delimiter.join(row.values())
-        lines.append(line)
+        lines.append(line + '\n')
     return(lines)
+
+def generate_data_clinical_patient(**kwargs):
+    """
+    """
+    data_clinical_file = kwargs.pop('data_clinical_file')
+    sample_summary_file = kwargs.pop('sample_summary_file')
+    output = kwargs.pop('output', 'data_clinical_patient.txt')
+
+    # load data from the files
+    clinical_data = load_clinical_data(data_clinical_file)
+    sample_coverages = load_sample_coverages(sample_summary_file)
+
+    # parse the data down the values needed for the patient file
+    clinical_patient_data = generate_portal_data_clinical_patient(clinical_data)
+
+    # create the lines to output to the file
+    lines = create_file_lines(clinical_patient_data)
+
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+    # for line in lines:
+    #     print(line)
+
+    # for row in clinical_data:
+    #     # add the matching coverages to the clincal data, or a '' empty value
+    #     row['SAMPLE_COVERAGE'] = sample_coverages.get(row['SAMPLE_ID'], '')
+        # print(row)
+
+
+def main():
+    """
+    Main control function when called as a script
+    """
+    parser = argparse.ArgumentParser(description = 'Generate cBio Portal metadata files from various input files')
+    subparsers = parser.add_subparsers(help ='Sub-commands available')
+
+    # subparser for data_clinical_patient.txt
+    patient = subparsers.add_parser('patient', help = 'Create the clinical patient data file')
+    patient.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
+    patient.add_argument('--sample-summary-file', dest = 'sample_summary_file', required = True, help = 'The sample summary file with coverage values')
+    patient.add_argument('--output', dest = 'output', default = "data_clinical_patient.txt", help = 'The sample summary file with coverage values')
+    patient.set_defaults(func = generate_data_clinical_patient)
+
+    args = parser.parse_args()
+    args.func(**vars(args))
+
+if __name__ == '__main__':
+    main()
