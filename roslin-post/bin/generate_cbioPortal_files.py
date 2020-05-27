@@ -327,18 +327,22 @@ def generate_data_clinical_sample_file(**kwargs):
     Generate the cBioPortal sample clinical data file
     """
     data_clinical_file = kwargs.pop('data_clinical_file')
-    sample_summary_file = kwargs.pop('sample_summary_file')
+    sample_summary_file = kwargs.pop('sample_summary_file', None)
     output = kwargs.pop('output', 'data_clinical_sample.txt')
     project_pi = kwargs.pop('project_pi', None)
     request_pi = kwargs.pop('request_pi', None)
 
     # load data from the files
     clinical_data = load_clinical_data(data_clinical_file)
-    sample_coverages = load_sample_coverages(sample_summary_file)
 
     # add the matching coverages to the clincal data, or a '' empty value
+    if sample_summary_file != None:
+        sample_coverages = load_sample_coverages(sample_summary_file)
+        for row in clinical_data:
+            row['SAMPLE_COVERAGE'] = sample_coverages.get(row['SAMPLE_ID'], '')
+
+    # add more optional values, if they were passed
     for row in clinical_data:
-        row['SAMPLE_COVERAGE'] = sample_coverages.get(row['SAMPLE_ID'], '')
         if project_pi != None:
             row['PROJECT_PI'] = project_pi
         if request_pi != None:
@@ -394,7 +398,7 @@ def main():
     # subparser for data_clinical_sample.txt
     sample = subparsers.add_parser('sample', help = 'Create the clinical sample data file')
     sample.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
-    sample.add_argument('--sample-summary-file', dest = 'sample_summary_file', required = True, help = 'The sample summary file with coverage values')
+    sample.add_argument('--sample-summary-file', dest = 'sample_summary_file', default = None, help = 'The sample summary file with coverage values')
     sample.add_argument('--output', dest = 'output', default = "data_clinical_sample.txt", help = 'The sample summary file with coverage values')
     sample.add_argument('--project-pi', dest = 'project_pi', default = None, help = 'A Project PI value to add to entries in the table')
     sample.add_argument('--request-pi', dest = 'request_pi', default = None, help = 'A Request PI value to add to entries in the table')
