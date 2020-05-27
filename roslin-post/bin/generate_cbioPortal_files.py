@@ -14,6 +14,14 @@ generate_segmented_meta
 generate_discrete_copy_number_meta
 
 https://github.com/cBioPortal/cbioportal/blob/master/docs/File-Formats.md#example-sample-data-file
+
+
+Usage
+-----
+
+$ generate_cbioPortal_files.py patient --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
+
+$
 """
 import csv
 import argparse
@@ -41,12 +49,12 @@ header_lines_map = {
     '3': 'STRING',
     '4': '1'
     },
-    # 'COLLAB_ID': { # this does not get included in output files
-    # '1': 'COLLAB_ID',
-    # '2': 'COLLAB_ID',
-    # '3': 'STRING',
-    # '4': '1'
-    # }
+    'COLLAB_ID': {
+    '1': 'COLLAB_ID',
+    '2': 'COLLAB_ID',
+    '3': 'STRING',
+    '4': '0'
+    },
     'SAMPLE_TYPE': {
     '1': 'SAMPLE_TYPE',
     '2': 'SAMPLE_TYPE',
@@ -113,7 +121,12 @@ header_lines_map = {
     '3': 'STRING',
     '4': '1'
     },
-
+    'SAMPLE_COVERAGE': {
+    '1': 'SAMPLE_COVERAGE',
+    '2': 'SAMPLE_COVERAGE',
+    '3': 'NUMBER',
+    '4': '1'
+    }
 }
 
 def load_clinical_data(filepath):
@@ -297,32 +310,54 @@ def create_file_lines(clinical_data, delimiter = '\t'):
         lines.append(line + '\n')
     return(lines)
 
-def generate_data_clinical_patient(**kwargs):
+def generate_data_clinical_sample_file(**kwargs):
     """
+    Generate the cBioPortal sample clinical data file
     """
     data_clinical_file = kwargs.pop('data_clinical_file')
     sample_summary_file = kwargs.pop('sample_summary_file')
-    output = kwargs.pop('output', 'data_clinical_patient.txt')
+    output = kwargs.pop('output', 'data_clinical_sample.txt')
 
     # load data from the files
     clinical_data = load_clinical_data(data_clinical_file)
     sample_coverages = load_sample_coverages(sample_summary_file)
 
-    # parse the data down the values needed for the patient file
+    # add the matching coverages to the clincal data, or a '' empty value
+    for row in clinical_data:
+        row['SAMPLE_COVERAGE'] = sample_coverages.get(row['SAMPLE_ID'], '')
+
+    # parse the data down to the values needed for the sample file
+    clinical_sample_data = generate_portal_data_clinical_sample(clinical_data)
+
+    # create the lines to output to the file
+    lines = create_file_lines(clinical_sample_data)
+
+    # write all the lines to file
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+
+
+def generate_data_clinical_patient_file(**kwargs):
+    """
+    Generate the cBioPortal patient clinical data file
+    """
+    data_clinical_file = kwargs.pop('data_clinical_file')
+    output = kwargs.pop('output', 'data_clinical_patient.txt')
+
+    # load data from the files
+    clinical_data = load_clinical_data(data_clinical_file)
+
+    # parse the data down to the values needed for the patient file
     clinical_patient_data = generate_portal_data_clinical_patient(clinical_data)
 
     # create the lines to output to the file
     lines = create_file_lines(clinical_patient_data)
 
+    # write all the lines to file
     with open(output, "w") as fout:
         fout.writelines(lines)
-    # for line in lines:
-    #     print(line)
 
-    # for row in clinical_data:
-    #     # add the matching coverages to the clincal data, or a '' empty value
-    #     row['SAMPLE_COVERAGE'] = sample_coverages.get(row['SAMPLE_ID'], '')
-        # print(row)
+
 
 
 def main():
@@ -335,9 +370,15 @@ def main():
     # subparser for data_clinical_patient.txt
     patient = subparsers.add_parser('patient', help = 'Create the clinical patient data file')
     patient.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
-    patient.add_argument('--sample-summary-file', dest = 'sample_summary_file', required = True, help = 'The sample summary file with coverage values')
     patient.add_argument('--output', dest = 'output', default = "data_clinical_patient.txt", help = 'The sample summary file with coverage values')
-    patient.set_defaults(func = generate_data_clinical_patient)
+    patient.set_defaults(func = generate_data_clinical_patient_file)
+
+    # subparser for data_clinical_sample.txt
+    sample = subparsers.add_parser('sample', help = 'Create the clinical sample data file')
+    sample.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
+    sample.add_argument('--sample-summary-file', dest = 'sample_summary_file', required = True, help = 'The sample summary file with coverage values')
+    sample.add_argument('--output', dest = 'output', default = "data_clinical_sample.txt", help = 'The sample summary file with coverage values')
+    sample.set_defaults(func = generate_data_clinical_sample_file)
 
     args = parser.parse_args()
     args.func(**vars(args))
