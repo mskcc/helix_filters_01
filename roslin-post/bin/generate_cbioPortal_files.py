@@ -21,7 +21,7 @@ Usage
 
 $ generate_cbioPortal_files.py patient --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
 
-$
+$ generate_cbioPortal_files.py sample --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt --sample-summary-file ../test_data/qc/Proj_08390_G_SampleSummary.txt --project-pi orlowi --request-pi orlowi
 """
 import csv
 import argparse
@@ -125,6 +125,18 @@ header_lines_map = {
     '1': 'SAMPLE_COVERAGE',
     '2': 'SAMPLE_COVERAGE',
     '3': 'NUMBER',
+    '4': '1'
+    },
+    'PROJECT_PI': {
+    '1': 'PROJECT_PI',
+    '2': 'PROJECT_PI',
+    '3': 'STRING',
+    '4': '1'
+    },
+    'REQUEST_PI': {
+    '1': 'REQUEST_PI',
+    '2': 'REQUEST_PI',
+    '3': 'STRING',
     '4': '1'
     }
 }
@@ -317,6 +329,8 @@ def generate_data_clinical_sample_file(**kwargs):
     data_clinical_file = kwargs.pop('data_clinical_file')
     sample_summary_file = kwargs.pop('sample_summary_file')
     output = kwargs.pop('output', 'data_clinical_sample.txt')
+    project_pi = kwargs.pop('project_pi', None)
+    request_pi = kwargs.pop('request_pi', None)
 
     # load data from the files
     clinical_data = load_clinical_data(data_clinical_file)
@@ -325,6 +339,10 @@ def generate_data_clinical_sample_file(**kwargs):
     # add the matching coverages to the clincal data, or a '' empty value
     for row in clinical_data:
         row['SAMPLE_COVERAGE'] = sample_coverages.get(row['SAMPLE_ID'], '')
+        if project_pi != None:
+            row['PROJECT_PI'] = project_pi
+        if request_pi != None:
+            row['REQUEST_PI'] = request_pi
 
     # parse the data down to the values needed for the sample file
     clinical_sample_data = generate_portal_data_clinical_sample(clinical_data)
@@ -378,6 +396,9 @@ def main():
     sample.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
     sample.add_argument('--sample-summary-file', dest = 'sample_summary_file', required = True, help = 'The sample summary file with coverage values')
     sample.add_argument('--output', dest = 'output', default = "data_clinical_sample.txt", help = 'The sample summary file with coverage values')
+    sample.add_argument('--project-pi', dest = 'project_pi', default = None, help = 'A Project PI value to add to entries in the table')
+    sample.add_argument('--request-pi', dest = 'request_pi', default = None, help = 'A Request PI value to add to entries in the table')
+
     sample.set_defaults(func = generate_data_clinical_sample_file)
 
     args = parser.parse_args()
