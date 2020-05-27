@@ -392,14 +392,14 @@ def main():
     # subparser for data_clinical_patient.txt
     patient = subparsers.add_parser('patient', help = 'Create the clinical patient data file')
     patient.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
-    patient.add_argument('--output', dest = 'output', default = "data_clinical_patient.txt", help = 'The sample summary file with coverage values')
+    patient.add_argument('--output', dest = 'output', default = "data_clinical_patient.txt", help = 'The name of the output file')
     patient.set_defaults(func = generate_data_clinical_patient_file)
 
     # subparser for data_clinical_sample.txt
     sample = subparsers.add_parser('sample', help = 'Create the clinical sample data file')
     sample.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
     sample.add_argument('--sample-summary-file', dest = 'sample_summary_file', default = None, help = 'The sample summary file with coverage values')
-    sample.add_argument('--output', dest = 'output', default = "data_clinical_sample.txt", help = 'The sample summary file with coverage values')
+    sample.add_argument('--output', dest = 'output', default = "data_clinical_sample.txt", help = 'Name of the output file')
     sample.add_argument('--project-pi', dest = 'project_pi', default = None, help = 'A Project PI value to add to entries in the table')
     sample.add_argument('--request-pi', dest = 'request_pi', default = None, help = 'A Request PI value to add to entries in the table')
 
