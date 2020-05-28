@@ -57,6 +57,8 @@ $ generate_cbioPortal_files.py sample --data-clinical-file ../test_data/inputs/P
 $ generate_cbioPortal_files.py study --cancer-study-id cancer_study --name name --short-name short_name --type-of-cancer type_of_cancer --extra-groups foo_group --extra-groups bar_group
 
 $ generate_cbioPortal_files.py meta_sample --cancer-study-id cancer_study
+
+$ generate_cbioPortal_files.py meta_patient --cancer-study-id cancer_study
 """
 import csv
 import argparse
@@ -412,6 +414,22 @@ def generate_clinical_meta_samples_data(
     }
     return(data)
 
+def generate_clinical_meta_patient_data(
+    cancer_study_identifier,
+    data_filename,
+    datatype = 'PATIENT_ATTRIBUTES',
+    genetic_alteration_type = 'CLINICAL'
+    ):
+    """
+    """
+    data = {
+    'cancer_study_identifier' : cancer_study_identifier,
+    'datatype' : datatype,
+    'genetic_alteration_type': genetic_alteration_type,
+    'data_filename': data_filename
+    }
+    return(data)
+
 def generate_meta_lines(data):
     """
     Convert a data dict into a list of string lines to write to be written to a file
@@ -425,6 +443,23 @@ def generate_meta_lines(data):
 
 
 # File generation functions
+def generate_clinical_meta_patient_data_file(**kwargs):
+    """
+    Generate the cBioPortal meta_clinical_patient file
+    """
+    output = kwargs.pop('output', 'meta_clinical_patient.txt')
+    cancer_study_identifier = kwargs.pop('cancer_study_identifier')
+    data_filename = kwargs.pop('data_filename', 'data_clinical_patient.txt')
+
+    meta_data = generate_clinical_meta_patient_data(
+        cancer_study_identifier = cancer_study_identifier,
+        data_filename = data_filename
+    )
+    lines = generate_meta_lines(meta_data)
+
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+
 def generate_clinical_meta_samples_data_file(**kwargs):
     """
     Generate the cBioPortal meta_clinical_sample file
@@ -575,6 +610,14 @@ def main():
     meta_sample.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
     meta_sample.add_argument('--sample-data-filename', dest = 'data_filename', default = 'data_clinical_sample.txt', help = 'Filename of the associated data_clinical_sample file')
     meta_sample.set_defaults(func = generate_clinical_meta_samples_data_file)
+
+    # subparser for meta_clinical_patient.txt
+    meta_patient = subparsers.add_parser('meta_patient', help = 'Create the patient metadata file')
+    meta_patient.add_argument('--output', dest = 'output', default = "meta_clinical_patient.txt", help = 'Name of the output file')
+    meta_patient.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
+    meta_patient.add_argument('--patient-data-filename', dest = 'data_filename', default = 'data_clinical_patient.txt', help = 'Filename of the associated data_clinical_patient file')
+    meta_patient.set_defaults(func = generate_clinical_meta_patient_data_file)
+
 
     args = parser.parse_args()
     args.func(**vars(args))
