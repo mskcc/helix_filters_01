@@ -16,18 +16,18 @@ generate_discrete_copy_number_meta
 files;
 
 case_lists
-data_clinical_patient.txt
-data_clinical_sample.txt
+X data_clinical_patient.txt
+X data_clinical_sample.txt
 data_CNA.ascna.txt
-data_CNA.txt
+(facets steps ?) data_CNA.txt
 data_fusions.txt
-data_mutations_extended.txt
+(maf_filter.py) data_mutations_extended.txt
 meta_clinical_patient.txt
-meta_clinical_sample.txt
+X meta_clinical_sample.txt
 meta_CNA.txt
 meta_fusions.txt
 meta_mutations_extended.txt
-meta_study.txt
+X meta_study.txt
 pi_f8_3a_08390_G_data_cna_hg19.seg
 pi_f8_3a_08390_G_meta_cna_hg19_seg.txt
 
@@ -55,6 +55,8 @@ $ generate_cbioPortal_files.py patient --data-clinical-file ../test_data/inputs/
 $ generate_cbioPortal_files.py sample --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt --sample-summary-file ../test_data/qc/Proj_08390_G_SampleSummary.txt --project-pi orlowi --request-pi orlowi
 
 $ generate_cbioPortal_files.py study --cancer-study-id cancer_study --name name --short-name short_name --type-of-cancer type_of_cancer --extra-groups foo_group --extra-groups bar_group
+
+$ generate_cbioPortal_files.py meta_sample --cancer-study-id cancer_study
 """
 import csv
 import argparse
@@ -393,6 +395,23 @@ def generate_study_meta(
     }
     return(data)
 
+def generate_clinical_meta_samples_data(
+    cancer_study_identifier,
+    data_filename,
+    datatype = 'SAMPLE_ATTRIBUTES',
+    genetic_alteration_type = 'CLINICAL'
+    ):
+    """
+    Create a dict to hold the samples metadata
+    """
+    data = {
+    'cancer_study_identifier' : cancer_study_identifier,
+    'datatype' : datatype,
+    'genetic_alteration_type': genetic_alteration_type,
+    'data_filename': data_filename
+    }
+    return(data)
+
 def generate_meta_lines(data):
     """
     Convert a data dict into a list of string lines to write to be written to a file
@@ -406,6 +425,23 @@ def generate_meta_lines(data):
 
 
 # File generation functions
+def generate_clinical_meta_samples_data_file(**kwargs):
+    """
+    Generate the cBioPortal meta_clinical_sample file
+    """
+    output = kwargs.pop('output', 'meta_clinical_sample.txt')
+    cancer_study_identifier = kwargs.pop('cancer_study_identifier')
+    data_filename = kwargs.pop('data_filename', 'data_clinical_sample.txt')
+
+    meta_data = generate_clinical_meta_samples_data(
+        cancer_study_identifier = cancer_study_identifier,
+        data_filename = data_filename
+    )
+    lines = generate_meta_lines(meta_data)
+
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+
 def generate_study_meta_file(**kwargs):
     """
     Generate the cBioPortal study metadata file
@@ -533,6 +569,12 @@ def main():
     study.add_argument('--extra-groups', dest = "extra_groups", default = [], action='append', help='Extra grouping labels (one per flag invocation, can be used multiple times)')
     study.set_defaults(func = generate_study_meta_file)
 
+    # subparser for meta_clinical_sample.txt
+    meta_sample = subparsers.add_parser('meta_sample', help = 'Create the sample metadata file')
+    meta_sample.add_argument('--output', dest = 'output', default = "meta_clinical_sample.txt", help = 'Name of the output file')
+    meta_sample.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
+    meta_sample.add_argument('--sample-data-filename', dest = 'data_filename', default = 'data_clinical_sample.txt', help = 'Filename of the associated data_clinical_sample file')
+    meta_sample.set_defaults(func = generate_clinical_meta_samples_data_file)
 
     args = parser.parse_args()
     args.func(**vars(args))

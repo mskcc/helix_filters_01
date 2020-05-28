@@ -28,6 +28,7 @@ from bin.generate_cbioPortal_files import create_file_lines
 from bin.generate_cbioPortal_files import generate_study_meta
 from bin.generate_cbioPortal_files import generate_extra_group_labels_string
 from bin.generate_cbioPortal_files import generate_meta_lines
+from bin.generate_cbioPortal_files import generate_clinical_meta_samples_data
 sys.path.pop(0)
 
 
@@ -279,7 +280,7 @@ class TestGenerateCBioFiles(unittest.TestCase):
 
     def test_generate_meta_lines(self):
         """
-        Test that lines for metadata files are generated correctly based on a given dict 
+        Test that lines for metadata files are generated correctly based on a given dict
         """
         data = {
         'foo': 'bar',
@@ -291,6 +292,19 @@ class TestGenerateCBioFiles(unittest.TestCase):
         'baz: buzz\n'
         ]
         self.assertEqual(lines, expected_lines)
+
+
+    def test_generate_clinical_meta_samples_data(self):
+        """
+        """
+        data = generate_clinical_meta_samples_data(cancer_study_identifier = "foo", data_filename = "bar.txt")
+        expected_data = {
+        'cancer_study_identifier': "foo",
+        'data_filename': 'bar.txt',
+        'datatype': 'SAMPLE_ATTRIBUTES',
+        'genetic_alteration_type': 'CLINICAL'
+        }
+        self.assertDictEqual(data, expected_data)
 
 
 if __name__ == "__main__":
