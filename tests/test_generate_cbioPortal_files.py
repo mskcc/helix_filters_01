@@ -25,6 +25,9 @@ from bin.generate_cbioPortal_files import generate_portal_data_clinical_patient
 from bin.generate_cbioPortal_files import generate_portal_data_clinical_sample
 from bin.generate_cbioPortal_files import generate_header_lines
 from bin.generate_cbioPortal_files import create_file_lines
+from bin.generate_cbioPortal_files import generate_study_meta
+from bin.generate_cbioPortal_files import generate_extra_group_labels_string
+from bin.generate_cbioPortal_files import generate_meta_lines
 sys.path.pop(0)
 
 
@@ -181,6 +184,111 @@ class TestGenerateCBioFiles(unittest.TestCase):
         'PATIENT_ID\tSEX\n',
         'Patient1\tM\n',
         'Patient2\tF\n'
+        ]
+        self.assertEqual(lines, expected_lines)
+
+    def test_generate_study_meta(self):
+        """
+        """
+        data = generate_study_meta(
+            cancer_study_identifier = "identifier",
+            description = "description",
+            name = 'name',
+            short_name = 'short_name',
+            type_of_cancer = "type_of_cancer"
+        )
+        expected_data = {
+        'cancer_study_identifier' : 'identifier',
+        'description': 'description',
+        'groups': 'PRISM;COMPONC;VIALEA',
+        'name': 'name',
+        'short_name': 'short_name',
+        'type_of_cancer': 'type_of_cancer'
+        }
+        self.assertEqual(data, expected_data)
+
+        data = generate_study_meta(
+            cancer_study_identifier = "identifier",
+            description = "description",
+            name = 'name',
+            short_name = 'short_name',
+            extra_groups = ["extra_group1", "extra_group2"],
+            type_of_cancer = "type_of_cancer"
+        )
+        expected_data = {
+        'cancer_study_identifier' : 'identifier',
+        'description': 'description',
+        'groups': 'PRISM;COMPONC;VIALEA;EXTRA_GROUP1;EXTRA_GROUP2',
+        'name': 'name',
+        'short_name': 'short_name',
+        'type_of_cancer': 'type_of_cancer'
+        }
+        self.assertEqual(data, expected_data)
+
+        data = generate_study_meta(
+            cancer_study_identifier = "identifier",
+            description = "description\ndescription\ndescription",
+            name = 'name',
+            short_name = 'short_name',
+            extra_groups = ["extra_group1", "extra_group2"],
+            type_of_cancer = "type_of_cancer"
+        )
+        expected_data = {
+        'cancer_study_identifier' : 'identifier',
+        'description': 'descriptiondescriptiondescription',
+        'groups': 'PRISM;COMPONC;VIALEA;EXTRA_GROUP1;EXTRA_GROUP2',
+        'name': 'name',
+        'short_name': 'short_name',
+        'type_of_cancer': 'type_of_cancer'
+        }
+        self.assertEqual(data, expected_data)
+
+    def test_generate_extra_group_labels_string(self):
+        """
+        Test that extra group labels are converted into a label string correctly
+        """
+        extra_groups = []
+        groups_str = generate_extra_group_labels_string(extra_groups)
+        expected_str = ''
+        self.assertEqual(groups_str, expected_str)
+
+        extra_groups = ['foo']
+        groups_str = generate_extra_group_labels_string(extra_groups)
+        expected_str = 'FOO'
+        self.assertEqual(groups_str, expected_str)
+
+        extra_groups = ['foo', 'bar']
+        groups_str = generate_extra_group_labels_string(extra_groups)
+        expected_str = 'FOO;BAR'
+        self.assertEqual(groups_str, expected_str)
+
+        extra_groups = ['foo', 'na']
+        groups_str = generate_extra_group_labels_string(extra_groups)
+        expected_str = 'FOO'
+        self.assertEqual(groups_str, expected_str)
+
+        extra_groups = ['foo', 'na', 'pitt', 'bar']
+        groups_str = generate_extra_group_labels_string(extra_groups)
+        expected_str = 'FOO;BAR'
+        self.assertEqual(groups_str, expected_str)
+
+        extra_groups = ['foo   bar']
+        groups_str = generate_extra_group_labels_string(extra_groups)
+        expected_str = 'FOOBAR'
+        self.assertEqual(groups_str, expected_str)
+
+    def test_generate_meta_lines(self):
+        """
+        Test that lines for metadata files are generated correctly based on a given dict 
+        """
+        data = {
+        'foo': 'bar',
+        'baz': 'buzz'
+        }
+        lines = generate_meta_lines(data)
+        expected_lines = [
+        'foo: bar\n',
+        'baz: buzz\n'
         ]
         self.assertEqual(lines, expected_lines)
 

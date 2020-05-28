@@ -13,7 +13,38 @@ generate_study_meta
 generate_segmented_meta
 generate_discrete_copy_number_meta
 
+files;
+
+case_lists
+data_clinical_patient.txt
+data_clinical_sample.txt
+data_CNA.ascna.txt
+data_CNA.txt
+data_fusions.txt
+data_mutations_extended.txt
+meta_clinical_patient.txt
+meta_clinical_sample.txt
+meta_CNA.txt
+meta_fusions.txt
+meta_mutations_extended.txt
+meta_study.txt
+pi_f8_3a_08390_G_data_cna_hg19.seg
+pi_f8_3a_08390_G_meta_cna_hg19_seg.txt
+
 https://github.com/cBioPortal/cbioportal/blob/master/docs/File-Formats.md#example-sample-data-file
+
+
+need some portal_config_data from the inputs.yaml (get_meta_info), fields;
+Assay
+ProjectID (generateIGOBasedPortalUUID; stable_id)
+ProjectTitle
+ProjectDesc
+PI
+TumorType
+
+
+
+
 
 
 Usage
@@ -22,6 +53,8 @@ Usage
 $ generate_cbioPortal_files.py patient --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
 
 $ generate_cbioPortal_files.py sample --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt --sample-summary-file ../test_data/qc/Proj_08390_G_SampleSummary.txt --project-pi orlowi --request-pi orlowi
+
+$ generate_cbioPortal_files.py study --cancer-study-id cancer_study --name name --short-name short_name --type-of-cancer type_of_cancer --extra-groups foo_group --extra-groups bar_group
 """
 import csv
 import argparse
@@ -322,6 +355,87 @@ def create_file_lines(clinical_data, delimiter = '\t'):
         lines.append(line + '\n')
     return(lines)
 
+def generate_extra_group_labels_string(extra_groups, exclude_groups = ('NA', 'PITT')):
+    """
+    """
+    extra_groups_to_add = []
+    for group in extra_groups:
+        # groups must be uppercase and remove spaces (legacy requirement)
+        group_upper = group.upper().replace(" ", "")
+        if group_upper not in exclude_groups:
+            extra_groups_to_add.append(group_upper)
+    # concatenate all the group labels
+    extra_groups_str = ';'.join(extra_groups_to_add)
+    return(extra_groups_str)
+
+def generate_study_meta(
+    cancer_study_identifier,
+    description,
+    name,
+    short_name,
+    type_of_cancer,
+    groups = 'PRISM;COMPONC;VIALEA', # These groups can access everything
+    extra_groups = None
+    ):
+    """
+    Create a dict to hold study metadata to use with cBio Portal
+    """
+    if extra_groups != None:
+        extra_groups_str = generate_extra_group_labels_string(extra_groups)
+        groups = groups + ';' + extra_groups_str
+    data = {
+    'cancer_study_identifier' : cancer_study_identifier,
+    'description': description.replace('\n', ''), # no newlines allowed (legacy requirement)
+    'groups': groups,
+    'name': name,
+    'short_name': short_name,
+    'type_of_cancer': type_of_cancer
+    }
+    return(data)
+
+def generate_meta_lines(data):
+    """
+    Convert a data dict into a list of string lines to write to be written to a file
+    """
+    lines = []
+    for key, value in data.items():
+        line_str = '{key}: {value}\n'.format(key = key, value = value)
+        lines.append(line_str)
+    return(lines)
+
+
+
+# File generation functions
+def generate_study_meta_file(**kwargs):
+    """
+    Generate the cBioPortal study metadata file
+    """
+    output = kwargs.pop('output', 'data_clinical_sample.txt')
+    cancer_study_identifier = kwargs.pop('cancer_study_identifier')
+    name = kwargs.pop('name')
+    short_name = kwargs.pop('short_name')
+    type_of_cancer = kwargs.pop('type_of_cancer')
+    description = kwargs.pop('description', '')
+    extra_groups = [ group for group in kwargs.pop('extra_groups', []) ]
+
+    args = {
+    'cancer_study_identifier' : cancer_study_identifier,
+    'description' : description,
+    'name' : name,
+    'short_name' : short_name,
+    'type_of_cancer' : type_of_cancer
+    }
+
+    if len(extra_groups) > 0:
+        args['extra_groups'] = extra_groups
+
+    meta_data = generate_study_meta(**args)
+
+    lines = generate_meta_lines(meta_data)
+
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+
 def generate_data_clinical_sample_file(**kwargs):
     """
     Generate the cBioPortal sample clinical data file
@@ -386,24 +500,39 @@ def main():
     """
     Main control function when called as a script
     """
+    # top level CLI arg parser; args common to all output files go here
     parser = argparse.ArgumentParser(description = 'Generate cBio Portal metadata files from various input files')
+    # parser.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
+
+    # add sub-parsers for specific file outputs
     subparsers = parser.add_subparsers(help ='Sub-commands available')
 
     # subparser for data_clinical_patient.txt
     patient = subparsers.add_parser('patient', help = 'Create the clinical patient data file')
-    patient.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
     patient.add_argument('--output', dest = 'output', default = "data_clinical_patient.txt", help = 'The name of the output file')
+    patient.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
     patient.set_defaults(func = generate_data_clinical_patient_file)
 
     # subparser for data_clinical_sample.txt
     sample = subparsers.add_parser('sample', help = 'Create the clinical sample data file')
-    sample.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
-    sample.add_argument('--sample-summary-file', dest = 'sample_summary_file', default = None, help = 'The sample summary file with coverage values')
     sample.add_argument('--output', dest = 'output', default = "data_clinical_sample.txt", help = 'Name of the output file')
+    sample.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
+    sample.add_argument('--sample-summary-file', dest = 'sample_summary_file', default = None, help = 'A supplemental sample summary file with coverage values to add to the output table')
     sample.add_argument('--project-pi', dest = 'project_pi', default = None, help = 'A Project PI value to add to entries in the table')
     sample.add_argument('--request-pi', dest = 'request_pi', default = None, help = 'A Request PI value to add to entries in the table')
-
     sample.set_defaults(func = generate_data_clinical_sample_file)
+
+    # subparser for meta_study.txt
+    study = subparsers.add_parser('study', help = 'Create the study metadata file')
+    study.add_argument('--output', dest = 'output', default = "meta_study.txt", help = 'Name of the output file')
+    study.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
+    study.add_argument('--description', dest = 'description', default = '', help = 'A description of the cancer study')
+    study.add_argument('--name', dest = 'name', required = True, help = 'The name of the cancer study')
+    study.add_argument('--short-name', dest = 'short_name', required = True, help = 'A short name used for display used on various web pages within the cBioPortal')
+    study.add_argument('--type-of-cancer', dest = 'type_of_cancer', required = True, help = 'The cancer type abbreviation')
+    study.add_argument('--extra-groups', dest = "extra_groups", default = [], action='append', help='Extra grouping labels (one per flag invocation, can be used multiple times)')
+    study.set_defaults(func = generate_study_meta_file)
+
 
     args = parser.parse_args()
     args.func(**vars(args))
