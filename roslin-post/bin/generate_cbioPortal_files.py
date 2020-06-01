@@ -26,7 +26,7 @@ X meta_clinical_patient.txt
 X meta_clinical_sample.txt
 X meta_CNA.txt
 X meta_fusions.txt
-meta_mutations_extended.txt
+X meta_mutations_extended.txt
 X meta_study.txt
 pi_f8_3a_08390_G_data_cna_hg19.seg
 pi_f8_3a_08390_G_meta_cna_hg19_seg.txt
@@ -180,6 +180,8 @@ header_lines_map = {
     }
 }
 
+
+# Utility functions
 def load_clinical_data(filepath):
     """
     Load the data clinical file contents
@@ -374,6 +376,18 @@ def generate_extra_group_labels_string(extra_groups, exclude_groups = ('NA', 'PI
     extra_groups_str = ';'.join(extra_groups_to_add)
     return(extra_groups_str)
 
+def generate_meta_lines(data):
+    """
+    Convert a data dict into a list of string lines to write to be written to a file
+    """
+    lines = []
+    for key, value in data.items():
+        line_str = '{key}: {value}\n'.format(key = key, value = value)
+        lines.append(line_str)
+    return(lines)
+
+
+# metadata generation functions
 def generate_study_meta(
     cancer_study_identifier,
     description,
@@ -480,23 +494,55 @@ def generate_fusion_meta_data(
     }
     return(data)
 
-def generate_meta_lines(data):
+def generate_mutation_meta_data(
+    cancer_study_identifier,
+    data_filename,
+    genetic_alteration_type = 'MUTATION_EXTENDED',
+    datatype = 'MAF',
+    stable_id = 'mutations',
+    show_profile_in_analysis_tab = "true",
+    profile_description = 'Mutation data',
+    profile_name = 'Mutations'
+    ):
     """
-    Convert a data dict into a list of string lines to write to be written to a file
     """
-    lines = []
-    for key, value in data.items():
-        line_str = '{key}: {value}\n'.format(key = key, value = value)
-        lines.append(line_str)
-    return(lines)
+    data = {
+    'cancer_study_identifier': cancer_study_identifier,
+    'data_filename': data_filename,
+    'genetic_alteration_type': genetic_alteration_type,
+    'datatype': datatype,
+    'stable_id': stable_id,
+    'show_profile_in_analysis_tab': show_profile_in_analysis_tab,
+    'profile_description': profile_description,
+    'profile_name': profile_name
+    }
+    return(data)
+
 
 
 
 # File generation functions
+def generate_mutation_meta_data_file(**kwargs):
+    """
+    """
+    output = kwargs.pop('output', 'meta_mutations_extended.txt')
+    cancer_study_identifier = kwargs.pop('cancer_study_identifier')
+    data_filename = kwargs.pop('data_filename', 'data_mutations_extended.txt')
+
+    meta_data = generate_mutation_meta_data(
+        cancer_study_identifier = cancer_study_identifier,
+        data_filename = data_filename
+        )
+
+    lines = generate_meta_lines(meta_data)
+
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+
 def generate_fusion_meta_data_file(**kwargs):
     """
     """
-    output = kwargs.pop('output', 'meta_CNA.txt')
+    output = kwargs.pop('output', 'meta_fusions.txt')
     cancer_study_identifier = kwargs.pop('cancer_study_identifier')
     data_filename = kwargs.pop('data_filename', 'data_fusions.txt')
 
@@ -713,6 +759,16 @@ def main():
     meta_fusion.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
     meta_fusion.add_argument('--fusion-data-filename', dest = 'data_filename', default = 'data_fusions.txt', help = 'Filename of the associated fusion data file')
     meta_fusion.set_defaults(func = generate_fusion_meta_data_file)
+
+    # subparser for meta_mutations_extended.txt
+    meta_mutations = subparsers.add_parser('meta_mutations', help = 'Create the Mutations metadata file')
+    meta_mutations.add_argument('--output', dest = 'output', default = "meta_mutations_extended.txt", help = 'Name of the output file')
+    meta_mutations.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
+    meta_mutations.add_argument('--mutations-data-filename', dest = 'data_filename', default = 'data_mutations_extended.txt', help = 'Filename of the mutations file')
+    meta_mutations.set_defaults(func = generate_mutation_meta_data_file)
+
+
+
 
     args = parser.parse_args()
     args.func(**vars(args))

@@ -32,6 +32,7 @@ from bin.generate_cbioPortal_files import generate_clinical_meta_samples_data
 from bin.generate_cbioPortal_files import generate_clinical_meta_patient_data
 from bin.generate_cbioPortal_files import generate_clinical_meta_cna_data
 from bin.generate_cbioPortal_files import generate_fusion_meta_data
+from bin.generate_cbioPortal_files import generate_mutation_meta_data
 sys.path.pop(0)
 
 
@@ -350,6 +351,22 @@ class TestGenerateCBioFiles(unittest.TestCase):
         'profile_name': 'Fusions',
         'profile_description': 'Fusion data',
         'datatype': 'FUSION'
+        }
+        self.assertDictEqual(data, expected_data)
+
+    def test_generate_mutation_meta_data(self):
+        """
+        """
+        data = generate_mutation_meta_data(cancer_study_identifier = "foo", data_filename = "bar.txt")
+        expected_data = {
+        'cancer_study_identifier': 'foo',
+        'data_filename': 'bar.txt',
+        'genetic_alteration_type': 'MUTATION_EXTENDED',
+        'datatype': 'MAF',
+        'stable_id': 'mutations',
+        'show_profile_in_analysis_tab': "true",
+        'profile_description': 'Mutation data',
+        'profile_name': 'Mutations'
         }
         self.assertDictEqual(data, expected_data)
 
