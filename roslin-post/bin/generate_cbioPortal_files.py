@@ -24,8 +24,8 @@ data_fusions.txt
 (maf_filter.py) data_mutations_extended.txt
 X meta_clinical_patient.txt
 X meta_clinical_sample.txt
-meta_CNA.txt
-meta_fusions.txt
+X meta_CNA.txt
+X meta_fusions.txt
 meta_mutations_extended.txt
 X meta_study.txt
 pi_f8_3a_08390_G_data_cna_hg19.seg
@@ -456,6 +456,30 @@ def generate_clinical_meta_cna_data(
     }
     return(data)
 
+def generate_fusion_meta_data(
+    cancer_study_identifier,
+    data_filename,
+    datatype = 'FUSION',
+    genetic_alteration_type = 'FUSION',
+    stable_id = 'fusion',
+    show_profile_in_analysis_tab = "true",
+    profile_description = 'Fusion data',
+    profile_name = 'Fusions'
+    ):
+    """
+    """
+    data = {
+    'cancer_study_identifier': cancer_study_identifier,
+    'data_filename': data_filename,
+    'datatype': datatype,
+    'genetic_alteration_type': genetic_alteration_type,
+    'stable_id': stable_id,
+    'show_profile_in_analysis_tab': show_profile_in_analysis_tab,
+    'profile_description': profile_description,
+    'profile_name' : profile_name,
+    }
+    return(data)
+
 def generate_meta_lines(data):
     """
     Convert a data dict into a list of string lines to write to be written to a file
@@ -469,6 +493,22 @@ def generate_meta_lines(data):
 
 
 # File generation functions
+def generate_fusion_meta_data_file(**kwargs):
+    """
+    """
+    output = kwargs.pop('output', 'meta_CNA.txt')
+    cancer_study_identifier = kwargs.pop('cancer_study_identifier')
+    data_filename = kwargs.pop('data_filename', 'data_fusions.txt')
+
+    meta_data = generate_fusion_meta_data(
+        cancer_study_identifier = cancer_study_identifier,
+        data_filename = data_filename
+        )
+    lines = generate_meta_lines(meta_data)
+
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+
 def generate_clinical_meta_cna_data_file(**kwargs):
     """
     """
@@ -665,9 +705,14 @@ def main():
     meta_cna.add_argument('--output', dest = 'output', default = "meta_CNA.txt", help = 'Name of the output file')
     meta_cna.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
     meta_cna.add_argument('--cna-data-filename', dest = 'data_filename', default = 'data_CNA.txt', help = 'Filename of the associated Copy Number Alteration data file')
-
     meta_cna.set_defaults(func = generate_clinical_meta_cna_data_file)
 
+    # subparser for meta_fusions.txt
+    meta_fusion = subparsers.add_parser('meta_fusion', help = 'Create the Fusion metadata file')
+    meta_fusion.add_argument('--output', dest = 'output', default = "meta_fusions.txt", help = 'Name of the output file')
+    meta_fusion.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
+    meta_fusion.add_argument('--fusion-data-filename', dest = 'data_filename', default = 'data_fusions.txt', help = 'Filename of the associated fusion data file')
+    meta_fusion.set_defaults(func = generate_fusion_meta_data_file)
 
     args = parser.parse_args()
     args.func(**vars(args))

@@ -31,6 +31,7 @@ from bin.generate_cbioPortal_files import generate_meta_lines
 from bin.generate_cbioPortal_files import generate_clinical_meta_samples_data
 from bin.generate_cbioPortal_files import generate_clinical_meta_patient_data
 from bin.generate_cbioPortal_files import generate_clinical_meta_cna_data
+from bin.generate_cbioPortal_files import generate_fusion_meta_data
 sys.path.pop(0)
 
 
@@ -333,6 +334,22 @@ class TestGenerateCBioFiles(unittest.TestCase):
         'show_profile_in_analysis_tab': 'true',
         'profile_name': 'Discrete Copy Number Data',
         'profile_description': 'Discrete Copy Number Data'
+        }
+        self.assertDictEqual(data, expected_data)
+
+    def test_generate_fusion_meta_data(self):
+        """
+        """
+        data = generate_fusion_meta_data(cancer_study_identifier = "foo", data_filename = "bar.txt")
+        expected_data = {
+        'cancer_study_identifier': "foo",
+        'data_filename': 'bar.txt',
+        'genetic_alteration_type': 'FUSION',
+        'stable_id': 'fusion',
+        'show_profile_in_analysis_tab': 'true',
+        'profile_name': 'Fusions',
+        'profile_description': 'Fusion data',
+        'datatype': 'FUSION'
         }
         self.assertDictEqual(data, expected_data)
 
