@@ -61,6 +61,10 @@ $ generate_cbioPortal_files.py meta_sample --cancer-study-id cancer_study
 $ generate_cbioPortal_files.py meta_patient --cancer-study-id cancer_study
 
 $ generate_cbioPortal_files.py meta_cna --cancer-study-id cancer_study
+
+$ generate_cbioPortal_files.py meta_fusion --cancer-study-id cancer_study
+
+$ generate_cbioPortal_files.py meta_mutations --cancer-study-id cancer_study
 """
 import csv
 import argparse
