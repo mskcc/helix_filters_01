@@ -19,10 +19,10 @@ case_lists
 X data_clinical_patient.txt
 X data_clinical_sample.txt
 data_CNA.ascna.txt
-(facets steps ?) data_CNA.txt
+X (facets ; copy_number.cwl) data_CNA.txt
 data_fusions.txt
 (maf_filter.py) data_mutations_extended.txt
-meta_clinical_patient.txt
+X meta_clinical_patient.txt
 X meta_clinical_sample.txt
 meta_CNA.txt
 meta_fusions.txt
@@ -59,6 +59,8 @@ $ generate_cbioPortal_files.py study --cancer-study-id cancer_study --name name 
 $ generate_cbioPortal_files.py meta_sample --cancer-study-id cancer_study
 
 $ generate_cbioPortal_files.py meta_patient --cancer-study-id cancer_study
+
+$ generate_cbioPortal_files.py meta_cna --cancer-study-id cancer_study
 """
 import csv
 import argparse
@@ -430,6 +432,30 @@ def generate_clinical_meta_patient_data(
     }
     return(data)
 
+def generate_clinical_meta_cna_data(
+    cancer_study_identifier,
+    data_filename,
+    datatype = 'DISCRETE',
+    genetic_alteration_type = 'COPY_NUMBER_ALTERATION',
+    stable_id = 'cna', # legacy requirement
+    show_profile_in_analysis_tab = "true",
+    profile_name = 'Discrete Copy Number Data',
+    profile_description = 'Discrete Copy Number Data'
+    ):
+    """
+    """
+    data = {
+    'cancer_study_identifier' : cancer_study_identifier,
+    'datatype' : datatype,
+    'genetic_alteration_type': genetic_alteration_type,
+    'data_filename': data_filename,
+    'stable_id': stable_id,
+    'show_profile_in_analysis_tab': show_profile_in_analysis_tab,
+    'profile_name': profile_name,
+    'profile_description': profile_description
+    }
+    return(data)
+
 def generate_meta_lines(data):
     """
     Convert a data dict into a list of string lines to write to be written to a file
@@ -443,6 +469,22 @@ def generate_meta_lines(data):
 
 
 # File generation functions
+def generate_clinical_meta_cna_data_file(**kwargs):
+    """
+    """
+    output = kwargs.pop('output', 'meta_CNA.txt')
+    cancer_study_identifier = kwargs.pop('cancer_study_identifier')
+    data_filename = kwargs.pop('data_filename', 'data_CNA.txt')
+
+    meta_data = generate_clinical_meta_cna_data(
+        cancer_study_identifier = cancer_study_identifier,
+        data_filename = data_filename
+    )
+    lines = generate_meta_lines(meta_data)
+
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+
 def generate_clinical_meta_patient_data_file(**kwargs):
     """
     Generate the cBioPortal meta_clinical_patient file
@@ -617,6 +659,14 @@ def main():
     meta_patient.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
     meta_patient.add_argument('--patient-data-filename', dest = 'data_filename', default = 'data_clinical_patient.txt', help = 'Filename of the associated data_clinical_patient file')
     meta_patient.set_defaults(func = generate_clinical_meta_patient_data_file)
+
+    # subparser for meta_CNA.txt
+    meta_cna = subparsers.add_parser('meta_cna', help = 'Create the Copy Number Alteration metadata file')
+    meta_cna.add_argument('--output', dest = 'output', default = "meta_CNA.txt", help = 'Name of the output file')
+    meta_cna.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
+    meta_cna.add_argument('--cna-data-filename', dest = 'data_filename', default = 'data_CNA.txt', help = 'Filename of the associated Copy Number Alteration data file')
+
+    meta_cna.set_defaults(func = generate_clinical_meta_cna_data_file)
 
 
     args = parser.parse_args()

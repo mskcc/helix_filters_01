@@ -30,6 +30,7 @@ from bin.generate_cbioPortal_files import generate_extra_group_labels_string
 from bin.generate_cbioPortal_files import generate_meta_lines
 from bin.generate_cbioPortal_files import generate_clinical_meta_samples_data
 from bin.generate_cbioPortal_files import generate_clinical_meta_patient_data
+from bin.generate_cbioPortal_files import generate_clinical_meta_cna_data
 sys.path.pop(0)
 
 
@@ -316,6 +317,22 @@ class TestGenerateCBioFiles(unittest.TestCase):
         'data_filename': 'bar.txt',
         'datatype': 'PATIENT_ATTRIBUTES',
         'genetic_alteration_type': 'CLINICAL'
+        }
+        self.assertDictEqual(data, expected_data)
+
+    def test_generate_clinical_meta_cna_data(self):
+        """
+        """
+        data = generate_clinical_meta_cna_data(cancer_study_identifier = "foo", data_filename = "bar.txt")
+        expected_data = {
+        'cancer_study_identifier': "foo",
+        'data_filename': 'bar.txt',
+        'datatype': 'DISCRETE',
+        'genetic_alteration_type': 'COPY_NUMBER_ALTERATION',
+        'stable_id': 'cna',
+        'show_profile_in_analysis_tab': 'true',
+        'profile_name': 'Discrete Copy Number Data',
+        'profile_description': 'Discrete Copy Number Data'
         }
         self.assertDictEqual(data, expected_data)
 
