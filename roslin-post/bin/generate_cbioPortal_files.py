@@ -417,112 +417,101 @@ def generate_study_meta(
     }
     return(data)
 
-def generate_clinical_meta_samples_data(
-    cancer_study_identifier,
-    data_filename,
-    datatype = 'SAMPLE_ATTRIBUTES',
-    genetic_alteration_type = 'CLINICAL'
-    ):
+def generate_clinical_meta_samples_data(cancer_study_identifier, data_filename):
     """
     Create a dict to hold the samples metadata
     """
     data = {
     'cancer_study_identifier' : cancer_study_identifier,
-    'datatype' : datatype,
-    'genetic_alteration_type': genetic_alteration_type,
+    'datatype' : 'SAMPLE_ATTRIBUTES',
+    'genetic_alteration_type': 'CLINICAL',
     'data_filename': data_filename
     }
     return(data)
 
-def generate_clinical_meta_patient_data(
-    cancer_study_identifier,
-    data_filename,
-    datatype = 'PATIENT_ATTRIBUTES',
-    genetic_alteration_type = 'CLINICAL'
-    ):
+def generate_clinical_meta_patient_data(cancer_study_identifier, data_filename):
     """
     """
     data = {
     'cancer_study_identifier' : cancer_study_identifier,
-    'datatype' : datatype,
-    'genetic_alteration_type': genetic_alteration_type,
+    'datatype' : 'PATIENT_ATTRIBUTES',
+    'genetic_alteration_type': 'CLINICAL',
     'data_filename': data_filename
     }
     return(data)
 
-def generate_clinical_meta_cna_data(
-    cancer_study_identifier,
-    data_filename,
-    datatype = 'DISCRETE',
-    genetic_alteration_type = 'COPY_NUMBER_ALTERATION',
-    stable_id = 'cna', # legacy requirement
-    show_profile_in_analysis_tab = "true",
-    profile_name = 'Discrete Copy Number Data',
-    profile_description = 'Discrete Copy Number Data'
-    ):
+def generate_clinical_meta_cna_data(cancer_study_identifier, data_filename):
     """
     """
     data = {
     'cancer_study_identifier' : cancer_study_identifier,
-    'datatype' : datatype,
-    'genetic_alteration_type': genetic_alteration_type,
+    'datatype' : 'DISCRETE',
+    'genetic_alteration_type': 'COPY_NUMBER_ALTERATION',
     'data_filename': data_filename,
-    'stable_id': stable_id,
-    'show_profile_in_analysis_tab': show_profile_in_analysis_tab,
-    'profile_name': profile_name,
-    'profile_description': profile_description
+    'stable_id': 'cna',
+    'show_profile_in_analysis_tab': "true",
+    'profile_name': 'Discrete Copy Number Data',
+    'profile_description': 'Discrete Copy Number Data'
     }
     return(data)
 
-def generate_fusion_meta_data(
-    cancer_study_identifier,
-    data_filename,
-    datatype = 'FUSION',
-    genetic_alteration_type = 'FUSION',
-    stable_id = 'fusion',
-    show_profile_in_analysis_tab = "true",
-    profile_description = 'Fusion data',
-    profile_name = 'Fusions'
-    ):
+def generate_fusion_meta_data(cancer_study_identifier, data_filename):
     """
     """
     data = {
     'cancer_study_identifier': cancer_study_identifier,
     'data_filename': data_filename,
-    'datatype': datatype,
-    'genetic_alteration_type': genetic_alteration_type,
-    'stable_id': stable_id,
-    'show_profile_in_analysis_tab': show_profile_in_analysis_tab,
-    'profile_description': profile_description,
-    'profile_name' : profile_name,
+    'datatype': 'FUSION',
+    'genetic_alteration_type': 'FUSION',
+    'stable_id': 'fusion',
+    'show_profile_in_analysis_tab': "true",
+    'profile_description': 'Fusion data',
+    'profile_name' : 'Fusions',
     }
     return(data)
 
-def generate_mutation_meta_data(
-    cancer_study_identifier,
-    data_filename,
-    genetic_alteration_type = 'MUTATION_EXTENDED',
-    datatype = 'MAF',
-    stable_id = 'mutations',
-    show_profile_in_analysis_tab = "true",
-    profile_description = 'Mutation data',
-    profile_name = 'Mutations'
-    ):
+def generate_mutation_meta_data(cancer_study_identifier, data_filename):
     """
     """
     data = {
     'cancer_study_identifier': cancer_study_identifier,
     'data_filename': data_filename,
-    'genetic_alteration_type': genetic_alteration_type,
-    'datatype': datatype,
-    'stable_id': stable_id,
-    'show_profile_in_analysis_tab': show_profile_in_analysis_tab,
-    'profile_description': profile_description,
-    'profile_name': profile_name
+    'genetic_alteration_type': 'MUTATION_EXTENDED',
+    'datatype': 'MAF',
+    'stable_id': 'mutations',
+    'show_profile_in_analysis_tab': "true",
+    'profile_description': 'Mutation data',
+    'profile_name': 'Mutations'
     }
     return(data)
 
+def generate_case_list_all_data(cancer_study_identifier, case_list_ids):
+    """
+    case_list_ids: list
+        a list of strings representing the case list id's
+    """
+    data = {
+    'cancer_study_identifier': cancer_study_identifier,
+    'stable_id': cancer_study_identifier + '_all',
+    'case_list_category': 'all_cases_in_study',
+    'case_list_name': 'All Tumors',
+    'case_list_description': 'All tumor samples',
+    'case_list_ids': '\t'.join(case_list_ids)
+    }
+    return(data)
 
+def generate_case_list_cnaseq_data(cancer_study_identifier, case_list_ids):
+    """
+    """
+    data = {
+    'cancer_study_identifier': cancer_study_identifier,
+    'stable_id': cancer_study_identifier + '_all',
+    'case_list_ids': '\t'.join(case_list_ids),
+    'case_list_category': 'all_cases_with_mutation_and_cna_data',
+    'case_list_name': 'Tumors with sequencing and CNA data',
+    'case_list_description': 'All tumor samples that have CNA and sequencing data'
+    }
+    return(data)
 
 
 # File generation functions

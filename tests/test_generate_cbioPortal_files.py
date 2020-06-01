@@ -33,6 +33,8 @@ from bin.generate_cbioPortal_files import generate_clinical_meta_patient_data
 from bin.generate_cbioPortal_files import generate_clinical_meta_cna_data
 from bin.generate_cbioPortal_files import generate_fusion_meta_data
 from bin.generate_cbioPortal_files import generate_mutation_meta_data
+from bin.generate_cbioPortal_files import generate_case_list_all_data
+from bin.generate_cbioPortal_files import generate_case_list_cnaseq_data
 sys.path.pop(0)
 
 
@@ -367,6 +369,34 @@ class TestGenerateCBioFiles(unittest.TestCase):
         'show_profile_in_analysis_tab': "true",
         'profile_description': 'Mutation data',
         'profile_name': 'Mutations'
+        }
+        self.assertDictEqual(data, expected_data)
+
+    def test_generate_case_list_all_data(self):
+        """
+        """
+        data = generate_case_list_all_data(cancer_study_identifier = "foo", case_list_ids = ['bar', 'baz', 'buzz'])
+        expected_data = {
+        'cancer_study_identifier': 'foo',
+        'stable_id': 'foo_all',
+        'case_list_category': 'all_cases_in_study',
+        'case_list_name': 'All Tumors',
+        'case_list_description': 'All tumor samples',
+        'case_list_ids': 'bar\tbaz\tbuzz'
+        }
+        self.assertDictEqual(data, expected_data)
+
+    def test_generate_case_list_cnaseq_data(self):
+        """
+        """
+        data = generate_case_list_cnaseq_data(cancer_study_identifier = "foo", case_list_ids = ['bar', 'baz', 'buzz'])
+        expected_data = {
+        'cancer_study_identifier': 'foo',
+        'stable_id': 'foo_all',
+        'case_list_category': 'all_cases_with_mutation_and_cna_data',
+        'case_list_name': 'Tumors with sequencing and CNA data',
+        'case_list_description': 'All tumor samples that have CNA and sequencing data',
+        'case_list_ids': 'bar\tbaz\tbuzz'
         }
         self.assertDictEqual(data, expected_data)
 
