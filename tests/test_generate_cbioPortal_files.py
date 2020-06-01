@@ -35,6 +35,9 @@ from bin.generate_cbioPortal_files import generate_fusion_meta_data
 from bin.generate_cbioPortal_files import generate_mutation_meta_data
 from bin.generate_cbioPortal_files import generate_case_list_all_data
 from bin.generate_cbioPortal_files import generate_case_list_cnaseq_data
+from bin.generate_cbioPortal_files import generate_case_list_cna_data
+from bin.generate_cbioPortal_files import generate_case_list_sequenced_data
+from bin.generate_cbioPortal_files import get_sample_list
 sys.path.pop(0)
 
 
@@ -399,6 +402,48 @@ class TestGenerateCBioFiles(unittest.TestCase):
         'case_list_ids': 'bar\tbaz\tbuzz'
         }
         self.assertDictEqual(data, expected_data)
+
+    def test_generate_case_list_cna_data(self):
+        """
+        """
+        data = generate_case_list_cna_data(cancer_study_identifier = "foo", case_list_ids = ['bar', 'baz', 'buzz'])
+        expected_data = {
+        'cancer_study_identifier': 'foo',
+        'stable_id': 'foo_all',
+        'case_list_category': 'all_cases_with_cna_data',
+        'case_list_name': 'Tumors CNA',
+        'case_list_description': 'All tumors with CNA data',
+        'case_list_ids': 'bar\tbaz\tbuzz'
+        }
+        self.assertDictEqual(data, expected_data)
+
+    def test_generate_case_list_sequenced_data(self):
+        """
+        """
+        data = generate_case_list_sequenced_data(cancer_study_identifier = "foo", case_list_ids = ['bar', 'baz', 'buzz'])
+        expected_data = {
+        'cancer_study_identifier': 'foo',
+        'stable_id': 'foo_all',
+        'case_list_category': 'all_cases_with_mutation_data',
+        'case_list_name': 'Sequenced Tumors',
+        'case_list_description': 'All sequenced tumors',
+        'case_list_ids': 'bar\tbaz\tbuzz'
+        }
+        self.assertDictEqual(data, expected_data)
+
+    def test_get_sample_list(self):
+        """
+        """
+        clinical_data = [
+        {'SAMPLE_ID': 'foo1', 'bar': 'buzz'},
+        {'SAMPLE_ID': 'foo2', 'bar': 'buzz'},
+        {'SAMPLE_ID': 'foo3', 'bar': 'buzz'}
+        ]
+        sample_list = get_sample_list(clinical_data)
+        expected_list = ['foo1', 'foo2', 'foo3']
+        self.assertEqual(sample_list, expected_list)
+
+
 
 
 if __name__ == "__main__":

@@ -65,6 +65,8 @@ $ generate_cbioPortal_files.py meta_cna --cancer-study-id cancer_study
 $ generate_cbioPortal_files.py meta_fusion --cancer-study-id cancer_study
 
 $ generate_cbioPortal_files.py meta_mutations --cancer-study-id cancer_study
+
+$ generate_cbioPortal_files.py cases_all  --cancer-study-id cancer_study --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
 """
 import csv
 import argparse
@@ -390,6 +392,25 @@ def generate_meta_lines(data):
         lines.append(line_str)
     return(lines)
 
+def get_sample_list(data):
+    """
+    Get a list of all the sample ID's in the data set
+
+    Parameters
+    ----------
+    data: list
+        a list of dict's with the key `SAMPLE_ID`
+
+    Returns
+    -------
+    list
+        a list of strings representing the sample IDs
+    """
+    sample_list = []
+    for item in data:
+        sample_list.append(item['SAMPLE_ID'])
+    return(sample_list)
+
 
 # metadata generation functions
 def generate_study_meta(
@@ -513,8 +534,57 @@ def generate_case_list_cnaseq_data(cancer_study_identifier, case_list_ids):
     }
     return(data)
 
+def generate_case_list_cna_data(cancer_study_identifier, case_list_ids):
+    """
+    """
+    data = {
+    'cancer_study_identifier': cancer_study_identifier,
+    'stable_id': cancer_study_identifier + '_all',
+    'case_list_ids': '\t'.join(case_list_ids),
+    'case_list_category': "all_cases_with_cna_data",
+    'case_list_name': "Tumors CNA",
+    'case_list_description': "All tumors with CNA data"
+    }
+    return(data)
+
+def generate_case_list_sequenced_data(cancer_study_identifier, case_list_ids):
+    """
+    """
+    data = {
+    'cancer_study_identifier': cancer_study_identifier,
+    'stable_id': cancer_study_identifier + '_all',
+    'case_list_ids': '\t'.join(case_list_ids),
+    'case_list_category': "all_cases_with_mutation_data",
+    'case_list_name': "Sequenced Tumors",
+    'case_list_description': "All sequenced tumors"
+    }
+    return(data)
+
+
+
+
+
 
 # File generation functions
+def generate_case_list_all_data_file(**kwargs):
+    """
+    """
+    output = kwargs.pop('output', 'cases_all.txt')
+    cancer_study_identifier = kwargs.pop('cancer_study_identifier')
+    data_clinical_file = kwargs.pop('data_clinical_file')
+
+    clinical_data = load_clinical_data(data_clinical_file)
+
+    sample_list = get_sample_list(clinical_data)
+
+    cases_data = generate_case_list_all_data(cancer_study_identifier = cancer_study_identifier, case_list_ids = sample_list)
+
+    lines = generate_meta_lines(cases_data)
+
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+
+
 def generate_mutation_meta_data_file(**kwargs):
     """
     """
@@ -759,6 +829,14 @@ def main():
     meta_mutations.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
     meta_mutations.add_argument('--mutations-data-filename', dest = 'data_filename', default = 'data_mutations_extended.txt', help = 'Filename of the mutations file')
     meta_mutations.set_defaults(func = generate_mutation_meta_data_file)
+
+    # subparser for cases_all.txt
+    cases_all = subparsers.add_parser('cases_all', help = 'Create the file for all case lists')
+    cases_all.add_argument('--output', dest = 'output', default = "cases_all.txt", help = 'Name of the output file')
+    cases_all.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
+    cases_all.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
+    cases_all.set_defaults(func = generate_case_list_all_data_file)
+
 
 
 
