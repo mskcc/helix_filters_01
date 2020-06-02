@@ -15,7 +15,7 @@ generate_discrete_copy_number_meta
 
 files;
 
-case_lists
+X case_lists
 X data_clinical_patient.txt
 X data_clinical_sample.txt
 data_CNA.ascna.txt
@@ -29,7 +29,7 @@ X meta_fusions.txt
 X meta_mutations_extended.txt
 X meta_study.txt
 pi_f8_3a_08390_G_data_cna_hg19.seg
-pi_f8_3a_08390_G_meta_cna_hg19_seg.txt
+X pi_f8_3a_08390_G_meta_cna_hg19_seg.txt
 
 https://github.com/cBioPortal/cbioportal/blob/master/docs/File-Formats.md#example-sample-data-file
 
@@ -52,21 +52,23 @@ Usage
 
 $ generate_cbioPortal_files.py patient --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
 
-$ generate_cbioPortal_files.py sample --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt --sample-summary-file ../test_data/qc/Proj_08390_G_SampleSummary.txt --project-pi orlowi --request-pi orlowi
+$ generate_cbioPortal_files.py sample --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt --sample-summary-file ../test_data/qc/Proj_08390_G_SampleSummary.txt --project-pi pi_name --request-pi pi_name
 
-$ generate_cbioPortal_files.py study --cancer-study-id cancer_study --name name --short-name short_name --type-of-cancer type_of_cancer --extra-groups foo_group --extra-groups bar_group
+$ generate_cbioPortal_files.py study --cancer-study-id cancer_study_1 --name name --short-name short_name --type-of-cancer type_of_cancer --extra-groups foo_group --extra-groups bar_group
 
-$ generate_cbioPortal_files.py meta_sample --cancer-study-id cancer_study
+$ generate_cbioPortal_files.py meta_sample --cancer-study-id cancer_study_1
 
-$ generate_cbioPortal_files.py meta_patient --cancer-study-id cancer_study
+$ generate_cbioPortal_files.py meta_patient --cancer-study-id cancer_study_1
 
-$ generate_cbioPortal_files.py meta_cna --cancer-study-id cancer_study
+$ generate_cbioPortal_files.py meta_cna --cancer-study-id cancer_study_1
 
-$ generate_cbioPortal_files.py meta_fusion --cancer-study-id cancer_study
+$ generate_cbioPortal_files.py meta_fusion --cancer-study-id cancer_study_1
 
-$ generate_cbioPortal_files.py meta_mutations --cancer-study-id cancer_study
+$ generate_cbioPortal_files.py meta_mutations --cancer-study-id cancer_study_1
 
-$ generate_cbioPortal_files.py cases_all  --cancer-study-id cancer_study --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
+$ generate_cbioPortal_files.py cases_all  --cancer-study-id cancer_study_1 --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
+
+$ generate_cbioPortal_files.py meta_segments --cancer-study-id cancer_study_1 --output cancer_study_1_meta_cna_hg19_seg.txt --segmented-data-file cancer_study_1_data_cna_hg19.seg
 """
 import csv
 import argparse
@@ -560,12 +562,37 @@ def generate_case_list_sequenced_data(cancer_study_identifier, case_list_ids):
     }
     return(data)
 
-
+def generate_meta_segments_data(cancer_study_identifier, data_filename):
+    """
+    """
+    data = {
+    'cancer_study_identifier': cancer_study_identifier,
+    'data_filename': data_filename,
+    'genetic_alteration_type': 'COPY_NUMBER_ALTERATION',
+    'datatype': 'SEG',
+    'description': 'Segmented Data',
+    'reference_genome_id': 'hg19'
+    }
+    return(data)
 
 
 
 
 # File generation functions
+def generate_meta_segments_data_file(**kwargs):
+    """
+    """
+    output = kwargs.pop('output')
+    cancer_study_identifier = kwargs.pop('cancer_study_identifier')
+    data_filename = kwargs.pop('data_filename')
+
+    meta_data = generate_meta_segments_data(cancer_study_identifier = cancer_study_identifier, data_filename = data_filename)
+
+    lines = generate_meta_lines(meta_data)
+
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+
 def generate_case_list_all_data_file(**kwargs):
     """
     """
@@ -837,7 +864,12 @@ def main():
     cases_all.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
     cases_all.set_defaults(func = generate_case_list_all_data_file)
 
-
+    # subparser _meta_cna_hg19_seg.txt for _data_cna_hg19.seg file
+    meta_segments = subparsers.add_parser('meta_segments', help = 'Create the Segmented data metadata file')
+    meta_segments.add_argument('--output', dest = 'output', required = True, default = "_meta_cna_hg19_seg.txt", help = 'Name of the output file')
+    meta_segments.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
+    meta_segments.add_argument('--segmented-data-file', dest = 'data_filename', required = True, default = '_data_cna_hg19.seg', help = 'Filename of the mutations file')
+    meta_segments.set_defaults(func = generate_meta_segments_data_file)
 
 
 

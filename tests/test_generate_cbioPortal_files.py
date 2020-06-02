@@ -38,6 +38,7 @@ from bin.generate_cbioPortal_files import generate_case_list_cnaseq_data
 from bin.generate_cbioPortal_files import generate_case_list_cna_data
 from bin.generate_cbioPortal_files import generate_case_list_sequenced_data
 from bin.generate_cbioPortal_files import get_sample_list
+from bin.generate_cbioPortal_files import generate_meta_segments_data
 sys.path.pop(0)
 
 
@@ -442,6 +443,21 @@ class TestGenerateCBioFiles(unittest.TestCase):
         sample_list = get_sample_list(clinical_data)
         expected_list = ['foo1', 'foo2', 'foo3']
         self.assertEqual(sample_list, expected_list)
+
+    def test_generate_meta_segments_data(self):
+        """
+        """
+        data = generate_meta_segments_data(cancer_study_identifier = "foo", data_filename = "bar.txt")
+        expected_data = {
+        'cancer_study_identifier': 'foo',
+        'data_filename': 'bar.txt',
+        'genetic_alteration_type': 'COPY_NUMBER_ALTERATION',
+        'datatype': 'SEG',
+        'description': 'Segmented Data',
+        'reference_genome_id': 'hg19'
+        }
+        self.assertDictEqual(data, expected_data)
+
 
 
 
