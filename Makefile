@@ -76,6 +76,12 @@ hisens.cncf.txt:
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > hisens.cncf.txt
 .PHONY: hisens.cncf.txt
 
+# the segmented copy number files
+hisens.seg.txt:
+	find $(FACETS_DIR) -type f -name "*_hisens.seg" | \
+	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > hisens.seg.txt
+.PHONY: hisens.seg.txt
+
 # the input for the pipeline
 export ANALYST_FILE:=$(PROJ_ID).muts.maf
 export ANALYST_GENE_CNA_FILE:=$(PROJ_ID).gene.cna.txt
