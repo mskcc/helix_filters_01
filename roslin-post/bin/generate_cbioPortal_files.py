@@ -12,7 +12,7 @@ portal/
 │   ├── cases_all.txt (X)
 │   ├── cases_cnaseq.txt (X)
 │   ├── cases_cna.txt (X)
-│   └── cases_sequenced.txt ( )
+│   └── cases_sequenced.txt (X)
 ├── data_clinical_patient.txt (X)
 ├── data_clinical_sample.txt (X)
 ├── data_CNA.ascna.txt ( )

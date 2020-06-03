@@ -18,3 +18,5 @@ hisens.cncf.txt
 *.pyc
 sanitize
 __pycache__
+fixtures
+old_fixtures/

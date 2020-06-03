@@ -83,6 +83,7 @@ hisens.seg.txt:
 .PHONY: hisens.seg.txt
 
 # the input for the pipeline
+export KNOWN_FUSIONS_FILE:=$(CURDIR)/ref/known_fusions_at_mskcc.txt
 export ANALYST_FILE:=$(PROJ_ID).muts.maf
 export ANALYST_GENE_CNA_FILE:=$(PROJ_ID).gene.cna.txt
 export ARGOS_VERSION_STRING:=2.x
