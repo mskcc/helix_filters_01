@@ -396,7 +396,7 @@ class TestGenerateCBioFiles(unittest.TestCase):
         data = generate_case_list_cnaseq_data(cancer_study_identifier = "foo", case_list_ids = ['bar', 'baz', 'buzz'])
         expected_data = {
         'cancer_study_identifier': 'foo',
-        'stable_id': 'foo_all',
+        'stable_id': 'foo_cnaseq',
         'case_list_category': 'all_cases_with_mutation_and_cna_data',
         'case_list_name': 'Tumors with sequencing and CNA data',
         'case_list_description': 'All tumor samples that have CNA and sequencing data',
@@ -410,7 +410,7 @@ class TestGenerateCBioFiles(unittest.TestCase):
         data = generate_case_list_cna_data(cancer_study_identifier = "foo", case_list_ids = ['bar', 'baz', 'buzz'])
         expected_data = {
         'cancer_study_identifier': 'foo',
-        'stable_id': 'foo_all',
+        'stable_id': 'foo_cna',
         'case_list_category': 'all_cases_with_cna_data',
         'case_list_name': 'Tumors CNA',
         'case_list_description': 'All tumors with CNA data',
@@ -424,7 +424,7 @@ class TestGenerateCBioFiles(unittest.TestCase):
         data = generate_case_list_sequenced_data(cancer_study_identifier = "foo", case_list_ids = ['bar', 'baz', 'buzz'])
         expected_data = {
         'cancer_study_identifier': 'foo',
-        'stable_id': 'foo_all',
+        'stable_id': 'foo_sequenced',
         'case_list_category': 'all_cases_with_mutation_data',
         'case_list_name': 'Sequenced Tumors',
         'case_list_description': 'All sequenced tumors',

@@ -10,8 +10,8 @@ Files that need to be created for cBioPortal:
 portal/
 ├── case_lists
 │   ├── cases_all.txt (X)
-│   ├── cases_cnaseq.txt ( )
-│   ├── cases_cna.txt ( )
+│   ├── cases_cnaseq.txt (X)
+│   ├── cases_cna.txt (X)
 │   └── cases_sequenced.txt ( )
 ├── data_clinical_patient.txt (X)
 ├── data_clinical_sample.txt (X)
@@ -67,6 +67,12 @@ $ generate_cbioPortal_files.py meta_mutations --cancer-study-id cancer_study_1
 $ generate_cbioPortal_files.py cases_all  --cancer-study-id cancer_study_1 --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
 
 $ generate_cbioPortal_files.py meta_segments --cancer-study-id cancer_study_1 --output cancer_study_1_meta_cna_hg19_seg.txt --segmented-data-file cancer_study_1_data_cna_hg19.seg
+
+$ generate_cbioPortal_files.py cases_cnaseq --cancer-study-id cancer_study --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
+
+$ generate_cbioPortal_files.py cases_cna --cancer-study-id cancer_study --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
+
+$ generate_cbioPortal_files.py cases_sequenced --cancer-study-id cancer_study --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
 """
 import csv
 import argparse
@@ -526,7 +532,7 @@ def generate_case_list_cnaseq_data(cancer_study_identifier, case_list_ids):
     """
     data = {
     'cancer_study_identifier': cancer_study_identifier,
-    'stable_id': cancer_study_identifier + '_all',
+    'stable_id': cancer_study_identifier + '_cnaseq',
     'case_list_ids': '\t'.join(case_list_ids),
     'case_list_category': 'all_cases_with_mutation_and_cna_data',
     'case_list_name': 'Tumors with sequencing and CNA data',
@@ -539,7 +545,7 @@ def generate_case_list_cna_data(cancer_study_identifier, case_list_ids):
     """
     data = {
     'cancer_study_identifier': cancer_study_identifier,
-    'stable_id': cancer_study_identifier + '_all',
+    'stable_id': cancer_study_identifier + '_cna',
     'case_list_ids': '\t'.join(case_list_ids),
     'case_list_category': "all_cases_with_cna_data",
     'case_list_name': "Tumors CNA",
@@ -552,7 +558,7 @@ def generate_case_list_sequenced_data(cancer_study_identifier, case_list_ids):
     """
     data = {
     'cancer_study_identifier': cancer_study_identifier,
-    'stable_id': cancer_study_identifier + '_all',
+    'stable_id': cancer_study_identifier + '_sequenced',
     'case_list_ids': '\t'.join(case_list_ids),
     'case_list_category': "all_cases_with_mutation_data",
     'case_list_name': "Sequenced Tumors",
@@ -591,8 +597,66 @@ def generate_meta_segments_data_file(**kwargs):
     with open(output, "w") as fout:
         fout.writelines(lines)
 
+def generate_cases_sequenced_data_file(**kwargs):
+    """
+    data_clinical_file only needed to get sample ID's
+    """
+    output = kwargs.pop('output', 'cases_sequenced.txt')
+    cancer_study_identifier = kwargs.pop('cancer_study_identifier')
+    data_clinical_file = kwargs.pop('data_clinical_file')
+
+    clinical_data = load_clinical_data(data_clinical_file)
+
+    sample_list = get_sample_list(clinical_data)
+
+    cases_data = generate_case_list_sequenced_data(cancer_study_identifier = cancer_study_identifier, case_list_ids = sample_list)
+
+    lines = generate_meta_lines(cases_data)
+
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+
+def generate_cases_cna_data_file(**kwargs):
+    """
+    data_clinical_file only needed to get sample ID's
+    """
+    output = kwargs.pop('output', 'cases_cna.txt')
+    cancer_study_identifier = kwargs.pop('cancer_study_identifier')
+    data_clinical_file = kwargs.pop('data_clinical_file')
+
+    clinical_data = load_clinical_data(data_clinical_file)
+
+    sample_list = get_sample_list(clinical_data)
+
+    cases_data = generate_case_list_cna_data(cancer_study_identifier = cancer_study_identifier, case_list_ids = sample_list)
+
+    lines = generate_meta_lines(cases_data)
+
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+
+def generate_cases_cnaseq_data_file(**kwargs):
+    """
+    data_clinical_file only needed to get sample ID's
+    """
+    output = kwargs.pop('output', 'cases_cnaseq.txt')
+    cancer_study_identifier = kwargs.pop('cancer_study_identifier')
+    data_clinical_file = kwargs.pop('data_clinical_file')
+
+    clinical_data = load_clinical_data(data_clinical_file)
+
+    sample_list = get_sample_list(clinical_data)
+
+    cases_data = generate_case_list_cnaseq_data(cancer_study_identifier = cancer_study_identifier, case_list_ids = sample_list)
+
+    lines = generate_meta_lines(cases_data)
+
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+
 def generate_case_list_all_data_file(**kwargs):
     """
+    data_clinical_file only needed to get sample ID's
     """
     output = kwargs.pop('output', 'cases_all.txt')
     cancer_study_identifier = kwargs.pop('cancer_study_identifier')
@@ -856,11 +920,32 @@ def main():
     meta_mutations.set_defaults(func = generate_mutation_meta_data_file)
 
     # subparser for cases_all.txt
-    cases_all = subparsers.add_parser('cases_all', help = 'Create the file for all case lists')
+    cases_all = subparsers.add_parser('cases_all', help = 'Create the file for the all case list file')
     cases_all.add_argument('--output', dest = 'output', default = "cases_all.txt", help = 'Name of the output file')
     cases_all.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
     cases_all.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
     cases_all.set_defaults(func = generate_case_list_all_data_file)
+
+    # subparser for cases_cnaseq.txt
+    cases_cnaseq = subparsers.add_parser('cases_cnaseq', help = 'Create the file for the samples with copy number and sequencing case list file')
+    cases_cnaseq.add_argument('--output', dest = 'output', default = "cases_cnaseq.txt", help = 'Name of the output file')
+    cases_cnaseq.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
+    cases_cnaseq.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
+    cases_cnaseq.set_defaults(func = generate_cases_cnaseq_data_file)
+
+    # subparser for cases_cna.txt
+    cases_cna = subparsers.add_parser('cases_cna', help = 'Create the file for the samples with copy number case list file')
+    cases_cna.add_argument('--output', dest = 'output', default = "cases_cna.txt", help = 'Name of the output file')
+    cases_cna.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
+    cases_cna.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
+    cases_cna.set_defaults(func = generate_cases_cna_data_file)
+
+    # cases_sequenced.txt
+    cases_sequenced = subparsers.add_parser('cases_sequenced', help = 'Create the file for the samples with copy number case list file')
+    cases_sequenced.add_argument('--output', dest = 'output', default = "cases_sequenced.txt", help = 'Name of the output file')
+    cases_sequenced.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
+    cases_sequenced.add_argument('--data-clinical-file', dest = 'data_clinical_file', required = True, help = 'The data clinical source file')
+    cases_sequenced.set_defaults(func = generate_cases_sequenced_data_file)
 
     # subparser _meta_cna_hg19_seg.txt for _data_cna_hg19.seg file
     meta_segments = subparsers.add_parser('meta_segments', help = 'Create the Segmented data metadata file')
