@@ -1,35 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
+Module + script to create files for cBioPortal for a cancer analysis
 
-ported over from roslin_analysis_helper.py
-need functions:
+( ported over from roslin_analysis_helper.py )
 
-generate_legacy_clinical_data
-get_sample_list
-create_case_list_file
-generate_case_lists
-generate_study_meta
-generate_segmented_meta
-generate_discrete_copy_number_meta
+Files that need to be created for cBioPortal:
 
-files;
+portal/
+├── case_lists
+│   ├── cases_all.txt (X)
+│   ├── cases_cnaseq.txt ( )
+│   ├── cases_cna.txt ( )
+│   └── cases_sequenced.txt ( )
+├── data_clinical_patient.txt (X)
+├── data_clinical_sample.txt (X)
+├── data_CNA.ascna.txt ( )
+├── data_CNA.txt (X  from facets workflow ; copy_number.cwl)
+├── data_fusions.txt ( )
+├── data_mutations_extended.txt (X from maf_filter.py; TODO: split this into a separate script)
+├── meta_clinical_patient.txt (X)
+├── meta_clinical_sample.txt (X)
+├── meta_CNA.txt (X)
+├── meta_fusions.txt (X)
+├── meta_mutations_extended.txt (X)
+├── meta_study.txt (X)
+├── <project_id>_data_cna_hg19.seg (X from reduce_sig_figs.cwl + concat.cwl)
+└── <project_id>_meta_cna_hg19_seg.txt (X)
 
-X case_lists
-X data_clinical_patient.txt
-X data_clinical_sample.txt
-data_CNA.ascna.txt
-X (facets ; copy_number.cwl) data_CNA.txt
-data_fusions.txt
-(maf_filter.py) data_mutations_extended.txt
-X meta_clinical_patient.txt
-X meta_clinical_sample.txt
-X meta_CNA.txt
-X meta_fusions.txt
-X meta_mutations_extended.txt
-X meta_study.txt
-(reduce_sig_figs.cwl + concat.cwl) pi_f8_3a_08390_G_data_cna_hg19.seg
-X pi_f8_3a_08390_G_meta_cna_hg19_seg.txt
 
 https://github.com/cBioPortal/cbioportal/blob/master/docs/File-Formats.md#example-sample-data-file
 
