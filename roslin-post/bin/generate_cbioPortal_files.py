@@ -17,7 +17,7 @@ portal/
 ├── data_clinical_sample.txt (X)
 ├── data_CNA.ascna.txt ( )
 ├── data_CNA.txt (X  from facets workflow ; copy_number.cwl)
-├── data_fusions.txt ( )
+├── data_fusions.txt (- in workflow.makefile, needs CWL )
 ├── data_mutations_extended.txt (X from maf_filter.py; TODO: split this into a separate script)
 ├── meta_clinical_patient.txt (X)
 ├── meta_clinical_sample.txt (X)

@@ -27,11 +27,8 @@ IS_IMPACT:= $(if $(IS_IMPACT),$(IS_IMPACT),True)
 EXTRA_PI_GROUPS:=
 EXTRA_GROUPS_STR:=$(shell python -c 'print(" ".join([ "--extra-groups " + i for i in "$(EXTRA_PI_GROUPS)".split() ]))')
 
-KNOWN_FUSIONS_FILE:= $(if $(KNOWN_FUSIONS_FILE),$(KNOWN_FUSIONS_FILE),$(CURDIR)/ref/known_fusions_at_mskcc.txt)
-
 # reference files
-ANALYST_FILE:= $(if $(ANALYST_FILE),$(ANALYST_FILE),$(PROJ_ID).muts.maf)
-ANALYST_GENE_CNA_FILE:= $(if $(ANALYST_GENE_CNA_FILE),$(ANALYST_GENE_CNA_FILE),$(PROJ_ID).gene.cna.txt)
+KNOWN_FUSIONS_FILE:= $(if $(KNOWN_FUSIONS_FILE),$(KNOWN_FUSIONS_FILE),$(CURDIR)/ref/known_fusions_at_mskcc.txt)
 
 # files that will be output
 CBIO_MUTATION_DATA_FILENAME:=data_mutations_extended.txt
@@ -64,10 +61,16 @@ CBIO_CASES_CNASEQ_FILE:=$(CBIO_CASE_LIST_DIR)/cases_cnaseq.txt
 CBIO_CASES_CNA_FILE:=$(CBIO_CASE_LIST_DIR)/cases_cna.txt
 CBIO_CASES_SEQUENCED_FILE:=$(CBIO_CASE_LIST_DIR)/cases_sequenced.txt
 
-# input files
+ANALYSIS_SV_FILE:=$(ANALYSIS_DIR)/$(PROJ_ID).svs.maf
+ANALYST_FILE:= $(if $(ANALYST_FILE),$(ANALYST_FILE),$(ANALYSIS_DIR)/$(PROJ_ID).muts.maf)
+ANALYST_GENE_CNA_FILE:= $(if $(ANALYST_GENE_CNA_FILE),$(ANALYST_GENE_CNA_FILE),$(ANALYSIS_DIR)/$(PROJ_ID).gene.cna.txt)
+
+# input files and locations
 DEMO_DATA_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data
 DATA_CLINICAL_FILE:=$(DEMO_DATA_DIR)/inputs/Proj_08390_G_sample_data_clinical.txt
 SAMPLE_SUMMARY_FILE:=$(DEMO_DATA_DIR)/qc/Proj_08390_G_SampleSummary.txt
+MAF_DIR:= $(if $(MAF_DIR),$(MAF_DIR),maf)
+
 
 # create output dirs
 $(OUTPUT_DIR):
@@ -84,7 +87,7 @@ help:
 
 run: all
 
-all: $(CBIO_CLINCIAL_PATIENT_DATA_FILE) $(CBIO_CLINICAL_SAMPLE_DATA_FILE) $(CBIO_META_STUDY_FILE) $(CBIO_CLINICAL_SAMPLE_META_FILE) $(CBIO_CLINCAL_PATIENT_META_FILE) $(CBIO_META_CNA_FILE) $(CBIO_META_FUSIONS_FILE) $(CBIO_META_MUTATIONS_FILE) $(CBIO_META_CNA_SEGMENTS_FILE) $(CBIO_CASES_ALL_FILE) $(CBIO_CASES_CNASEQ_FILE) $(CBIO_CASES_CNA_FILE) $(CBIO_CASES_SEQUENCED_FILE)
+all: $(CBIO_CLINCIAL_PATIENT_DATA_FILE) $(CBIO_CLINICAL_SAMPLE_DATA_FILE) $(CBIO_META_STUDY_FILE) $(CBIO_CLINICAL_SAMPLE_META_FILE) $(CBIO_CLINCAL_PATIENT_META_FILE) $(CBIO_META_CNA_FILE) $(CBIO_META_FUSIONS_FILE) $(CBIO_META_MUTATIONS_FILE) $(CBIO_META_CNA_SEGMENTS_FILE) $(CBIO_CASES_ALL_FILE) $(CBIO_CASES_CNASEQ_FILE) $(CBIO_CASES_CNA_FILE) $(CBIO_CASES_SEQUENCED_FILE) $(CBIO_FUSION_DATA_FILE) $(ANALYSIS_SV_FILE)
 
 # data_clinical_patient.txt
 $(CBIO_CLINCIAL_PATIENT_DATA_FILE): $(CBIO_PORTAL_DIR) $(DATA_CLINICAL_FILE)
@@ -194,3 +197,27 @@ $(CBIO_CASES_SEQUENCED_FILE): $(CBIO_CASE_LIST_DIR) $(DATA_CLINICAL_FILE)
 	--cancer-study-id "$(PROJ_ID)" \
 	--data-clinical-file "$(DATA_CLINICAL_FILE)" \
 	--output "$(CBIO_CASES_SEQUENCED_FILE)"
+
+# data_fusions.txt
+# NOTE: using a bash array here for convenience, watch out for old old versions of bash
+$(CBIO_FUSION_DATA_FILE): $(MAF_DIR)
+	files=( $(MAF_DIR)/*.svs.pass.vep.portal.txt )
+	head -1 $${files[0]} > tmp.txt
+	for i in $${files[@]}; do
+	tail -n +2 $$i >> tmp.txt
+	done
+	fusion_filter.py tmp.txt "$(CBIO_FUSION_DATA_FILE)" "$(KNOWN_FUSIONS_FILE)"
+	rm -f tmp.txt
+
+
+# $(PROJ_ID).svs.maf
+$(ANALYSIS_SV_FILE): $(ANALYSIS_DIR)
+	files=( $(MAF_DIR)/*.svs.pass.vep.maf )
+	echo '# Version: $(ARGOS_VERSION_STRING)' > "$(ANALYSIS_SV_FILE)"
+	grep -v '#' $${files[0]} | head -1 > $(ANALYSIS_SV_FILE)
+	for i in $${files[@]}; do
+	grep -v '#' $$i | tail -n +2 >> "$(ANALYSIS_SV_FILE)"
+	done
+	rm -f tmp.txt
+
+test: $(ANALYSIS_SV_FILE)

@@ -153,7 +153,6 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 	cwl/workflow.cwl $(INPUT_JSON)
 
 # run the pure-Makefile version of the workflow
-# export EXTRA_GROUPS:=
 workflow:
 	$(MAKE) -f workflow.makefile run
 
