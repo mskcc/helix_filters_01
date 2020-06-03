@@ -60,10 +60,12 @@ install: conda
 	cwltool==2.0.20200126090152 \
 	cwlref-runner==1.0
 
-PROJ_ID:=Proj_08390_G
-MAF_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/maf
-FACETS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/facets
-TARGETS_LIST:=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist
+# example values; set these from the command line for real-world usage
+export PROJ_ID:=Proj_08390_G
+export MAF_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/maf
+export FACETS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/facets
+export TARGETS_LIST:=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist
+
 # .maf input files JSON
 muts.maf.txt:
 	find $(MAF_DIR) -type f -name "*.muts.maf" | \
@@ -131,6 +133,7 @@ CACHE_DIR:=$(CURDIR)/cache/
 $(OUTPUT_DIR):
 	mkdir -p "$(OUTPUT_DIR)"
 
+# Run the CWL workflow
 # example:
 # make run PROJ_ID=10753_B MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist OUTPUT_DIR=/path/to/helix_filters
 INPUT_JSON:=input.json
@@ -148,6 +151,11 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 	--preserve-environment PATH \
 	--preserve-environment SINGULARITY_CACHEDIR \
 	cwl/workflow.cwl $(INPUT_JSON)
+
+# run the pure-Makefile version of the workflow
+# export EXTRA_GROUPS:=
+workflow:
+	$(MAKE) -f workflow.makefile run
 
 export FIXTURES_DIR:=/juno/work/ci/helix_filters_01/fixtures
 test:

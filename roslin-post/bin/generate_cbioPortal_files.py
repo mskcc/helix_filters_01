@@ -48,30 +48,43 @@ TumorType
 Usage
 -----
 
+# data_clinical_patient.txt
 $ generate_cbioPortal_files.py patient --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
 
+# data_clinical_sample.txt
 $ generate_cbioPortal_files.py sample --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt --sample-summary-file ../test_data/qc/Proj_08390_G_SampleSummary.txt --project-pi pi_name --request-pi pi_name
 
+# meta_study.txt
 $ generate_cbioPortal_files.py study --cancer-study-id cancer_study_1 --name name --short-name short_name --type-of-cancer type_of_cancer --extra-groups foo_group --extra-groups bar_group
 
+# meta_clinical_sample.txt
 $ generate_cbioPortal_files.py meta_sample --cancer-study-id cancer_study_1
 
+# meta_clinical_patient.txt
 $ generate_cbioPortal_files.py meta_patient --cancer-study-id cancer_study_1
 
+# meta_CNA.txt
 $ generate_cbioPortal_files.py meta_cna --cancer-study-id cancer_study_1
 
+# meta_fusions.txt
 $ generate_cbioPortal_files.py meta_fusion --cancer-study-id cancer_study_1
 
+# meta_mutations_extended.txt
 $ generate_cbioPortal_files.py meta_mutations --cancer-study-id cancer_study_1
 
-$ generate_cbioPortal_files.py cases_all  --cancer-study-id cancer_study_1 --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
-
+# <project_id>_meta_cna_hg19_seg.txt
 $ generate_cbioPortal_files.py meta_segments --cancer-study-id cancer_study_1 --output cancer_study_1_meta_cna_hg19_seg.txt --segmented-data-file cancer_study_1_data_cna_hg19.seg
 
+# cases_all.txt
+$ generate_cbioPortal_files.py cases_all  --cancer-study-id cancer_study_1 --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
+
+# cases_cnaseq.txt
 $ generate_cbioPortal_files.py cases_cnaseq --cancer-study-id cancer_study --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
 
+# cases_cna.txt
 $ generate_cbioPortal_files.py cases_cna --cancer-study-id cancer_study --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
 
+# cases_sequenced.txt
 $ generate_cbioPortal_files.py cases_sequenced --cancer-study-id cancer_study --data-clinical-file ../test_data/inputs/Proj_08390_G_sample_data_clinical.txt
 """
 import csv
