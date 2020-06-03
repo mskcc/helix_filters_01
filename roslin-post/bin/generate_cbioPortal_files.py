@@ -28,7 +28,7 @@ X meta_CNA.txt
 X meta_fusions.txt
 X meta_mutations_extended.txt
 X meta_study.txt
-pi_f8_3a_08390_G_data_cna_hg19.seg
+(reduce_sig_figs.cwl + concat.cwl) pi_f8_3a_08390_G_data_cna_hg19.seg
 X pi_f8_3a_08390_G_meta_cna_hg19_seg.txt
 
 https://github.com/cBioPortal/cbioportal/blob/master/docs/File-Formats.md#example-sample-data-file

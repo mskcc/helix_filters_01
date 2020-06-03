@@ -20,8 +20,10 @@ inputs:
   portal_file:
     type: string
   hisens_cncfs: File[]
+  hisens_segs: File[]
   portal_CNA_file: string
   analysis_gene_cna_file: string
+  segment_data_file: string
   targets_list: File
 
 steps:
@@ -31,6 +33,32 @@ steps:
     scatter: input_file
     in:
       input_file: maf_files
+    out:
+      [output_file]
+
+  reduce_sig_figs_hisens_segs:
+    # need to reduce the number of significant figures in the hisens_segs files
+    run: reduce_sig_figs.cwl
+    scatter: input_file
+    in:
+      input_file: hisens_segs
+    out:
+      [output_file]
+
+  concat_hisens_segs:
+    # concatenate all of the hisens_segs files
+    run: concat.cwl
+    in:
+      input_files: reduce_sig_figs_hisens_segs/output_file
+    out:
+      [output_file]
+
+  rename_concat_hisens_segs:
+    # rename the hisens_segs concatenated table to something that cBioPortal recognizes
+    run: cp.cwl
+    in:
+      input_file: concat_hisens_segs/output_file
+      output_filename: segment_data_file
     out:
       [output_file]
 
@@ -85,11 +113,12 @@ steps:
     # put some files into portal dir
     run: put_in_dir.cwl
     in:
+      segment_file: rename_concat_hisens_segs/output_file
       portal_cna_file: copy_number/output_portal_CNA_file
       output_directory_name:
         valueFrom: ${ return "portal"; }
       files:
-        valueFrom: ${return [ inputs.portal_cna_file ]}
+        valueFrom: ${return [ inputs.portal_cna_file, inputs.segment_file ]}
     out: [ directory ]
 
   make_analysis_dir:

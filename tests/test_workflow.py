@@ -31,6 +31,8 @@ class TestWorkflow(unittest.TestCase):
             "portal_file": PORTAL_FILE,
             "argos_version_string": ARGOS_VERSION_STRING,
             "portal_CNA_file": PORTAL_CNA_FILE,
+            "cancer_study_identifier": 'Proj_08390_G',
+            "segment_data_file": 'Proj_08390_G_data_cna_hg19.seg',
             "maf_files": [
                 {
                     "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "maf/Sample1.Sample2.muts.maf"),
@@ -44,6 +46,16 @@ class TestWorkflow(unittest.TestCase):
                 },
                 {
                     "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "facets/Sample3.rg.md.abra.printreads__Sample4.rg.md.abra.printreads_hisens.cncf.txt"),
+                    "class": "File"
+                }
+            ],
+            "hisens_segs": [
+                {
+                    "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "facets/Sample2.rg.md.abra.printreads__Sample1.rg.md.abra.printreads_hisens.seg"),
+                "class": "File"
+                },
+                {
+                    "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "facets/Sample3.rg.md.abra.printreads__Sample4.rg.md.abra.printreads_hisens.seg"),
                     "class": "File"
                 }
             ],
@@ -118,12 +130,21 @@ class TestWorkflow(unittest.TestCase):
                         'checksum': 'sha1$ab17d587ad5ae0a87fd6c6d4dd2d5d1701208ce9',
                         'size': 173982,
                         'path': os.path.join(output_dir, 'portal/data_CNA.txt')
-                        }],
+                        },
+                        {
+                            'basename': 'Proj_08390_G_data_cna_hg19.seg',
+                            'checksum': 'sha1$f6a77b280c047a7e2082e3a09e8138f861790d3a',
+                            'class': 'File',
+                            'location': 'file://' + os.path.join(output_dir, 'portal/Proj_08390_G_data_cna_hg19.seg'),
+                            'path': os.path.join(output_dir, 'portal/Proj_08390_G_data_cna_hg19.seg'),
+                            'size': 3191
+                        },
+                    ],
                     'location': 'file://' + os.path.join(output_dir,'portal'),
                     'path': os.path.join(output_dir, 'portal')
                     }
                 }
-
+            self.maxDiff = None
             self.assertDictEqual(output_json, expected_output)
 
     def test_run_worflow_two_mafs(self):
@@ -136,6 +157,8 @@ class TestWorkflow(unittest.TestCase):
             "portal_file": PORTAL_FILE,
             "argos_version_string": ARGOS_VERSION_STRING,
             "portal_CNA_file": PORTAL_CNA_FILE,
+            "cancer_study_identifier": 'Proj_08390_G',
+            "segment_data_file": 'Proj_08390_G_data_cna_hg19.seg',
             "maf_files": [
                 {
                     "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "maf/Sample1.Sample2.muts.maf"),
@@ -153,6 +176,16 @@ class TestWorkflow(unittest.TestCase):
                 },
                 {
                     "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "facets/Sample3.rg.md.abra.printreads__Sample4.rg.md.abra.printreads_hisens.cncf.txt"),
+                    "class": "File"
+                }
+            ],
+            "hisens_segs": [
+                {
+                    "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "facets/Sample2.rg.md.abra.printreads__Sample1.rg.md.abra.printreads_hisens.seg"),
+                "class": "File"
+                },
+                {
+                    "path": os.path.join(DATA_SETS['Proj_08390_G']['DIR'], "facets/Sample3.rg.md.abra.printreads__Sample4.rg.md.abra.printreads_hisens.seg"),
                     "class": "File"
                 }
             ],
@@ -227,6 +260,14 @@ class TestWorkflow(unittest.TestCase):
                             "checksum": "sha1$ab17d587ad5ae0a87fd6c6d4dd2d5d1701208ce9",
                             "size": 173982,
                             "path": os.path.join(output_dir, "portal/data_CNA.txt")
+                        },
+                        {
+                            'basename': 'Proj_08390_G_data_cna_hg19.seg',
+                            'checksum': 'sha1$f6a77b280c047a7e2082e3a09e8138f861790d3a',
+                            'class': 'File',
+                            'location': 'file://' + os.path.join(output_dir, 'portal/Proj_08390_G_data_cna_hg19.seg'),
+                            'path': os.path.join(output_dir, 'portal/Proj_08390_G_data_cna_hg19.seg'),
+                            'size': 3191
                         }
                     ],
                     "location": 'file://' + os.path.join(output_dir, "portal"),

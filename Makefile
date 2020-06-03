@@ -89,12 +89,18 @@ export ARGOS_VERSION_STRING:=2.x
 export IS_IMPACT:=True
 export PORTAL_FILE:=data_mutations_extended.txt
 export PORTAL_CNA_FILE:=data_CNA.txt
-input.json: muts.maf.txt hisens.cncf.txt
+export SEGMENT_DATA_FILE:=$(PROJ_ID)_data_cna_hg19.seg
+export CANCER_STUDY_IDENTIFIER:=$(PROJ_ID)
+input.json: muts.maf.txt hisens.cncf.txt hisens.seg.txt
 	if [ "$$(cat muts.maf.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File muts.maf.txt is empty"; exit 1; fi
 	if [ "$$(cat hisens.cncf.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File muts.maf.txt is empty"; exit 1; fi
+	if [ "$$(cat hisens.seg.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File hisens.seg.txt is empty"; exit 1; fi
 	jq -n \
 	--slurpfile maf_files muts.maf.txt \
 	--slurpfile hisens_cncfs hisens.cncf.txt \
+	--slurpfile hisens_segs hisens.seg.txt \
+	--arg cancer_study_identifier "$(CANCER_STUDY_IDENTIFIER)" \
+	--arg segment_data_file "$(SEGMENT_DATA_FILE)" \
 	--arg argos_version_string "$(ARGOS_VERSION_STRING)" \
 	--arg is_impact "$(IS_IMPACT)" \
 	--arg analyst_file "$(ANALYST_FILE)" \
@@ -103,6 +109,8 @@ input.json: muts.maf.txt hisens.cncf.txt
 	--arg portal_CNA_file "$(PORTAL_CNA_FILE)" \
 	--arg targets_list "$(TARGETS_LIST)" \
 	'{"argos_version_string":$$argos_version_string,
+	"segment_data_file":$$segment_data_file,
+	"cancer_study_identifier":$$cancer_study_identifier,
 	"is_impact":$$is_impact,
 	"analyst_file":$$analyst_file,
 	"portal_file":$$portal_file,
@@ -110,6 +118,7 @@ input.json: muts.maf.txt hisens.cncf.txt
 	"portal_CNA_file": $$portal_CNA_file,
 	"analysis_gene_cna_file": $$analysis_gene_cna_file,
 	"hisens_cncfs":$$hisens_cncfs,
+	"hisens_segs": $$hisens_segs,
 	"targets_list":{"class": "File", "path": $$targets_list } }
 	' > input.json
 .PHONY: input.json
@@ -128,6 +137,7 @@ DEBUG:=
 run: $(INPUT_JSON) $(OUTPUT_DIR)
 	module load singularity/3.3.0 && \
 	cwl-runner $(DEBUG) \
+	--parallel \
 	--leave-tmpdir \
 	--tmpdir-prefix $(TMP_DIR) \
 	--outdir $(OUTPUT_DIR) \
