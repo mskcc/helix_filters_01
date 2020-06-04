@@ -156,6 +156,9 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 workflow:
 	$(MAKE) -f workflow.makefile run
 
+workflow-test:
+	$(MAKE) -f workflow.makefile test
+
 export FIXTURES_DIR:=/juno/work/ci/helix_filters_01/fixtures
 test:
 	export PATH=/opt/local/singularity/3.3.0/bin:$(PATH) && \

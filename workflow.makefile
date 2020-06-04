@@ -38,6 +38,9 @@ CBIO_MUTATION_DATA_FILE:=$(CBIO_PORTAL_DIR)/$(CBIO_MUTATION_DATA_FILENAME)
 
 CBIO_CNA_DATA_FILENAME:=data_CNA.txt
 CBIO_CNA_DATA_FILE:=$(CBIO_PORTAL_DIR)/$(CBIO_CNA_DATA_FILENAME)
+CBIO_CNA_ASCNA_DATA_FILE:=$(CBIO_PORTAL_DIR)/data_CNA.ascna.txt
+CBIO_CNA_SCNA_DATA_FILE:=$(CBIO_PORTAL_DIR)/data_CNA.scna.txt
+
 
 CBIO_SEGMENT_DATA_FILENAME:=$(PROJ_ID)_data_cna_hg19.seg
 CBIO_SEGMENT_DATA_FILE:=$(CBIO_PORTAL_DIR)/$(CBIO_SEGMENT_DATA_FILENAME)
@@ -63,9 +66,15 @@ CBIO_CASES_CNASEQ_FILE:=$(CBIO_CASE_LIST_DIR)/cases_cnaseq.txt
 CBIO_CASES_CNA_FILE:=$(CBIO_CASE_LIST_DIR)/cases_cna.txt
 CBIO_CASES_SEQUENCED_FILE:=$(CBIO_CASE_LIST_DIR)/cases_sequenced.txt
 
+
+# files for analysis output
+# ANALYST_FILE:= $(if $(ANALYST_FILE),$(ANALYST_FILE),$(ANALYSIS_DIR)/$(PROJ_ID).muts.maf)
+# ANALYST_GENE_CNA_FILE:= $(if $(ANALYST_GENE_CNA_FILE),$(ANALYST_GENE_CNA_FILE),$(ANALYSIS_DIR)/$(PROJ_ID).gene.cna.txt)
 ANALYSIS_SV_FILE:=$(ANALYSIS_DIR)/$(PROJ_ID).svs.maf
-ANALYST_FILE:= $(if $(ANALYST_FILE),$(ANALYST_FILE),$(ANALYSIS_DIR)/$(PROJ_ID).muts.maf)
-ANALYST_GENE_CNA_FILE:= $(if $(ANALYST_GENE_CNA_FILE),$(ANALYST_GENE_CNA_FILE),$(ANALYSIS_DIR)/$(PROJ_ID).gene.cna.txt)
+ANALYSIS_MUTATIONS_FILE:=$(ANALYSIS_DIR)/$(PROJ_ID).muts.maf
+ANALYSIS_GENE_CNA_FILE:=$(ANALYSIS_DIR)/$(PROJ_ID).gene.cna.txt
+ANALYSIS_SEGMENT_CNA_FILE:=$(ANALYSIS_DIR)/$(PROJ_ID).seg.cna.txt
+# _data_cna_hg19.seg CBIO_SEGMENT_DATA_FILE
 
 # input files and locations
 DEMO_DATA_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data
@@ -90,7 +99,7 @@ help:
 
 run: all
 
-all: $(CBIO_CLINCIAL_PATIENT_DATA_FILE) $(CBIO_CLINICAL_SAMPLE_DATA_FILE) $(CBIO_META_STUDY_FILE) $(CBIO_CLINICAL_SAMPLE_META_FILE) $(CBIO_CLINCAL_PATIENT_META_FILE) $(CBIO_META_CNA_FILE) $(CBIO_META_FUSIONS_FILE) $(CBIO_META_MUTATIONS_FILE) $(CBIO_META_CNA_SEGMENTS_FILE) $(CBIO_CASES_ALL_FILE) $(CBIO_CASES_CNASEQ_FILE) $(CBIO_CASES_CNA_FILE) $(CBIO_CASES_SEQUENCED_FILE) $(CBIO_FUSION_DATA_FILE) $(ANALYSIS_SV_FILE) $(CBIO_SEGMENT_DATA_FILE)
+all: $(CBIO_CLINCIAL_PATIENT_DATA_FILE) $(CBIO_CLINICAL_SAMPLE_DATA_FILE) $(CBIO_META_STUDY_FILE) $(CBIO_CLINICAL_SAMPLE_META_FILE) $(CBIO_CLINCAL_PATIENT_META_FILE) $(CBIO_META_CNA_FILE) $(CBIO_META_FUSIONS_FILE) $(CBIO_META_MUTATIONS_FILE) $(CBIO_META_CNA_SEGMENTS_FILE) $(CBIO_CASES_ALL_FILE) $(CBIO_CASES_CNASEQ_FILE) $(CBIO_CASES_CNA_FILE) $(CBIO_CASES_SEQUENCED_FILE) $(CBIO_FUSION_DATA_FILE) $(ANALYSIS_SV_FILE) $(CBIO_SEGMENT_DATA_FILE) $(ANALYSIS_MUTATIONS_FILE) $(CBIO_MUTATION_DATA_FILE) $(CBIO_CNA_DATA_FILE) $(ANALYSIS_GENE_CNA_FILE) $(CBIO_CNA_ASCNA_DATA_FILE) $(CBIO_CNA_SCNA_DATA_FILE) $(ANALYSIS_SEGMENT_CNA_FILE)
 
 # data_clinical_patient.txt
 $(CBIO_CLINCIAL_PATIENT_DATA_FILE): $(CBIO_PORTAL_DIR) $(DATA_CLINICAL_FILE)
@@ -109,9 +118,9 @@ $(CBIO_CLINICAL_SAMPLE_DATA_FILE): $(CBIO_PORTAL_DIR) $(SAMPLE_SUMMARY_FILE) $(D
 	--request-pi "$(REQUEST_PI)" \
 	--output "$(CBIO_CLINICAL_SAMPLE_DATA_FILE)"
 
-# data_CNA.txt ; PORTAL_CNA_FILE
+# data_CNA.txt, data_CNA.ascna.txt, data_CNA.scna.txt ; PORTAL_CNA_FILE ; ANALYSIS_GENE_CNA_FILE
 # from facets workflow ; copy_number.cwl
-$(CBIO_CNA_DATA_FILE): $(CBIO_PORTAL_DIR)
+$(CBIO_CNA_DATA_FILE) $(ANALYSIS_GENE_CNA_FILE) $(CBIO_CNA_ASCNA_DATA_FILE) $(CBIO_CNA_SCNA_DATA_FILE): $(CBIO_PORTAL_DIR) $(ANALYSIS_DIR)
 	module load singularity/3.3.0
 	files=( $(FACETS_DIR)/*_hisens.cncf.txt )
 	singularity exec \
@@ -123,22 +132,36 @@ $(CBIO_CNA_DATA_FILE): $(CBIO_PORTAL_DIR)
 	/bin/bash -c "
 	python /usr/bin/facets-suite/facets geneLevel --cnaMatrix -o $(CBIO_CNA_DATA_FILE) --targetFile $(TARGETS_LIST) -f $${files[*]}
 	"
+	cp "$(CBIO_CNA_DATA_FILE)" "$(ANALYSIS_GENE_CNA_FILE)"
 
-
-# data_mutations_extended.txt ; PORTAL_FILE
-# $(CBIO_MUTATION_DATA_FILE):
+# data_mutations_extended.txt ; PORTAL_FILE ; $(PROJ_ID).muts.maf
 # from maf_filter.cwl maf_filter.py; TODO: split this into a separate script because the script outputs two files currently
-
-
-# $(PROJ_ID)_data_cna_hg19.seg # from reduce_sig_figs.cwl + concat.cwl
-$(CBIO_SEGMENT_DATA_FILE): $(CBIO_PORTAL_DIR)
-	files=( $(FACETS_DIR)/*_hisens.seg )
-	head -1 $${files[0]} > tmp.txt
+# need to strip comments, concat tables, then pass to filter script
+$(ANALYSIS_MUTATIONS_FILE) $(CBIO_MUTATION_DATA_FILE): $(CBIO_PORTAL_DIR) $(ANALYSIS_DIR)
+	files=( $(MAF_DIR)/*.muts.maf )
+	set +o pipefail
+	grep -v '#' $${files[0]} | head -1 > tmp1.txt
 	for i in $${files[@]}; do
-	tail -n +2 $$i >> tmp.txt
+	grep -v '#' $$i | tail -n +2 >> tmp1.txt
 	done
-	reduce_sig_figs_seg.mean.py tmp.txt > "$(CBIO_SEGMENT_DATA_FILE)"
-	rm -f tmp.txt
+	maf_filter.py \
+	tmp1.txt \
+	2.x \
+	True \
+	"$(ANALYSIS_MUTATIONS_FILE)" \
+	"$(CBIO_MUTATION_DATA_FILE)"
+	rm -f tmp1.txt
+
+# $(PROJ_ID)_data_cna_hg19.seg, $(PROJ_ID).seg.cna.txt # from reduce_sig_figs.cwl + concat.cwl
+$(CBIO_SEGMENT_DATA_FILE) $(ANALYSIS_SEGMENT_CNA_FILE): $(CBIO_PORTAL_DIR) $(ANALYSIS_DIR)
+	files=( $(FACETS_DIR)/*_hisens.seg )
+	head -1 $${files[0]} > tmp2.txt
+	for i in $${files[@]}; do
+	tail -n +2 $$i >> tmp2.txt
+	done
+	reduce_sig_figs_seg.mean.py tmp2.txt > "$(CBIO_SEGMENT_DATA_FILE)"
+	cp "$(CBIO_SEGMENT_DATA_FILE)" "$(ANALYSIS_SEGMENT_CNA_FILE)"
+	rm -f tmp2.txt
 
 # meta_study.txt
 $(CBIO_META_STUDY_FILE): $(CBIO_PORTAL_DIR)
@@ -236,12 +259,12 @@ $(CBIO_CASES_SEQUENCED_FILE): $(CBIO_CASE_LIST_DIR) $(DATA_CLINICAL_FILE)
 # NOTE: using a bash array here for convenience, watch out for old old versions of bash
 $(CBIO_FUSION_DATA_FILE): $(MAF_DIR)
 	files=( $(MAF_DIR)/*.svs.pass.vep.portal.txt )
-	head -1 $${files[0]} > tmp.txt
+	head -1 $${files[0]} > tmp3.txt
 	for i in $${files[@]}; do
-	tail -n +2 $$i >> tmp.txt
+	tail -n +2 $$i >> tmp3.txt
 	done
-	fusion_filter.py tmp.txt "$(CBIO_FUSION_DATA_FILE)" "$(KNOWN_FUSIONS_FILE)"
-	rm -f tmp.txt
+	fusion_filter.py tmp3.txt "$(CBIO_FUSION_DATA_FILE)" "$(KNOWN_FUSIONS_FILE)"
+	rm -f tmp3.txt
 
 # $(PROJ_ID).svs.maf
 $(ANALYSIS_SV_FILE): $(ANALYSIS_DIR)
@@ -251,6 +274,5 @@ $(ANALYSIS_SV_FILE): $(ANALYSIS_DIR)
 	for i in $${files[@]}; do
 	grep -v '#' $$i | tail -n +2 >> "$(ANALYSIS_SV_FILE)"
 	done
-	rm -f tmp.txt
 
-test: $(CBIO_SEGMENT_DATA_FILE)
+test: $(CBIO_CNA_DATA_FILE) $(ANALYSIS_GENE_CNA_FILE)
