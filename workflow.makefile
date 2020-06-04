@@ -29,6 +29,8 @@ EXTRA_GROUPS_STR:=$(shell python -c 'print(" ".join([ "--extra-groups " + i for 
 
 # reference files
 KNOWN_FUSIONS_FILE:= $(if $(KNOWN_FUSIONS_FILE),$(KNOWN_FUSIONS_FILE),$(CURDIR)/ref/known_fusions_at_mskcc.txt)
+TARGETS_LIST:=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist
+FACETS_CONTAINER:=$(CURDIR)/mskcc_roslin-variant-facets:1.6.3.sif
 
 # files that will be output
 CBIO_MUTATION_DATA_FILENAME:=data_mutations_extended.txt
@@ -70,6 +72,7 @@ DEMO_DATA_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_da
 DATA_CLINICAL_FILE:=$(DEMO_DATA_DIR)/inputs/Proj_08390_G_sample_data_clinical.txt
 SAMPLE_SUMMARY_FILE:=$(DEMO_DATA_DIR)/qc/Proj_08390_G_SampleSummary.txt
 MAF_DIR:= $(if $(MAF_DIR),$(MAF_DIR),maf)
+FACETS_DIR:= $(if $(FACETS_DIR),$(FACETS_DIR),facets)
 
 
 # create output dirs
@@ -87,7 +90,7 @@ help:
 
 run: all
 
-all: $(CBIO_CLINCIAL_PATIENT_DATA_FILE) $(CBIO_CLINICAL_SAMPLE_DATA_FILE) $(CBIO_META_STUDY_FILE) $(CBIO_CLINICAL_SAMPLE_META_FILE) $(CBIO_CLINCAL_PATIENT_META_FILE) $(CBIO_META_CNA_FILE) $(CBIO_META_FUSIONS_FILE) $(CBIO_META_MUTATIONS_FILE) $(CBIO_META_CNA_SEGMENTS_FILE) $(CBIO_CASES_ALL_FILE) $(CBIO_CASES_CNASEQ_FILE) $(CBIO_CASES_CNA_FILE) $(CBIO_CASES_SEQUENCED_FILE) $(CBIO_FUSION_DATA_FILE) $(ANALYSIS_SV_FILE)
+all: $(CBIO_CLINCIAL_PATIENT_DATA_FILE) $(CBIO_CLINICAL_SAMPLE_DATA_FILE) $(CBIO_META_STUDY_FILE) $(CBIO_CLINICAL_SAMPLE_META_FILE) $(CBIO_CLINCAL_PATIENT_META_FILE) $(CBIO_META_CNA_FILE) $(CBIO_META_FUSIONS_FILE) $(CBIO_META_MUTATIONS_FILE) $(CBIO_META_CNA_SEGMENTS_FILE) $(CBIO_CASES_ALL_FILE) $(CBIO_CASES_CNASEQ_FILE) $(CBIO_CASES_CNA_FILE) $(CBIO_CASES_SEQUENCED_FILE) $(CBIO_FUSION_DATA_FILE) $(ANALYSIS_SV_FILE) $(CBIO_SEGMENT_DATA_FILE)
 
 # data_clinical_patient.txt
 $(CBIO_CLINCIAL_PATIENT_DATA_FILE): $(CBIO_PORTAL_DIR) $(DATA_CLINICAL_FILE)
@@ -105,6 +108,37 @@ $(CBIO_CLINICAL_SAMPLE_DATA_FILE): $(CBIO_PORTAL_DIR) $(SAMPLE_SUMMARY_FILE) $(D
 	--project-pi "$(PROJ_PI)" \
 	--request-pi "$(REQUEST_PI)" \
 	--output "$(CBIO_CLINICAL_SAMPLE_DATA_FILE)"
+
+# data_CNA.txt ; PORTAL_CNA_FILE
+# from facets workflow ; copy_number.cwl
+$(CBIO_CNA_DATA_FILE): $(CBIO_PORTAL_DIR)
+	module load singularity/3.3.0
+	files=( $(FACETS_DIR)/*_hisens.cncf.txt )
+	singularity exec \
+	-B /juno/work \
+	-B "$(CURDIR)" \
+	-B "$(FACETS_DIR)" \
+	-B "$(CBIO_PORTAL_DIR)" \
+	"$(FACETS_CONTAINER)" \
+	/bin/bash -c "
+	python /usr/bin/facets-suite/facets geneLevel --cnaMatrix -o $(CBIO_CNA_DATA_FILE) --targetFile $(TARGETS_LIST) -f $${files[*]}
+	"
+
+
+# data_mutations_extended.txt ; PORTAL_FILE
+# $(CBIO_MUTATION_DATA_FILE):
+# from maf_filter.cwl maf_filter.py; TODO: split this into a separate script because the script outputs two files currently
+
+
+# $(PROJ_ID)_data_cna_hg19.seg # from reduce_sig_figs.cwl + concat.cwl
+$(CBIO_SEGMENT_DATA_FILE): $(CBIO_PORTAL_DIR)
+	files=( $(FACETS_DIR)/*_hisens.seg )
+	head -1 $${files[0]} > tmp.txt
+	for i in $${files[@]}; do
+	tail -n +2 $$i >> tmp.txt
+	done
+	reduce_sig_figs_seg.mean.py tmp.txt > "$(CBIO_SEGMENT_DATA_FILE)"
+	rm -f tmp.txt
 
 # meta_study.txt
 $(CBIO_META_STUDY_FILE): $(CBIO_PORTAL_DIR)
@@ -209,7 +243,6 @@ $(CBIO_FUSION_DATA_FILE): $(MAF_DIR)
 	fusion_filter.py tmp.txt "$(CBIO_FUSION_DATA_FILE)" "$(KNOWN_FUSIONS_FILE)"
 	rm -f tmp.txt
 
-
 # $(PROJ_ID).svs.maf
 $(ANALYSIS_SV_FILE): $(ANALYSIS_DIR)
 	files=( $(MAF_DIR)/*.svs.pass.vep.maf )
@@ -220,4 +253,4 @@ $(ANALYSIS_SV_FILE): $(ANALYSIS_DIR)
 	done
 	rm -f tmp.txt
 
-test: $(ANALYSIS_SV_FILE)
+test: $(CBIO_SEGMENT_DATA_FILE)
