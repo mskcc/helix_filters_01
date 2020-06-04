@@ -69,7 +69,7 @@ def generate_fusion_data(fusion_directory,output_directory,data_filename,fusion_
     fusion_command_list.append('head -n1 ' + tmp_combined_output_file + ' > ' + combined_output_path)
     fusion_command_list.append('rm ' + tmp_combined_output_file)
     fusion_command_list.append('grep -hv --regexp=^Hugo ' + fusion_files_query + ' >> ' + combined_output_path)
-    fusion_command_list.append('python ' + fusion_filter_script + ' ' + combined_output_path + ' ' + output_path)
+    fusion_command_list.append('python ' + fusion_filter_script + ' ' + combined_output_path + ' ' + output_path + ' /juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/helix_filters_01/ref/known_fusions_at_mskcc.txt')
     run_command_list(fusion_command_list,'generate_fusion')
 
     # concatenate all *.svs.pass.vep.maf files into one file and copy it into analysis folder
@@ -422,6 +422,14 @@ def find_unique_name_in_dir(root_name,directory):
 
 
 if __name__ == '__main__':
+    """
+    $
+    $ sudo -i -u roslin
+    $ source /juno/work/ci/roslin-pipelines/core/2.1.2/config/settings.sh
+    $ source /juno/work/ci/roslin-pipelines/core/2.1.2/config/variant/2.5.7/settings.sh
+    $ deactivate
+    $ ../bin/roslin_analysis_helper.py --inputs output/inputs/inputs.yaml --maf_directory output/maf --facets_directory output/facets --results_directory output --log_directory . --output_directory . --sample_summary output/qc/Proj_08390_G_SampleSummary.txt --clinical_data output/inputs/Proj_08390_G_sample_data_clinical.txt --stable_id Proj_08390_G
+    """
     parser = argparse.ArgumentParser(add_help= True, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--inputs',required=True, help='The path to your input yaml file')
     parser.add_argument('--maf_directory',required=True,help='The directory containing the maf files')
