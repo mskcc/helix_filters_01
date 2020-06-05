@@ -5,9 +5,7 @@ export SHELL:=/bin/bash
 UNAME:=$(shell uname)
 export SHELLOPTS:=$(if $(SHELLOPTS),$(SHELLOPTS):)pipefail:errexit
 export SINGULARITY_CACHEDIR:=/juno/work/ci/singularity_images
-export PATH:=$(CURDIR)/conda/bin:$(CURDIR)/bin:$(PATH)
-unexport PYTHONPATH
-unexport PYTHONHOME
+export PATH:=$(CURDIR)/bin:$(PATH)
 
 define help
 This is the Makefile for running a prototype of the Roslin analysis post processing workflow for the creation of aggregate analysis files, and cBioPortal data and metadata files.
@@ -70,24 +68,6 @@ endef
 help:
 	@printf "$$help"
 .PHONY : help
-
-# ~~~~~ INSTALL ~~~~~ #
-# the pipeline uses Python 3 which can be installed with this; $ make conda
-ifeq ($(UNAME), Darwin)
-CONDASH:=Miniconda3-4.5.4-MacOSX-x86_64.sh
-endif
-
-ifeq ($(UNAME), Linux)
-CONDASH:=Miniconda3-4.5.4-Linux-x86_64.sh
-endif
-
-CONDAURL:=https://repo.continuum.io/miniconda/$(CONDASH)
-
-conda:
-	@echo ">>> Setting up conda..."
-	@wget "$(CONDAURL)" && \
-	bash "$(CONDASH)" -b -p conda && \
-	rm -f "$(CONDASH)"
 
 # ~~~~~ debug ~~~~~ #
 # interactive session for dev and debug

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # copied from /juno/work/ci/roslin-pipelines/variant/2.5.7/bin/scripts/fusion_filter.py
-import sys, os, csv, re, requests
+import sys, os, csv, re
 
 input_file = sys.argv[1]
 output_file = sys.argv[2]

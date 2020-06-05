@@ -31,6 +31,7 @@ help:
 	@printf "$$help"
 .PHONY : help
 
+# ~~~~~ Install Dependencies ~~~~~ #
 UNAME:=$(shell uname)
 export SINGULARITY_CACHEDIR:=/juno/work/ci/singularity_images
 export PATH:=$(CURDIR)/conda/bin:$(CURDIR)/bin:$(PATH)
@@ -60,72 +61,178 @@ install: conda
 	cwltool==2.0.20200126090152 \
 	cwlref-runner==1.0
 
-# example values; set these from the command line for real-world usage
-export PROJ_ID:=Proj_08390_G
-export MAF_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/maf
-export FACETS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/facets
-export TARGETS_LIST:=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist
 
-# .maf input files JSON
-muts.maf.txt:
+# ~~~~~ Setup Up and Run the CWL Workflow ~~~~~ #
+
+# example values
+
+# project_id
+PROJ_ID:=Proj_08390_G
+# project_pi
+PROJ_PI:=Dr. Jones
+# request_pi
+REQUEST_PI:=Dr. Franklin
+# project_short_name
+PROJ_SHORT_NAME:=$(PROJ_ID)
+# project_name
+PROJ_NAME:=$(PROJ_ID)
+# project_description
+PROJ_DESC:=Project description
+# cancer_type
+CANCER_TYPE:=MEL
+# cancer_study_identifier
+CANCER_STUDY_IDENTIFIER:=$(PROJ_ID)
+# argos_version_string
+ARGOS_VERSION_STRING:=2.x
+# is_impact
+IS_IMPACT:=True
+# extra_pi_groups
+# EXTRA_PI_GROUPS:=
+# analysis_segment_cna_filename
+ANALYSIS_SEGMENT_CNA_FILE:=$(PROJ_ID).seg.cna.txt
+# analysis_sv_filename
+ANALYSIS_SV_FILE:=$(PROJ_ID).svs.maf
+# analysis_gene_cna_filename
+ANALYSIS_GENE_CNA_FILENAME:=$(PROJ_ID).gene.cna.txt
+# analysis_mutations_filename
+ANALYSIS_MUTATIONS_FILENAME:=$(PROJ_ID).muts.maf
+# cbio_segment_data_filename
+CBIO_SEGMENT_DATA_FILENAME:=$(PROJ_ID)_data_cna_hg19.seg
+# cbio_meta_cna_segments_filename
+CBIO_META_CNA_SEGMENTS_FILENAME:=$(PROJ_ID)_meta_cna_hg19_seg.txt
+
+
+# reference files
+# known_fusions_file
+KNOWN_FUSIONS_FILE:=$(CURDIR)/ref/known_fusions_at_mskcc.txt
+# targets_list
+TARGETS_LIST:=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist
+# helix_filter_version
+HELIX_FILTER_VERSION:=$(shell git describe --all --long | sed -e 's|.*/\(.*\)|\1|g')
+# argos_version_string
+ARGOS_VERSION_STRING:=2.x
+
+# demo locations for use for development; set these from the command line for real-world usage (not used for CWL input)
+MAF_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/maf
+FACETS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/facets
+
+
+# Need to create some psuedo-JSON files for use in creating the input.json
+
+# .maf input files JSON muts.maf.txt
+mutation_maf_files.txt:
 	find $(MAF_DIR) -type f -name "*.muts.maf" | \
-	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > muts.maf.txt
-.PHONY: muts.maf.txt
+	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > mutation_maf_files.txt
+.PHONY: mutation_maf_files.txt
 
-# the copy_number_files input JSON
-hisens.cncf.txt:
-	find $(FACETS_DIR) -type f -name "*_hisens.cncf.txt" | \
-	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > hisens.cncf.txt
-.PHONY: hisens.cncf.txt
-
-# the segmented copy number files
-hisens.seg.txt:
+# the segmented copy number files hisens.seg.txt
+facets_hisens_seg_files.txt:
 	find $(FACETS_DIR) -type f -name "*_hisens.seg" | \
-	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > hisens.seg.txt
-.PHONY: hisens.seg.txt
+	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > facets_hisens_seg_files.txt
+.PHONY: facets_hisens_seg_files.txt
 
-# the input for the pipeline
-export KNOWN_FUSIONS_FILE:=$(CURDIR)/ref/known_fusions_at_mskcc.txt
-export ANALYST_FILE:=$(PROJ_ID).muts.maf
-export ANALYST_GENE_CNA_FILE:=$(PROJ_ID).gene.cna.txt
-export ARGOS_VERSION_STRING:=2.x
-export IS_IMPACT:=True
-export PORTAL_FILE:=data_mutations_extended.txt
-export PORTAL_CNA_FILE:=data_CNA.txt
-export SEGMENT_DATA_FILE:=$(PROJ_ID)_data_cna_hg19.seg
-export CANCER_STUDY_IDENTIFIER:=$(PROJ_ID)
-input.json: muts.maf.txt hisens.cncf.txt hisens.seg.txt
-	if [ "$$(cat muts.maf.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File muts.maf.txt is empty"; exit 1; fi
-	if [ "$$(cat hisens.cncf.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File muts.maf.txt is empty"; exit 1; fi
-	if [ "$$(cat hisens.seg.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File hisens.seg.txt is empty"; exit 1; fi
+# the copy_number_files input JSON hisens.cncf.txt
+facets_hisens_cncf_files.txt:
+	find $(FACETS_DIR) -type f -name "*_hisens.cncf.txt" | \
+	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > facets_hisens_cncf_files.txt
+.PHONY: facets_hisens_cncf_files.txt
+
+mutation_svs_txt_files.txt:
+	find $(MAF_DIR) -type f -name "*.svs.pass.vep.portal.txt" | \
+	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > mutation_svs_txt_files.txt
+.PHONY: mutation_svs_txt_files.txt
+
+mutation_svs_maf_files.txt:
+	find $(MAF_DIR) -type f -name "*.svs.pass.vep.maf" | \
+	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > mutation_svs_maf_files.txt
+.PHONY: mutation_svs_maf_files.txt
+
+
+# input file for the CWL workflow; omits some workflow.cwl input fields that have static default values
+input.json: mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cncf_files.txt mutation_svs_txt_files.txt mutation_svs_maf_files.txt
+	if [ "$$(cat mutation_maf_files.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File mutation_maf_files.txt is empty"; exit 1; fi
+	if [ "$$(cat facets_hisens_seg_files.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File facets_hisens_seg_files.txt is empty"; exit 1; fi
+	if [ "$$(cat facets_hisens_cncf_files.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File facets_hisens_cncf_files.txt is empty"; exit 1; fi
+	if [ "$$(cat mutation_svs_txt_files.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File mutation_svs_txt_files.txt is empty"; exit 1; fi
+	if [ "$$(cat mutation_svs_maf_files.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File mutation_svs_maf_files.txt is empty"; exit 1; fi
 	jq -n \
-	--slurpfile maf_files muts.maf.txt \
-	--slurpfile hisens_cncfs hisens.cncf.txt \
-	--slurpfile hisens_segs hisens.seg.txt \
+	--slurpfile mutation_maf_files mutation_maf_files.txt \
+	--slurpfile facets_hisens_seg_files facets_hisens_seg_files.txt \
+	--slurpfile facets_hisens_cncf_files facets_hisens_cncf_files.txt \
+	--slurpfile mutation_svs_txt_files mutation_svs_txt_files.txt \
+	--slurpfile mutation_svs_maf_files mutation_svs_maf_files.txt \
+	--arg project_id "$(PROJ_ID)" \
+	--arg project_pi "$(PROJ_PI)" \
+	--arg request_pi "$(REQUEST_PI)" \
+	--arg project_short_name "$(PROJ_SHORT_NAME)" \
+	--arg project_name "$(PROJ_NAME)" \
+	--arg project_description "$(PROJ_DESC)" \
+	--arg cancer_type "$(CANCER_TYPE)" \
 	--arg cancer_study_identifier "$(CANCER_STUDY_IDENTIFIER)" \
-	--arg segment_data_file "$(SEGMENT_DATA_FILE)" \
 	--arg argos_version_string "$(ARGOS_VERSION_STRING)" \
 	--arg is_impact "$(IS_IMPACT)" \
-	--arg analyst_file "$(ANALYST_FILE)" \
-	--arg analysis_gene_cna_file "$(ANALYST_GENE_CNA_FILE)" \
-	--arg portal_file "$(PORTAL_FILE)" \
-	--arg portal_CNA_file "$(PORTAL_CNA_FILE)" \
+	--arg analysis_segment_cna_filename "$(ANALYSIS_SEGMENT_CNA_FILE)" \
+	--arg analysis_sv_filename "$(ANALYSIS_SV_FILE)" \
+	--arg analysis_gene_cna_filename "$(ANALYSIS_GENE_CNA_FILENAME)" \
+	--arg analysis_mutations_filename "$(ANALYSIS_MUTATIONS_FILENAME)" \
+	--arg cbio_segment_data_filename "$(CBIO_SEGMENT_DATA_FILENAME)" \
+	--arg cbio_meta_cna_segments_filename "$(CBIO_META_CNA_SEGMENTS_FILENAME)" \
 	--arg targets_list "$(TARGETS_LIST)" \
-	'{"argos_version_string":$$argos_version_string,
-	"segment_data_file":$$segment_data_file,
-	"cancer_study_identifier":$$cancer_study_identifier,
-	"is_impact":$$is_impact,
-	"analyst_file":$$analyst_file,
-	"portal_file":$$portal_file,
-	"maf_files":$$maf_files,
-	"portal_CNA_file": $$portal_CNA_file,
-	"analysis_gene_cna_file": $$analysis_gene_cna_file,
-	"hisens_cncfs":$$hisens_cncfs,
-	"hisens_segs": $$hisens_segs,
-	"targets_list":{"class": "File", "path": $$targets_list } }
+	--arg known_fusions_file "$(KNOWN_FUSIONS_FILE)" \
+	'{
+	"mutation_maf_files": $$mutation_maf_files,
+	"facets_hisens_seg_files": $$facets_hisens_seg_files,
+	"facets_hisens_cncf_files": $$facets_hisens_cncf_files,
+	"mutation_svs_txt_files": $$mutation_svs_txt_files,
+	"mutation_svs_maf_files": $$mutation_svs_maf_files,
+	"project_id": $$project_id,
+	"project_pi": $$project_pi,
+	"request_pi": $$request_pi,
+	"project_short_name": $$project_short_name,
+	"project_name": $$project_name,
+	"project_description": $$project_description,
+	"cancer_type": $$cancer_type,
+	"cancer_study_identifier": $$cancer_study_identifier,
+	"argos_version_string": $$argos_version_string,
+	"is_impact": $$is_impact,
+	"analysis_segment_cna_filename": $$analysis_segment_cna_filename,
+	"analysis_sv_filename": $$analysis_sv_filename,
+	"analysis_gene_cna_filename": $$analysis_gene_cna_filename,
+	"analysis_mutations_filename": $$analysis_mutations_filename,
+	"cbio_segment_data_filename": $$cbio_segment_data_filename,
+	"cbio_meta_cna_segments_filename": $$cbio_meta_cna_segments_filename,
+	"targets_list": {"class": "File", "path": $$targets_list},
+	"known_fusions_file": {"class": "File", "path": $$known_fusions_file},
+	}
 	' > input.json
 .PHONY: input.json
 
+#
+# --arg segment_data_file "$(SEGMENT_DATA_FILE)" \
+#
+#
+#
+#
+# --arg cbio_mutation_data_filename "$(CBIO_MUTATION_DATA_FILENAME)" \
+# --arg cbio_cna_data_filename "$(CBIO_CNA_DATA_FILENAME)" \
+# --arg targets_list "$(TARGETS_LIST)" \
+
+
+# {"argos_version_string":$$argos_version_string,
+# "segment_data_file":$$segment_data_file,
+# "cancer_study_identifier":$$cancer_study_identifier,
+# "is_impact":$$is_impact,
+# "analyst_file":$$analyst_file,
+# "portal_file":$$portal_file,
+# "maf_files":$$maf_files,
+# "portal_CNA_file": $$portal_CNA_file,
+# "analysis_gene_cna_file": $$analysis_gene_cna_file,
+# "hisens_cncfs":$$hisens_cncfs,
+# "hisens_segs": $$hisens_segs,
+# "targets_list":{"class": "File", "path": $$targets_list } }
+
+
+# locations for running the CWL workflow
 TMP_DIR:=$(CURDIR)/tmp/
 OUTPUT_DIR:=$(CURDIR)/output/
 CACHE_DIR:=$(CURDIR)/cache/
@@ -152,18 +259,23 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 	--preserve-environment SINGULARITY_CACHEDIR \
 	cwl/workflow.cwl $(INPUT_JSON)
 
-# run the pure-Makefile version of the workflow
+
+# ~~~~~ Debug & Development ~~~~~ #
+
+# run the pure-Makefile prototype reference version of the workflow
 workflow:
 	$(MAKE) -f workflow.makefile run
 
 workflow-test:
 	$(MAKE) -f workflow.makefile test
 
+# Run the test suite
 export FIXTURES_DIR:=/juno/work/ci/helix_filters_01/fixtures
 test:
 	export PATH=/opt/local/singularity/3.3.0/bin:$(PATH) && \
 	python test.py
 
+# interactive session with environment populated
 bash:
 	module load singularity/3.3.0 && \
 	bash
@@ -171,4 +283,4 @@ bash:
 clean:
 	rm -rf cache tmp
 clean-all: clean
-	rm -rf output portal analysis
+	rm -rf output portal analysis mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cncf_files.txt mutation_svs_txt_files.txt mutation_svs_maf_files.txt
