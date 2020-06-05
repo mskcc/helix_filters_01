@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # copied from /juno/work/ci/roslin-pipelines/variant/2.5.7/bin/scripts/fusion_filter.py

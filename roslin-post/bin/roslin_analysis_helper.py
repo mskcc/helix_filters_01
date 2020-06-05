@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # copied from /juno/work/ci/roslin-pipelines/variant/2.5.7/bin/scripts/roslin_analysis_helper.py
 
 import argparse, os, sys, yaml, json, re, time, io, csv, shutil, logging
