@@ -44,40 +44,34 @@ sys.path.pop(0)
 
 
 class TestGenerateCBioFiles(unittest.TestCase):
-    def test_get_inputs(self):
-        """
-        """
-        data_clinical_file = os.path.join(DATA_SETS['Proj_08390_G']['INPUTS_DIR'], "Proj_08390_G_sample_data_clinical.txt")
-        clinical_data = load_clinical_data(data_clinical_file)
-        # clinical_data is OrderedDict; keys:
-        #  1	SAMPLE_ID
-        #  2	IGO_ID
-        #  3	PATIENT_ID
-        #  4	COLLAB_ID
-        #  5	SAMPLE_TYPE
-        #  6	SAMPLE_CLASS
-        #  7	GENE_PANEL
-        #  8	ONCOTREE_CODE
-        #  9	SPECIMEN_PRESERVATION_TYPE
-        # 10	SEX
-        # 11	TISSUE_SITE
-        # 12	REQUEST_ID
-        # 13	PROJECT_ID
-        # 14	PIPELINE
-        # 15	PIPELINE_VERSION
-
-        sample_summary_file = os.path.join(DATA_SETS['Proj_08390_G']['QC_DIR'], "Proj_08390_G_SampleSummary.txt")
-        sample_coverages = load_sample_coverages(sample_summary_file)
-
-        for row in clinical_data:
-            # add the matching coverages to the clincal data, or a '' empty value
-            row['SAMPLE_COVERAGE'] = sample_coverages.get(row['SAMPLE_ID'], '')
-        #     # move SAMPLE_ID and PATIENT_ID to the front
-        #     row.move_to_end()
-        #
-        # for item in clinical_data:
-        #     print(item)
-        # # x.move_to_end('a', last = False)
+    # def test_get_inputs(self):
+    #     """
+    #     """
+    #     data_clinical_file = os.path.join(DATA_SETS['Proj_08390_G']['INPUTS_DIR'], "Proj_08390_G_sample_data_clinical.txt")
+    #     clinical_data = load_clinical_data(data_clinical_file)
+    #     # clinical_data is OrderedDict; keys:
+    #     #  1	SAMPLE_ID
+    #     #  2	IGO_ID
+    #     #  3	PATIENT_ID
+    #     #  4	COLLAB_ID
+    #     #  5	SAMPLE_TYPE
+    #     #  6	SAMPLE_CLASS
+    #     #  7	GENE_PANEL
+    #     #  8	ONCOTREE_CODE
+    #     #  9	SPECIMEN_PRESERVATION_TYPE
+    #     # 10	SEX
+    #     # 11	TISSUE_SITE
+    #     # 12	REQUEST_ID
+    #     # 13	PROJECT_ID
+    #     # 14	PIPELINE
+    #     # 15	PIPELINE_VERSION
+    #
+    #     sample_summary_file = os.path.join(DATA_SETS['Proj_08390_G']['QC_DIR'], "Proj_08390_G_SampleSummary.txt")
+    #     sample_coverages = load_sample_coverages(sample_summary_file)
+    #
+    #     for row in clinical_data:
+    #         # add the matching coverages to the clincal data, or a '' empty value
+    #         row['SAMPLE_COVERAGE'] = sample_coverages.get(row['SAMPLE_ID'], '')
 
 
     def test_generate_portal_data_clinical_patient(self):
