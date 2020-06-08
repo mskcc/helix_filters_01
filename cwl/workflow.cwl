@@ -121,9 +121,10 @@ inputs:
   is_impact:
     type: string
     doc: "whether or not the project is an IMPACT project; should be the value 'True' if so, otherwise any other value means 'False' (IS_IMPACT)"
+  # TODO: this shouild actually be type: string[]
   extra_pi_groups:
-    type: string[]
-    default: []
+    type: [ "null", string]
+    default: null
     doc: "a list of other groups to be associated with the project in cBioPortal (EXTRA_PI_GROUPS)"
   analysis_segment_cna_filename:
     type: string
@@ -268,9 +269,73 @@ steps:
         valueFrom: ${ return "sample" }
       data_clinical_file: data_clinical_file
       sample_summary_file: sample_summary_file
-      output_filename: cbio_clinical_sample_data_filename,
-      project_pi: project_pi,
+      output_filename: cbio_clinical_sample_data_filename
+      project_pi: project_pi
       request_pi: request_pi
+    out:
+      [output_file]
+
+  # cbio_meta_study_file; cbio_meta_study_filename;  meta_study.txt
+  generate_cbio_meta_study:
+    run: generate_cBioPortal_file.cwl
+    in:
+      subcommand:
+        valueFrom: ${ return "study" }
+      output_filename: cbio_meta_study_filename
+      cancer_study_id: cancer_study_identifier
+      name: project_name
+      short_name: project_short_name
+      type_of_cancer: cancer_type
+      description: project_description
+      extra_groups: extra_pi_groups
+    out:
+      [output_file]
+
+  # cbio_clinical_patient_meta_filename; meta_clinical_patient.txt
+  generate_cbio_clinical_patient_meta:
+    run: generate_cBioPortal_file.cwl
+    in:
+      subcommand:
+        valueFrom: ${ return "meta_patient" }
+      output_filename: cbio_clinical_patient_meta_filename
+      cancer_study_id: cancer_study_identifier
+      patient_data_filename: cbio_clinical_patient_data_filename # data_clinical_patient.txt
+    out:
+      [output_file]
+
+  # cbio_meta_cna_filename; meta_CNA.txt
+  generate_cbio_meta_cna:
+    run: generate_cBioPortal_file.cwl
+    in:
+      subcommand:
+        valueFrom: ${ return "meta_cna" }
+      output_filename: cbio_meta_cna_filename
+      cancer_study_id: cancer_study_identifier
+      cna_data_filename: cbio_cna_data_filename # data_CNA.txt
+    out:
+      [output_file]
+
+  # meta_fusions.txt
+  generate_cbio_meta_fusions:
+    run: generate_cBioPortal_file.cwl
+    in:
+      subcommand:
+        valueFrom: ${ return "meta_fusion" }
+      output_filename: cbio_meta_fusions_filename
+      cancer_study_id: cancer_study_identifier
+      fusion_data_filename: cbio_fusion_data_filename # data_fusions.txt
+    out:
+      [output_file]
+
+  # meta_mutations_extended.txt
+  generate_meta_mutations_extended:
+    run: generate_cBioPortal_file.cwl
+    in:
+      subcommand:
+        valueFrom: ${ return "meta_mutations" }
+      output_filename: cbio_meta_mutations_filename
+      cancer_study_id: cancer_study_identifier
+      mutations_data_filename: cbio_mutation_data_filename # data_mutations_extended.txt
     out:
       [output_file]
 
@@ -397,6 +462,21 @@ outputs:
   data_clinical_sample_file:
     type: File
     outputSource: generate_data_clinical_sample/output_file
+  meta_study_file:
+    type: File
+    outputSource: generate_cbio_meta_study/output_file
+  clinical_patient_meta_file:
+    type: File
+    outputSource: generate_cbio_clinical_patient_meta/output_file
+  meta_cna_file:
+    type: File
+    outputSource: generate_cbio_meta_cna/output_file
+  meta_fusions_file:
+    type: File
+    outputSource: generate_cbio_meta_fusions/output_file
+  meta_mutations_extended_file:
+    type: File
+    outputSource: generate_meta_mutations_extended/output_file
 
   # portal_dir:
   #   type: Directory

@@ -61,7 +61,7 @@ inputs:
     inputBinding:
       prefix: '--type-of-cancer'
       position: 11
-  extra_groups:
+  extra_groups: # TODO: figure out how to pass more than one group here
     type: ['null', string ]
     inputBinding:
       prefix: '--extra-groups'
@@ -91,6 +91,11 @@ inputs:
     inputBinding:
       prefix: '--segmented-data-file'
       position: 18
+  description:
+    type: ['null', string ]
+    inputBinding:
+      prefix: '--description'
+      position: 19
 
 
 

@@ -197,6 +197,286 @@ class TestGenerateCbioFilesCWL(unittest.TestCase):
             self.maxDiff = None
             self.assertDictEqual(output_json, expected_output)
 
+    def test_generate_meta_study(self):
+        """
+        # meta_study.txt
+            generate_cbioPortal_files.py \
+            study \
+            --cancer-study-id "$(PROJ_ID)" \
+            --name "$(PROJ_NAME)" \
+            --short-name "$(PROJ_SHORT_NAME)" \
+            --type-of-cancer "$(CANCER_TYPE)" \
+            --description "$(PROJ_DESC)" \
+            --output "$(CBIO_META_STUDY_FILE)" \
+            $(EXTRA_GROUPS_STR)
+        """
+        input_json = {
+        "subcommand": "study",
+        "output_filename": "meta_study.txt",
+        "cancer_study_id": "cancer_study",
+        "name": "cancer_study",
+        "short_name": "cancer_study",
+        "type_of_cancer": "MEL",
+        "description": "description",
+        "extra_groups": "FOO1"
+        }
+        with TemporaryDirectory() as tmpdir:
+            input_json_file = os.path.join(tmpdir, "input.json")
+            with open(input_json_file, "w") as json_out:
+                json.dump(input_json, json_out)
+
+            output_dir = os.path.join(tmpdir, "output")
+            tmp_dir = os.path.join(tmpdir, "tmp")
+            cache_dir = os.path.join(tmpdir, "cache")
+
+            command = [
+                "cwl-runner",
+                *CWL_ARGS,
+                "--outdir", output_dir,
+                "--tmpdir-prefix", tmp_dir,
+                "--cachedir", cache_dir,
+                cwl_file, input_json_file
+                ]
+            returncode, proc_stdout, proc_stderr = run_command(command)
+
+            if returncode != 0:
+                print(proc_stderr)
+
+            self.assertEqual(returncode, 0)
+
+            output_json = json.loads(proc_stdout)
+
+            expected_output = {
+                'output_file': {
+                    'location': 'file://' + os.path.join(output_dir, 'meta_study.txt'),
+                    'basename': 'meta_study.txt',
+                    'class': 'File',
+                    'checksum': 'sha1$9625b915f0eba999305026833fa8b32b6ebebaa0',
+                    'size': 161,
+                    'path': os.path.join(output_dir,'meta_study.txt')
+                }
+            }
+            self.maxDiff = None
+            self.assertDictEqual(output_json, expected_output)
+
+    def test_meta_clinical_patient(self):
+        """
+        # meta_clinical_patient.txt
+        generate_cbioPortal_files.py \
+        meta_patient \
+        --cancer-study-id "$(PROJ_ID)" \
+        --patient-data-filename "$(CBIO_CLINCIAL_PATIENT_DATA_FILENAME)" \
+        --output "$(CBIO_CLINCAL_PATIENT_META_FILE)"
+        """
+        input_json = {
+        "subcommand": "meta_patient",
+        "output_filename": "meta_clinical_patient.txt",
+        "cancer_study_id": "cancer_study",
+        "patient_data_filename": "data_clinical_patient.txt"
+        }
+        with TemporaryDirectory() as tmpdir:
+            input_json_file = os.path.join(tmpdir, "input.json")
+            with open(input_json_file, "w") as json_out:
+                json.dump(input_json, json_out)
+
+            output_dir = os.path.join(tmpdir, "output")
+            tmp_dir = os.path.join(tmpdir, "tmp")
+            cache_dir = os.path.join(tmpdir, "cache")
+
+            command = [
+                "cwl-runner",
+                *CWL_ARGS,
+                "--outdir", output_dir,
+                "--tmpdir-prefix", tmp_dir,
+                "--cachedir", cache_dir,
+                cwl_file, input_json_file
+                ]
+            returncode, proc_stdout, proc_stderr = run_command(command)
+
+            if returncode != 0:
+                print(proc_stderr)
+
+            self.assertEqual(returncode, 0)
+
+            output_json = json.loads(proc_stdout)
+
+            expected_output = {
+                'output_file': {
+                    'location': 'file://' + os.path.join(output_dir, 'meta_clinical_patient.txt'),
+                    'basename': 'meta_clinical_patient.txt',
+                    'class': 'File',
+                    'checksum': 'sha1$cae62ab4638ff2ff39b71a43b5bd996f8eea16ea',
+                    'size': 142,
+                    'path': os.path.join(output_dir,'meta_clinical_patient.txt')
+                }
+            }
+            self.maxDiff = None
+            self.assertDictEqual(output_json, expected_output)
+
+    def test_generate_meta_CNA(self):
+        """
+        # meta_CNA.txt
+            generate_cbioPortal_files.py \
+            meta_cna \
+            --cancer-study-id "$(PROJ_ID)" \
+            --cna-data-filename "$(CBIO_CNA_DATA_FILENAME)" \
+            --output "$(CBIO_META_CNA_FILE)"
+        """
+        input_json = {
+        "subcommand": "meta_cna",
+        "output_filename": "meta_CNA.txt",
+        "cancer_study_id": "cancer_study",
+        "cna_data_filename": "data_CNA.txt"
+        }
+        with TemporaryDirectory() as tmpdir:
+            input_json_file = os.path.join(tmpdir, "input.json")
+            with open(input_json_file, "w") as json_out:
+                json.dump(input_json, json_out)
+
+            output_dir = os.path.join(tmpdir, "output")
+            tmp_dir = os.path.join(tmpdir, "tmp")
+            cache_dir = os.path.join(tmpdir, "cache")
+
+            command = [
+                "cwl-runner",
+                *CWL_ARGS,
+                "--outdir", output_dir,
+                "--tmpdir-prefix", tmp_dir,
+                "--cachedir", cache_dir,
+                cwl_file, input_json_file
+                ]
+            returncode, proc_stdout, proc_stderr = run_command(command)
+
+            if returncode != 0:
+                print(proc_stderr)
+
+            self.assertEqual(returncode, 0)
+
+            output_json = json.loads(proc_stdout)
+
+            expected_output = {
+                'output_file': {
+                    'location': 'file://' + os.path.join(output_dir, 'meta_CNA.txt'),
+                    'basename': 'meta_CNA.txt',
+                    'class': 'File',
+                    'checksum': 'sha1$a0c50ba21af32710c6895201ec2ec74809f43fec',
+                    'size': 270,
+                    'path': os.path.join(output_dir,'meta_CNA.txt')
+                }
+            }
+            self.maxDiff = None
+            self.assertDictEqual(output_json, expected_output)
+
+    def test_generate_meta_fusion(self):
+        """
+        # meta_fusions.txt
+
+        generate_cbioPortal_files.py \
+        meta_fusion \
+        --cancer-study-id "$(PROJ_ID)" \
+        --fusion-data-filename "$(CBIO_FUSION_DATA_FILENAME)" \
+        --output "$(CBIO_META_FUSIONS_FILE)"
+        """
+        input_json = {
+        "subcommand": "meta_fusion",
+        "output_filename": "meta_fusions.txt",
+        "cancer_study_id": "cancer_study",
+        "fusion_data_filename": "data_fusions.txt"
+        }
+        with TemporaryDirectory() as tmpdir:
+            input_json_file = os.path.join(tmpdir, "input.json")
+            with open(input_json_file, "w") as json_out:
+                json.dump(input_json, json_out)
+
+            output_dir = os.path.join(tmpdir, "output")
+            tmp_dir = os.path.join(tmpdir, "tmp")
+            cache_dir = os.path.join(tmpdir, "cache")
+
+            command = [
+                "cwl-runner",
+                *CWL_ARGS,
+                "--outdir", output_dir,
+                "--tmpdir-prefix", tmp_dir,
+                "--cachedir", cache_dir,
+                cwl_file, input_json_file
+                ]
+            returncode, proc_stdout, proc_stderr = run_command(command)
+
+            if returncode != 0:
+                print(proc_stderr)
+
+            self.assertEqual(returncode, 0)
+
+            output_json = json.loads(proc_stdout)
+
+            expected_output = {
+                'output_file': {
+                    'location': 'file://' + os.path.join(output_dir, 'meta_fusions.txt'),
+                    'basename': 'meta_fusions.txt',
+                    'class': 'File',
+                    'checksum': 'sha1$5e71daac57615260e685b9f7184a86ddf0e3a6d4',
+                    'size': 227,
+                    'path': os.path.join(output_dir,'meta_fusions.txt')
+                }
+            }
+            self.maxDiff = None
+            self.assertDictEqual(output_json, expected_output)
+
+    def test_generate_meta_mutations_extended(self):
+        """
+        # meta_mutations_extended.txt
+
+        generate_cbioPortal_files.py \
+        meta_mutations \
+        --cancer-study-id "$(PROJ_ID)" \
+        --mutations-data-filename "$(CBIO_MUTATION_DATA_FILENAME)" \
+        --output "$(CBIO_META_MUTATIONS_FILE)"
+        """
+        input_json = {
+        "subcommand": "meta_mutations",
+        "output_filename": "meta_mutations_extended.txt",
+        "cancer_study_id": "cancer_study",
+        "mutations_data_filename": "data_mutations_extended.txt"
+        }
+        with TemporaryDirectory() as tmpdir:
+            input_json_file = os.path.join(tmpdir, "input.json")
+            with open(input_json_file, "w") as json_out:
+                json.dump(input_json, json_out)
+
+            output_dir = os.path.join(tmpdir, "output")
+            tmp_dir = os.path.join(tmpdir, "tmp")
+            cache_dir = os.path.join(tmpdir, "cache")
+
+            command = [
+                "cwl-runner",
+                *CWL_ARGS,
+                "--outdir", output_dir,
+                "--tmpdir-prefix", tmp_dir,
+                "--cachedir", cache_dir,
+                cwl_file, input_json_file
+                ]
+            returncode, proc_stdout, proc_stderr = run_command(command)
+
+            if returncode != 0:
+                print(proc_stderr)
+
+            self.assertEqual(returncode, 0)
+
+            output_json = json.loads(proc_stdout)
+
+            expected_output = {
+                'output_file': {
+                    'location': 'file://' + os.path.join(output_dir, 'meta_mutations_extended.txt'),
+                    'basename': 'meta_mutations_extended.txt',
+                    'class': 'File',
+                    'checksum': 'sha1$d6681566b68ec2eba1c16369f6838ed52986b044',
+                    'size': 253,
+                    'path': os.path.join(output_dir,'meta_mutations_extended.txt')
+                }
+            }
+            self.maxDiff = None
+            self.assertDictEqual(output_json, expected_output)
+
 
 if __name__ == "__main__":
     unittest.main()
