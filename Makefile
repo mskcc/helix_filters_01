@@ -113,10 +113,12 @@ HELIX_FILTER_VERSION:=$(shell git describe --all --long | sed -e 's|.*/\(.*\)|\1
 ARGOS_VERSION_STRING:=2.x
 
 # demo locations for use for development; set these from the command line for real-world usage (not used for CWL input)
+INPUTS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/inputs
+QC_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/qc
 MAF_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/maf
 FACETS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/facets
-
-
+DATA_CLINICAL_FILE:=$(INPUTS_DIR)/$(PROJ_ID)_sample_data_clinical.txt
+SAMPLE_SUMMARY_FILE:=$(QC_DIR)/$(PROJ_ID)_SampleSummary.txt
 # Need to create some psuedo-JSON files for use in creating the input.json
 
 # .maf input files JSON muts.maf.txt
@@ -179,6 +181,8 @@ input.json: mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cnc
 	--arg cbio_meta_cna_segments_filename "$(CBIO_META_CNA_SEGMENTS_FILENAME)" \
 	--arg targets_list "$(TARGETS_LIST)" \
 	--arg known_fusions_file "$(KNOWN_FUSIONS_FILE)" \
+	--arg data_clinical_file "$(DATA_CLINICAL_FILE)" \
+	--arg sample_summary_file "$(SAMPLE_SUMMARY_FILE)" \
 	'{
 	"mutation_maf_files": $$mutation_maf_files,
 	"facets_hisens_seg_files": $$facets_hisens_seg_files,
@@ -203,6 +207,8 @@ input.json: mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cnc
 	"cbio_meta_cna_segments_filename": $$cbio_meta_cna_segments_filename,
 	"targets_list": {"class": "File", "path": $$targets_list},
 	"known_fusions_file": {"class": "File", "path": $$known_fusions_file},
+	"data_clinical_file": {"class": "File", "path": $$data_clinical_file},
+	"sample_summary_file": {"class": "File", "path": $$sample_summary_file}
 	}
 	' > input.json
 .PHONY: input.json

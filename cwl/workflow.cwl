@@ -8,7 +8,7 @@ CWL workflow for generating Roslin / Argos post pipeline analysis files and cBio
 Inputs
 ------
 
-The following input parameters are required:
+The following parameters are required:
 
 project_id
 project_pi
@@ -230,9 +230,58 @@ inputs:
     type: File
   known_fusions_file:
     type: File
-# segment_data_file: string
+  data_clinical_file:
+    type: File
+  sample_summary_file:
+    type: File
 
-steps: []
+steps:
+
+  # meta_clinical_sample_file; cbio_clinical_sample_meta_filename; meta_clinical_sample.txt
+  generate_meta_clinical_sample:
+    run: generate_cBioPortal_file.cwl
+    in:
+      subcommand:
+        valueFrom: ${ return "meta_sample" }
+      cancer_study_id: cancer_study_identifier
+      sample_data_filename:  cbio_clinical_sample_data_filename # data_clinical_sample.txt
+      output_filename: cbio_clinical_sample_meta_filename
+    out:
+      [output_file]
+
+  # data_clinical_patient_file; cbio_clinical_patient_data_filename; data_clinical_patient.txt
+  generate_data_clinical_patient:
+    run: generate_cBioPortal_file.cwl
+    in:
+      subcommand:
+        valueFrom: ${ return "patient" }
+      data_clinical_file: data_clinical_file
+      output_filename: cbio_clinical_patient_data_filename
+    out:
+      [output_file]
+
+  # cbio_clinical_sample_data_filename; data_clinical_sample.txt
+  generate_data_clinical_sample:
+    run: generate_cBioPortal_file.cwl
+    in:
+      subcommand:
+        valueFrom: ${ return "sample" }
+      data_clinical_file: data_clinical_file
+      sample_summary_file: sample_summary_file
+      output_filename: cbio_clinical_sample_data_filename,
+      project_pi: project_pi,
+      request_pi: request_pi
+    out:
+      [output_file]
+
+
+
+
+
+
+
+
+
   # strip_maf:
   #   # need to remove the '#' comment lines from the maf so we can concat them cleanly later
   #   run: strip.cwl
@@ -338,7 +387,17 @@ steps: []
   #       valueFrom: ${ return [ inputs.analyst_file, inputs.gene_cna_file ]}
   #   out: [ directory ]
 
-outputs: []
+outputs:
+  meta_clinical_sample_file:
+    type: File
+    outputSource: generate_meta_clinical_sample/output_file
+  data_clinical_patient_file:
+    type: File
+    outputSource: generate_data_clinical_patient/output_file
+  data_clinical_sample_file:
+    type: File
+    outputSource: generate_data_clinical_sample/output_file
+
   # portal_dir:
   #   type: Directory
   #   outputSource: make_portal_dir/directory
