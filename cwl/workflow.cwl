@@ -399,11 +399,36 @@ steps:
     out:
       [output_file]
 
-  # cbio_cna_data_filename; data_CNA.txt, cbio_cna_ascna_data_filename; data_CNA.ascna.txt, cbio_cna_scna_data_filename; data_CNA.scna.txt
-  # generate_cna_data:
+  # cbio_cna_data_filename; data_CNA.txt, cbio_cna_ascna_data_filename; data_CNA.ascna.txt, cbio_cna_scna_data_filename; data_CNA.scna.txt, facets_hisens_cncf_files; (FACETS_DIR)/*_hisens.cncf.txt, targets_list
+  generate_cna_data:
+    run: copy_number.cwl
+    in:
+      output_cna_filename: cbio_cna_data_filename
+      output_cna_ascna_filename: cbio_cna_ascna_data_filename
+      output_cna_scna_filename: cbio_cna_scna_data_filename
+      targets_list: targets_list
+      hisens_cncfs: facets_hisens_cncf_files
+    out:
+      [ output_cna_file, output_cna_ascna_file, output_cna_scna_file ]
+
+    # copy_cna_file:
+    #   # we need this extra CWL in order to run 'cp' to output a renamed version of the CNA file for cBioPortal
+    #   run: cp.cwl
+    #   in:
+    #     input_file: copy_number/output_portal_CNA_file
+    #     output_filename: analysis_gene_cna_filename
+    #   out:
+    #     [output_file]
 
 
-
+  # copy_number:
+  #   # run some copy number analysis on the data
+  #   run: copy_number.cwl
+  #   in:
+  #     portal_CNA_file: cbio_cna_data_filename
+  #     targets_list: targets_list
+  #     hisens_cncfs: hisens_cncfs
+  #   out: [output_portal_CNA_file]
 
 
 
@@ -465,23 +490,6 @@ steps:
   #   out:
   #     [output_file]
   #
-  # copy_number:
-  #   # run some copy number analysis on the data
-  #   run: copy_number.cwl
-  #   in:
-  #     portal_CNA_file: cbio_cna_data_filename
-  #     targets_list: targets_list
-  #     hisens_cncfs: hisens_cncfs
-  #   out: [output_portal_CNA_file]
-  #
-  # copy_cna_file:
-  #   # we need this extra CWL in order to run 'cp' to output a renamed version of the CNA file for cBioPortal
-  #   run: cp.cwl
-  #   in:
-  #     input_file: copy_number/output_portal_CNA_file
-  #     output_filename: analysis_gene_cna_filename
-  #   out:
-  #     [output_file]
   #
   # rename_analyst_file:
   #   # we need to use this extra CWL in order to run 'cp' to output a renamed version of the analysis_mutations_filename
@@ -506,6 +514,9 @@ steps:
       meta_fusions_file: generate_cbio_meta_fusions/output_file
       meta_mutations_extended_file: generate_meta_mutations_extended/output_file
       meta_cna_segments_file: generate_meta_cna_segments/output_file
+      cna_data_file: generate_cna_data/output_cna_file
+      cna_ascna_file: generate_cna_data/output_cna_ascna_file
+      cna_scna_file: generate_cna_data/output_cna_scna_file
       output_directory_name:
         valueFrom: ${ return "portal"; }
       files:
@@ -519,6 +530,9 @@ steps:
           inputs.meta_fusions_file,
           inputs.meta_mutations_extended_file,
           inputs.meta_cna_segments_file,
+          inputs.cna_data_file,
+          inputs.cna_ascna_file,
+          inputs.cna_scna_file
           ]}
     out: [ directory ]
   #
