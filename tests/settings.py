@@ -18,7 +18,7 @@ FIXTURES_DIR = os.environ.get('FIXTURES_DIR', '/juno/work/ci/helix_filters_01/fi
 
 ARGOS_VERSION_STRING = os.environ.get('ARGOS_VERSION_STRING', '2.x')
 IS_IMPACT = os.environ.get('IS_IMPACT', "True")
-PORTAL_FILE = os.environ.get('PORTAL_FILE', 'data_mutations_extended.txt')
+PORTAL_FILE = os.environ.get('PORTAL_FILE', 'data_mutations_extended.txt') # TODO: deprecate this
 PORTAL_CNA_FILE = os.environ.get('PORTAL_CNA_FILE', 'data_CNA.txt') # TODO: deprecate this
 
 
@@ -30,7 +30,7 @@ DATA_SETS = {
         "INPUTS_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "inputs"),
         "QC_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "qc"),
         "targets_list": "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist",
-        "analyst_file": "Proj_08390_G.muts.maf",
+        "analyst_file": "Proj_08390_G.muts.maf", # TODO: deprecate this
         "analysis_gene_cna_file": "Proj_08390_G.gene.cna.txt",
     }
 }
