@@ -19,8 +19,9 @@ requirements:
     dockerPull: mskcc/roslin-variant-facets:1.6.3
 
 inputs:
-  portal_CNA_file:
-    type: string
+  output_cna_filename:
+    type: ["null", string]
+    default: "data_CNA.txt"
     inputBinding:
       position: 1
       prefix: -o
@@ -34,8 +35,22 @@ inputs:
     inputBinding:
       position: 3
       prefix: -f
+  output_cna_ascna_filename:
+    type: ["null", string]
+    default: "data_CNA.ascna.txt"
+  output_cna_scna_filename:
+    type: ["null", string]
+    default: "data_CNA.scna.txt"
 outputs:
-  output_portal_CNA_file:
+  output_cna_file:
     type: File
     outputBinding:
-      glob: $(inputs.portal_CNA_file)
+      glob: $(inputs.output_cna_filename)
+  output_cna_ascna_file:
+    type: File
+    outputBinding:
+      glob: $(inputs.output_cna_ascna_filename)
+  output_cna_scna_file:
+    type: File
+    outputBinding:
+      glob: $(inputs.output_cna_scna_filename)

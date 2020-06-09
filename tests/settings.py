@@ -19,7 +19,7 @@ FIXTURES_DIR = os.environ.get('FIXTURES_DIR', '/juno/work/ci/helix_filters_01/fi
 ARGOS_VERSION_STRING = os.environ.get('ARGOS_VERSION_STRING', '2.x')
 IS_IMPACT = os.environ.get('IS_IMPACT', "True")
 PORTAL_FILE = os.environ.get('PORTAL_FILE', 'data_mutations_extended.txt')
-PORTAL_CNA_FILE = os.environ.get('PORTAL_CNA_FILE', 'data_CNA.txt')
+PORTAL_CNA_FILE = os.environ.get('PORTAL_CNA_FILE', 'data_CNA.txt') # TODO: deprecate this
 
 
 DATA_SETS = {
