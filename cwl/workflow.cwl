@@ -443,63 +443,31 @@ steps:
       cbio_mutation_data_filename: cbio_mutation_data_filename
     out: [cbio_mutation_data_file, analysis_mutations_file]
 
+  # cbio_segment_data_filename; <project_id>_data_cna_hg19.seg, analysis_segment_cna_filename; <project_id>.seg.cna.txt
+  # need to reduce the number of significant figures in the hisens_segs files
+  reduce_sig_figs_hisens_segs:
+    run: reduce_sig_figs.cwl
+    scatter: input_file
+    in:
+      input_file: facets_hisens_seg_files
+    out:
+      [output_file]
+  # concatenate all of the hisens_segs files
+  concat_hisens_segs:
+    run: concat.cwl
+    in:
+      input_files: reduce_sig_figs_hisens_segs/output_file
+    out:
+      [output_file]
+  # rename the hisens_segs concatenated table to something that cBioPortal recognizes
+  rename_concat_hisens_segs:
+    run: cp.cwl
+    in:
+      input_file: concat_hisens_segs/output_file
+      output_filename: cbio_segment_data_filename
+    out:
+      [output_file]
 
-  # reduce_sig_figs_hisens_segs:
-  #   # need to reduce the number of significant figures in the hisens_segs files
-  #   run: reduce_sig_figs.cwl
-  #   scatter: input_file
-  #   in:
-  #     input_file: hisens_segs
-  #   out:
-  #     [output_file]
-  #
-  # concat_hisens_segs:
-  #   # concatenate all of the hisens_segs files
-  #   run: concat.cwl
-  #   in:
-  #     input_files: reduce_sig_figs_hisens_segs/output_file
-  #   out:
-  #     [output_file]
-  #
-  # rename_concat_hisens_segs:
-  #   # rename the hisens_segs concatenated table to something that cBioPortal recognizes
-  #   run: cp.cwl
-  #   in:
-  #     input_file: concat_hisens_segs/output_file
-  #     output_filename: segment_data_file
-  #   out:
-  #     [output_file]
-  #
-  # maf_filter:
-  #   # filter each maf file
-  #   run: maf_filter.cwl
-  #   scatter: maf_file
-  #   in:
-  #     maf_file: strip_maf/output_file
-  #     argos_version_string: argos_version_string
-  #     is_impact: is_impact
-  #     analyst_filename: analysis_mutations_filename
-  #     portal_filename: cbio_mutation_data_filename
-  #   out: [analyst_file]
-  #
-  # concat_maf:
-  #   # concat all the maf files into a single table
-  #   run: concat.cwl
-  #   in:
-  #     input_files: maf_filter/analyst_file
-  #   out:
-  #     [output_file]
-  #
-  #
-  # rename_analyst_file:
-  #   # we need to use this extra CWL in order to run 'cp' to output a renamed version of the analysis_mutations_filename
-  #   run: cp.cwl
-  #   in:
-  #     input_file: concat_maf/output_file
-  #     output_filename: analysis_mutations_filename
-  #   out:
-  #     [output_file]
-  #
 
   # create the "portal" directory in the output dir and put cBioPortal files in it
   portal_dir:
