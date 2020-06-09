@@ -327,7 +327,7 @@ steps:
     out:
       [output_file]
 
-  # meta_mutations_extended.txt
+  # cbio_meta_mutations_filename; meta_mutations_extended.txt
   generate_meta_mutations_extended:
     run: generate_cBioPortal_file.cwl
     in:
@@ -336,6 +336,66 @@ steps:
       output_filename: cbio_meta_mutations_filename
       cancer_study_id: cancer_study_identifier
       mutations_data_filename: cbio_mutation_data_filename # data_mutations_extended.txt
+    out:
+      [output_file]
+
+  # cbio_meta_cna_segments_filename; <project_id>_meta_cna_hg19_seg.txt
+  generate_meta_cna_segments:
+    run: generate_cBioPortal_file.cwl
+    in:
+      subcommand:
+        valueFrom: ${ return "meta_segments" }
+      output_filename: cbio_meta_cna_segments_filename
+      cancer_study_id: cancer_study_identifier
+      segmented_data_filename: cbio_segment_data_filename # <project_id>_data_cna_hg19.seg
+    out:
+      [output_file]
+
+  # cbio_cases_all_filename; cases_all.txt
+  generate_cbio_cases_all:
+    run: generate_cBioPortal_file.cwl
+    in:
+      subcommand:
+        valueFrom: ${ return "cases_all" }
+      output_filename: cbio_cases_all_filename
+      cancer_study_id: cancer_study_identifier
+      data_clinical_file: data_clinical_file
+    out:
+      [output_file]
+
+  # cases_cnaseq.txt
+  generate_cases_cnaseq:
+    run: generate_cBioPortal_file.cwl
+    in:
+      subcommand:
+        valueFrom: ${ return "cases_cnaseq" }
+      output_filename: cbio_cases_cnaseq_filename
+      cancer_study_id: cancer_study_identifier
+      data_clinical_file: data_clinical_file
+    out:
+      [output_file]
+
+  # cases_cna.txt
+  generate_cases_cna:
+    run: generate_cBioPortal_file.cwl
+    in:
+      subcommand:
+        valueFrom: ${ return "cases_cna" }
+      output_filename: cbio_cases_cna_filename
+      cancer_study_id: cancer_study_identifier
+      data_clinical_file: data_clinical_file
+    out:
+      [output_file]
+
+  # cbio_cases_sequenced_filename; cases_sequenced.txt
+  generate_cases_sequenced:
+    run: generate_cBioPortal_file.cwl
+    in:
+      subcommand:
+        valueFrom: ${ return "cases_sequenced" }
+      output_filename: cbio_cases_sequenced_filename
+      cancer_study_id: cancer_study_identifier
+      data_clinical_file: data_clinical_file
     out:
       [output_file]
 
@@ -477,6 +537,21 @@ outputs:
   meta_mutations_extended_file:
     type: File
     outputSource: generate_meta_mutations_extended/output_file
+  meta_cna_segments_file:
+    type: File
+    outputSource: generate_meta_cna_segments/output_file
+  cases_all_file:
+    type: File
+    outputSource: generate_cbio_cases_all/output_file
+  cases_cnaseq_file:
+    type: File
+    outputSource: generate_cases_cnaseq/output_file
+  cases_cna_file:
+    type: File
+    outputSource: generate_cases_cna/output_file
+  cases_sequenced_file:
+    type: File
+    outputSource: generate_cases_sequenced/output_file
 
   # portal_dir:
   #   type: Directory
