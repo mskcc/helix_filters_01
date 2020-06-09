@@ -399,6 +399,9 @@ steps:
     out:
       [output_file]
 
+  # cbio_cna_data_filename; data_CNA.txt, cbio_cna_ascna_data_filename; data_CNA.ascna.txt, cbio_cna_scna_data_filename; data_CNA.scna.txt
+  # generate_cna_data:
+
 
 
 
@@ -489,17 +492,35 @@ steps:
   #   out:
   #     [output_file]
   #
-  # make_portal_dir:
-  #   # put some files into portal dir
-  #   run: put_in_dir.cwl
-  #   in:
-  #     segment_file: rename_concat_hisens_segs/output_file
-  #     portal_cna_file: copy_number/output_portal_CNA_file
-  #     output_directory_name:
-  #       valueFrom: ${ return "portal"; }
-  #     files:
-  #       valueFrom: ${return [ inputs.portal_cna_file, inputs.segment_file ]}
-  #   out: [ directory ]
+
+  # create the "portal" directory in the output dir and put cBioPortal files in it
+  portal_dir:
+    run: put_in_dir.cwl
+    in:
+      meta_clinical_sample_file: generate_meta_clinical_sample/output_file
+      data_clinical_patient_file: generate_data_clinical_patient/output_file
+      data_clinical_sample_file: generate_data_clinical_sample/output_file
+      meta_study_file: generate_cbio_meta_study/output_file
+      clinical_patient_meta_file: generate_cbio_clinical_patient_meta/output_file
+      meta_cna_file: generate_cbio_meta_cna/output_file
+      meta_fusions_file: generate_cbio_meta_fusions/output_file
+      meta_mutations_extended_file: generate_meta_mutations_extended/output_file
+      meta_cna_segments_file: generate_meta_cna_segments/output_file
+      output_directory_name:
+        valueFrom: ${ return "portal"; }
+      files:
+        valueFrom: ${return [
+          inputs.meta_clinical_sample_file,
+          inputs.data_clinical_patient_file,
+          inputs.data_clinical_sample_file,
+          inputs.meta_study_file,
+          inputs.clinical_patient_meta_file,
+          inputs.meta_cna_file,
+          inputs.meta_fusions_file,
+          inputs.meta_mutations_extended_file,
+          inputs.meta_cna_segments_file,
+          ]}
+    out: [ directory ]
   #
   # make_analysis_dir:
   #   run: put_in_dir.cwl
@@ -513,33 +534,10 @@ steps:
   #   out: [ directory ]
 
 outputs:
-  meta_clinical_sample_file:
-    type: File
-    outputSource: generate_meta_clinical_sample/output_file
-  data_clinical_patient_file:
-    type: File
-    outputSource: generate_data_clinical_patient/output_file
-  data_clinical_sample_file:
-    type: File
-    outputSource: generate_data_clinical_sample/output_file
-  meta_study_file:
-    type: File
-    outputSource: generate_cbio_meta_study/output_file
-  clinical_patient_meta_file:
-    type: File
-    outputSource: generate_cbio_clinical_patient_meta/output_file
-  meta_cna_file:
-    type: File
-    outputSource: generate_cbio_meta_cna/output_file
-  meta_fusions_file:
-    type: File
-    outputSource: generate_cbio_meta_fusions/output_file
-  meta_mutations_extended_file:
-    type: File
-    outputSource: generate_meta_mutations_extended/output_file
-  meta_cna_segments_file:
-    type: File
-    outputSource: generate_meta_cna_segments/output_file
+  portal_dir:
+    type: Directory
+    outputSource: portal_dir/directory
+
   cases_all_file:
     type: File
     outputSource: generate_cbio_cases_all/output_file
@@ -553,9 +551,6 @@ outputs:
     type: File
     outputSource: generate_cases_sequenced/output_file
 
-  # portal_dir:
-  #   type: Directory
-  #   outputSource: make_portal_dir/directory
   # analysis_dir:
   #   type: Directory
   #   outputSource: make_analysis_dir/directory
