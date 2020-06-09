@@ -12,11 +12,11 @@ from tempfile import TemporaryDirectory, NamedTemporaryFile
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
     from .tools import run_command
-    from .settings import CWL_DIR, CWL_ARGS, DATA_SETS #ARGOS_VERSION_STRING, IS_IMPACT, PORTAL_FILE, PORTAL_CNA_FILE
+    from .settings import CWL_DIR, CWL_ARGS, DATA_SETS
 
 if __name__ == "__main__":
     from tools import run_command
-    from settings import CWL_DIR, CWL_ARGS, DATA_SETS #ARGOS_VERSION_STRING, IS_IMPACT, PORTAL_FILE, PORTAL_CNA_FILE
+    from settings import CWL_DIR, CWL_ARGS, DATA_SETS 
 
 cwl_file = os.path.join(CWL_DIR, 'generate_cBioPortal_file.cwl')
 

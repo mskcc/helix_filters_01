@@ -24,20 +24,20 @@ inputs:
     type: string
     inputBinding:
       position: 3
-  analyst_filename:
+  analysis_mutations_filename:
     type: string
     inputBinding:
       position: 4
-  portal_filename:
+  cbio_mutation_data_filename:
     type: string
     inputBinding:
       position: 5
 outputs:
-  analyst_file:
+  analysis_mutations_file:
     type: File
     outputBinding:
-      glob: $(inputs.analyst_filename)
-  portal_file:
+      glob: $(inputs.analysis_mutations_filename)
+  cbio_mutation_data_file:
     type: File
     outputBinding:
-      glob: $(inputs.portal_filename)
+      glob: $(inputs.cbio_mutation_data_filename)

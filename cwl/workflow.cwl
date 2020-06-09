@@ -119,6 +119,7 @@ inputs:
     type: string
     doc: "the version label of Roslin / Argos used to run the project analysis (ARGOS_VERSION_STRING)"
   is_impact:
+    default: "True"
     type: string
     doc: "whether or not the project is an IMPACT project; should be the value 'True' if so, otherwise any other value means 'False' (IS_IMPACT)"
   # TODO: this shouild actually be type: string[]
@@ -411,39 +412,38 @@ steps:
     out:
       [ output_cna_file, output_cna_ascna_file, output_cna_scna_file ]
 
-    # copy_cna_file:
-    #   # we need this extra CWL in order to run 'cp' to output a renamed version of the CNA file for cBioPortal
-    #   run: cp.cwl
-    #   in:
-    #     input_file: copy_number/output_portal_CNA_file
-    #     output_filename: analysis_gene_cna_filename
-    #   out:
-    #     [output_file]
+  # analysis_gene_cna_filename; <project_id>.gene.cna.txt
+  # rename the cBio cna file for analysis output
+  copy_cna_data_file:
+    run: cp.cwl
+    in:
+      input_file: generate_cna_data/output_cna_file
+      output_filename: analysis_gene_cna_filename
+    out:
+      [ output_file ]
+
+  # analysis_mutations_filename; <project_id>.muts.maf, cbio_mutation_data_filename; data_mutations_extended.txt
+  # need to remove the '#' comment lines from the maf so we can concat them cleanly later
+  strip_maf:
+    run: strip.cwl
+    scatter: input_file
+    in:
+      input_file: mutation_maf_files
+    out:
+      [output_file]
+  # filter each maf file
+  maf_filter:
+    run: maf_filter.cwl
+    scatter: maf_file
+    in:
+      maf_file: strip_maf/output_file
+      argos_version_string: argos_version_string
+      is_impact: is_impact
+      analysis_mutations_filename: analysis_mutations_filename
+      cbio_mutation_data_filename: cbio_mutation_data_filename
+    out: [cbio_mutation_data_file, analysis_mutations_file]
 
 
-  # copy_number:
-  #   # run some copy number analysis on the data
-  #   run: copy_number.cwl
-  #   in:
-  #     portal_CNA_file: cbio_cna_data_filename
-  #     targets_list: targets_list
-  #     hisens_cncfs: hisens_cncfs
-  #   out: [output_portal_CNA_file]
-
-
-
-
-
-
-  # strip_maf:
-  #   # need to remove the '#' comment lines from the maf so we can concat them cleanly later
-  #   run: strip.cwl
-  #   scatter: input_file
-  #   in:
-  #     input_file: maf_files
-  #   out:
-  #     [output_file]
-  #
   # reduce_sig_figs_hisens_segs:
   #   # need to reduce the number of significant figures in the hisens_segs files
   #   run: reduce_sig_figs.cwl
@@ -535,17 +535,17 @@ steps:
           inputs.cna_scna_file
           ]}
     out: [ directory ]
-  #
-  # make_analysis_dir:
-  #   run: put_in_dir.cwl
-  #   in:
-  #     analyst_file: rename_analyst_file/output_file
-  #     gene_cna_file: copy_cna_file/output_file
-  #     output_directory_name:
-  #       valueFrom: ${ return "analysis"; }
-  #     files:
-  #       valueFrom: ${ return [ inputs.analyst_file, inputs.gene_cna_file ]}
-  #   out: [ directory ]
+
+  make_analysis_dir:
+    run: put_in_dir.cwl
+    in:
+      # analyst_file: rename_analyst_file/output_file
+      gene_cna_file: copy_cna_data_file/output_file
+      output_directory_name:
+        valueFrom: ${ return "analysis"; }
+      files:
+        valueFrom: ${ return [ inputs.gene_cna_file ] } # inputs.analyst_file,
+    out: [ directory ]
 
 outputs:
   portal_dir:
@@ -565,6 +565,6 @@ outputs:
     type: File
     outputSource: generate_cases_sequenced/output_file
 
-  # analysis_dir:
-  #   type: Directory
-  #   outputSource: make_analysis_dir/directory
+  analysis_dir:
+    type: Directory
+    outputSource: make_analysis_dir/directory
