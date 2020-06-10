@@ -239,7 +239,7 @@ inputs:
 
 steps:
 
-  # meta_clinical_sample_file; cbio_clinical_sample_meta_filename; meta_clinical_sample.txt
+  # meta_clinical_sample.txt (cbio_clinical_sample_meta_filename; meta_clinical_sample_file)
   generate_meta_clinical_sample:
     run: generate_cBioPortal_file.cwl
     in:
@@ -251,7 +251,7 @@ steps:
     out:
       [output_file]
 
-  # data_clinical_patient_file; cbio_clinical_patient_data_filename; data_clinical_patient.txt
+  # data_clinical_patient.txt (cbio_clinical_patient_data_filename; data_clinical_patient_file)
   generate_data_clinical_patient:
     run: generate_cBioPortal_file.cwl
     in:
@@ -262,7 +262,7 @@ steps:
     out:
       [output_file]
 
-  # cbio_clinical_sample_data_filename; data_clinical_sample.txt
+  # data_clinical_sample.txt (cbio_clinical_sample_data_filename)
   generate_data_clinical_sample:
     run: generate_cBioPortal_file.cwl
     in:
@@ -276,7 +276,7 @@ steps:
     out:
       [output_file]
 
-  # cbio_meta_study_file; cbio_meta_study_filename;  meta_study.txt
+  # meta_study.txt (cbio_meta_study_filename; cbio_meta_study_file)
   generate_cbio_meta_study:
     run: generate_cBioPortal_file.cwl
     in:
@@ -292,7 +292,7 @@ steps:
     out:
       [output_file]
 
-  # cbio_clinical_patient_meta_filename; meta_clinical_patient.txt
+  # meta_clinical_patient.txt (cbio_clinical_patient_meta_filename)
   generate_cbio_clinical_patient_meta:
     run: generate_cBioPortal_file.cwl
     in:
@@ -304,7 +304,7 @@ steps:
     out:
       [output_file]
 
-  # cbio_meta_cna_filename; meta_CNA.txt
+  # meta_CNA.txt (cbio_meta_cna_filename)
   generate_cbio_meta_cna:
     run: generate_cBioPortal_file.cwl
     in:
@@ -316,7 +316,7 @@ steps:
     out:
       [output_file]
 
-  # meta_fusions.txt
+  # meta_fusions.txt (cbio_meta_fusions_filename)
   generate_cbio_meta_fusions:
     run: generate_cBioPortal_file.cwl
     in:
@@ -328,7 +328,7 @@ steps:
     out:
       [output_file]
 
-  # cbio_meta_mutations_filename; meta_mutations_extended.txt
+  # meta_mutations_extended.txt (cbio_meta_mutations_filename)
   generate_meta_mutations_extended:
     run: generate_cBioPortal_file.cwl
     in:
@@ -340,7 +340,7 @@ steps:
     out:
       [output_file]
 
-  # cbio_meta_cna_segments_filename; <project_id>_meta_cna_hg19_seg.txt
+  # <project_id>_meta_cna_hg19_seg.txt (cbio_meta_cna_segments_filename)
   generate_meta_cna_segments:
     run: generate_cBioPortal_file.cwl
     in:
@@ -352,7 +352,7 @@ steps:
     out:
       [output_file]
 
-  # cbio_cases_all_filename; cases_all.txt
+  # cases_all.txt (cbio_cases_all_filename)
   generate_cbio_cases_all:
     run: generate_cBioPortal_file.cwl
     in:
@@ -388,7 +388,7 @@ steps:
     out:
       [output_file]
 
-  # cbio_cases_sequenced_filename; cases_sequenced.txt
+  # cases_sequenced.txt (cbio_cases_sequenced_filename)
   generate_cases_sequenced:
     run: generate_cBioPortal_file.cwl
     in:
@@ -400,7 +400,11 @@ steps:
     out:
       [output_file]
 
-  # cbio_cna_data_filename; data_CNA.txt, cbio_cna_ascna_data_filename; data_CNA.ascna.txt, cbio_cna_scna_data_filename; data_CNA.scna.txt, facets_hisens_cncf_files; (FACETS_DIR)/*_hisens.cncf.txt, targets_list
+  # data_CNA.txt (cbio_cna_data_filename)
+  # data_CNA.ascna.txt (cbio_cna_ascna_data_filename)
+  # data_CNA.scna.txt, (cbio_cna_scna_data_filename)
+  # (FACETS_DIR)/*_hisens.cncf.txt (facets_hisens_cncf_files)
+  # targets_list
   generate_cna_data:
     run: copy_number.cwl
     in:
@@ -412,7 +416,7 @@ steps:
     out:
       [ output_cna_file, output_cna_ascna_file, output_cna_scna_file ]
 
-  # analysis_gene_cna_filename; <project_id>.gene.cna.txt
+  # <project_id>.gene.cna.txt (analysis_gene_cna_filename)
   # rename the cBio cna file for analysis output
   copy_cna_data_file:
     run: cp.cwl
@@ -422,9 +426,10 @@ steps:
     out:
       [ output_file ]
 
-  # analysis_mutations_filename; <project_id>.muts.maf, cbio_mutation_data_filename; data_mutations_extended.txt
+  # <project_id>.muts.maf (analysis_mutations_filename)
+  # data_mutations_extended.txt (cbio_mutation_data_filename)
   # need to remove the '#' comment lines from the maf so we can concat them cleanly later
-  strip_maf:
+  strip_muts_maf:
     run: strip.cwl
     scatter: input_file
     in:
@@ -432,18 +437,47 @@ steps:
     out:
       [output_file]
   # filter each maf file
-  maf_filter:
+  muts_maf_filter:
     run: maf_filter.cwl
     scatter: maf_file
     in:
-      maf_file: strip_maf/output_file
+      maf_file: strip_muts_maf/output_file
       argos_version_string: argos_version_string
       is_impact: is_impact
-      analysis_mutations_filename: analysis_mutations_filename
-      cbio_mutation_data_filename: cbio_mutation_data_filename
+      analysis_mutations_filename: analysis_mutations_filename # <project_id>.muts.maf
+      cbio_mutation_data_filename: cbio_mutation_data_filename # data_mutations_extended.txt
     out: [cbio_mutation_data_file, analysis_mutations_file]
+    # concat all the maf files into a single table
+  concat_analysis_muts_maf:
+    run: concat.cwl
+    in:
+      input_files: muts_maf_filter/analysis_mutations_file
+    out:
+      [output_file]
+  concat_cbio_muts_maf:
+    run: concat.cwl
+    in:
+      input_files: muts_maf_filter/cbio_mutation_data_file
+    out:
+      [output_file]
+  # set the concatenated file output names correctly
+  rename_analysis_muts_maf:
+    run: cp.cwl
+    in:
+      input_file: concat_analysis_muts_maf/output_file
+      output_filename: analysis_mutations_filename # <project_id>.muts.maf
+    out:
+      [output_file]
+  rename_cbio_muts_maf:
+    run: cp.cwl
+    in:
+      input_file: concat_cbio_muts_maf/output_file
+      output_filename: cbio_mutation_data_filename # data_mutations_extended.txt
+    out:
+      [output_file]
 
-  # cbio_segment_data_filename; <project_id>_data_cna_hg19.seg, analysis_segment_cna_filename; <project_id>.seg.cna.txt
+  # <project_id>_data_cna_hg19.seg (cbio_segment_data_filename)
+  # <project_id>.seg.cna.txt (analysis_segment_cna_filename)
   # need to reduce the number of significant figures in the hisens_segs files
   reduce_sig_figs_hisens_segs:
     run: reduce_sig_figs.cwl
@@ -460,31 +494,46 @@ steps:
     out:
       [output_file]
   # rename the hisens_segs concatenated table to something that cBioPortal recognizes
-  rename_concat_hisens_segs:
+  rename_cbio_hisens_segs:
     run: cp.cwl
     in:
       input_file: concat_hisens_segs/output_file
-      output_filename: cbio_segment_data_filename
+      output_filename: cbio_segment_data_filename # <project_id>_data_cna_hg19.seg
+    out:
+      [output_file]
+  rename_analysis_hisens_segs:
+    run: cp.cwl
+    in:
+      input_file: concat_hisens_segs/output_file
+      output_filename: analysis_segment_cna_filename # <project_id>.seg.cna.txt
     out:
       [output_file]
 
+  # data_fusions.txt (cbio_fusion_data_filename)
+  # (mutation_svs_txt_files; (MAF_DIR)/*.svs.pass.vep.portal.txt)
+  # concatenate all the mutation svs files
+
+
+
 
   # create the "portal" directory in the output dir and put cBioPortal files in it
-  portal_dir:
+  make_portal_dir:
     run: put_in_dir.cwl
     in:
-      meta_clinical_sample_file: generate_meta_clinical_sample/output_file
-      data_clinical_patient_file: generate_data_clinical_patient/output_file
-      data_clinical_sample_file: generate_data_clinical_sample/output_file
-      meta_study_file: generate_cbio_meta_study/output_file
-      clinical_patient_meta_file: generate_cbio_clinical_patient_meta/output_file
-      meta_cna_file: generate_cbio_meta_cna/output_file
-      meta_fusions_file: generate_cbio_meta_fusions/output_file
-      meta_mutations_extended_file: generate_meta_mutations_extended/output_file
-      meta_cna_segments_file: generate_meta_cna_segments/output_file
-      cna_data_file: generate_cna_data/output_cna_file
-      cna_ascna_file: generate_cna_data/output_cna_ascna_file
-      cna_scna_file: generate_cna_data/output_cna_scna_file
+      meta_clinical_sample_file: generate_meta_clinical_sample/output_file # meta_clinical_sample.txt
+      data_clinical_patient_file: generate_data_clinical_patient/output_file # data_clinical_patient.txt
+      data_clinical_sample_file: generate_data_clinical_sample/output_file # data_clinical_sample.txt
+      meta_study_file: generate_cbio_meta_study/output_file # meta_study.txt
+      clinical_patient_meta_file: generate_cbio_clinical_patient_meta/output_file # meta_clinical_patient.txt
+      meta_cna_file: generate_cbio_meta_cna/output_file # meta_CNA.txt
+      meta_fusions_file: generate_cbio_meta_fusions/output_file # meta_fusions.txt
+      meta_mutations_extended_file: generate_meta_mutations_extended/output_file # meta_mutations_extended.txt
+      meta_cna_segments_file: generate_meta_cna_segments/output_file  # <project_id>_meta_cna_hg19_seg.txt
+      cna_data_file: generate_cna_data/output_cna_file # data_CNA.txt
+      cna_ascna_file: generate_cna_data/output_cna_ascna_file # data_CNA.ascna.txt
+      cna_scna_file: generate_cna_data/output_cna_scna_file # data_CNA.scna.txt
+      muts_file: rename_cbio_muts_maf/output_file # data_mutations_extended.txt
+      hisens_segs: rename_cbio_hisens_segs/output_file # # <project_id>_data_cna_hg19.seg
       output_directory_name:
         valueFrom: ${ return "portal"; }
       files:
@@ -500,25 +549,33 @@ steps:
           inputs.meta_cna_segments_file,
           inputs.cna_data_file,
           inputs.cna_ascna_file,
-          inputs.cna_scna_file
+          inputs.cna_scna_file,
+          inputs.muts_file,
+          inputs.hisens_segs
           ]}
     out: [ directory ]
 
+  # create the 'analysis' directory and put some files in it
   make_analysis_dir:
     run: put_in_dir.cwl
     in:
-      # analyst_file: rename_analyst_file/output_file
-      gene_cna_file: copy_cna_data_file/output_file
+      gene_cna_file: copy_cna_data_file/output_file # <project_id>.gene.cna.txt
+      muts_maf_file: rename_analysis_muts_maf/output_file # <project_id>.muts.maf
+      hisens_segs: rename_analysis_hisens_segs/output_file # <project_id>.seg.cna.txt
       output_directory_name:
         valueFrom: ${ return "analysis"; }
       files:
-        valueFrom: ${ return [ inputs.gene_cna_file ] } # inputs.analyst_file,
+        valueFrom: ${ return [
+          inputs.gene_cna_file,
+          inputs.muts_maf_file,
+          inputs.hisens_segs
+          ]}
     out: [ directory ]
 
 outputs:
   portal_dir:
     type: Directory
-    outputSource: portal_dir/directory
+    outputSource: make_portal_dir/directory
 
   cases_all_file:
     type: File
