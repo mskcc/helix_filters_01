@@ -512,9 +512,37 @@ steps:
   # data_fusions.txt (cbio_fusion_data_filename)
   # (mutation_svs_txt_files; (MAF_DIR)/*.svs.pass.vep.portal.txt)
   # concatenate all the mutation svs files
+  generate_cbio_fusions_data:
+    run: concat.cwl
+    in:
+      input_files: mutation_svs_txt_files
+    out:
+      [output_file]
+  rename_cbio_fusions_data:
+    run: cp.cwl
+    in:
+      input_file: generate_cbio_fusions_data/output_file
+      output_filename: cbio_fusion_data_filename # data_fusions.txt
+    out:
+      [output_file]
 
 
 
+  # <project_id>.svs.maf (analysis_sv_filename)
+  # (MAF_DIR)/*.svs.pass.vep.maf (mutation_svs_maf_files)
+  generate_analysis_svs_maf:
+    run: concat.cwl
+    in:
+      input_files: mutation_svs_maf_files
+    out:
+      [output_file]
+  rename_analysis_svs_maf:
+    run: cp.cwl
+    in:
+      input_file: generate_analysis_svs_maf/output_file
+      output_filename: analysis_sv_filename # <project_id>.svs.maf
+    out:
+      [output_file]
 
   # create the "portal" directory in the output dir and put cBioPortal files in it
   make_portal_dir:
@@ -534,6 +562,7 @@ steps:
       cna_scna_file: generate_cna_data/output_cna_scna_file # data_CNA.scna.txt
       muts_file: rename_cbio_muts_maf/output_file # data_mutations_extended.txt
       hisens_segs: rename_cbio_hisens_segs/output_file # # <project_id>_data_cna_hg19.seg
+      fusions_data_file: rename_cbio_fusions_data/output_file # data_fusions.txt
       output_directory_name:
         valueFrom: ${ return "portal"; }
       files:
@@ -551,7 +580,8 @@ steps:
           inputs.cna_ascna_file,
           inputs.cna_scna_file,
           inputs.muts_file,
-          inputs.hisens_segs
+          inputs.hisens_segs,
+          inputs.fusions_data_file
           ]}
     out: [ directory ]
 
@@ -562,13 +592,15 @@ steps:
       gene_cna_file: copy_cna_data_file/output_file # <project_id>.gene.cna.txt
       muts_maf_file: rename_analysis_muts_maf/output_file # <project_id>.muts.maf
       hisens_segs: rename_analysis_hisens_segs/output_file # <project_id>.seg.cna.txt
+      svs_maf_file: rename_analysis_svs_maf/output_file # <project_id>.svs.maf
       output_directory_name:
         valueFrom: ${ return "analysis"; }
       files:
         valueFrom: ${ return [
           inputs.gene_cna_file,
           inputs.muts_maf_file,
-          inputs.hisens_segs
+          inputs.hisens_segs,
+          inputs.svs_maf_file
           ]}
     out: [ directory ]
 
