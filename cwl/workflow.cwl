@@ -544,6 +544,26 @@ steps:
     out:
       [output_file]
 
+
+  # create a case_list directory
+  make_case_list_dir:
+    run: put_in_dir.cwl
+    in:
+      cases_all: generate_cbio_cases_all/output_file
+      cases_cnaseq: generate_cases_cnaseq/output_file
+      cases_cna: generate_cases_cna/output_file
+      cases_sequenced: generate_cases_sequenced/output_file
+      output_directory_name:
+        valueFrom: ${ return "case_list"; }
+      files:
+        valueFrom: ${return [
+          inputs.cases_all,
+          inputs.cases_cnaseq,
+          inputs.cases_cna,
+          inputs.cases_sequenced
+          ]}
+    out: [ directory ]
+
   # create the "portal" directory in the output dir and put cBioPortal files in it
   make_portal_dir:
     run: put_in_dir.cwl
@@ -563,6 +583,7 @@ steps:
       muts_file: rename_cbio_muts_maf/output_file # data_mutations_extended.txt
       hisens_segs: rename_cbio_hisens_segs/output_file # # <project_id>_data_cna_hg19.seg
       fusions_data_file: rename_cbio_fusions_data/output_file # data_fusions.txt
+      case_list_dir: make_case_list_dir/directory
       output_directory_name:
         valueFrom: ${ return "portal"; }
       files:
@@ -581,9 +602,12 @@ steps:
           inputs.cna_scna_file,
           inputs.muts_file,
           inputs.hisens_segs,
-          inputs.fusions_data_file
+          inputs.fusions_data_file,
+          inputs.case_list_dir
           ]}
     out: [ directory ]
+
+
 
   # create the 'analysis' directory and put some files in it
   make_analysis_dir:
@@ -608,19 +632,6 @@ outputs:
   portal_dir:
     type: Directory
     outputSource: make_portal_dir/directory
-
-  cases_all_file:
-    type: File
-    outputSource: generate_cbio_cases_all/output_file
-  cases_cnaseq_file:
-    type: File
-    outputSource: generate_cases_cnaseq/output_file
-  cases_cna_file:
-    type: File
-    outputSource: generate_cases_cna/output_file
-  cases_sequenced_file:
-    type: File
-    outputSource: generate_cases_sequenced/output_file
 
   analysis_dir:
     type: Directory

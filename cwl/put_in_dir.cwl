@@ -16,6 +16,7 @@ inputs:
       type: array
       items:
         - File
+        - Directory
         - string
         - 'null'
 
