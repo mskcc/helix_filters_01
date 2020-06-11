@@ -283,8 +283,8 @@ class TestWorkflow(unittest.TestCase):
                                 'location': 'file://' + os.path.join(output_dir, 'portal/data_fusions.txt'),
                                 'basename': 'data_fusions.txt',
                                 'class': 'File',
-                                'checksum': 'sha1$4f21ae60b449bf8fc5bd1cb13c2b2ea0794dd2d6',
-                                'size': 1600,
+                                'checksum': 'sha1$c16f763b248813fcdde76f7486f1ddc4e9856038',
+                                'size': 99,
                                 'path': os.path.join(output_dir, 'portal/data_fusions.txt')
                             },
                             {
@@ -568,8 +568,8 @@ class TestWorkflow(unittest.TestCase):
                         {'location': 'file://' + os.path.join(output_dir, 'portal/data_fusions.txt'),
                         'basename': 'data_fusions.txt',
                         'class': 'File',
-                        'checksum': 'sha1$1314b52c055f2b43ecc4468dffef44c09e5ba6df',
-                        'size': 2668,
+                        'checksum': 'sha1$c16f763b248813fcdde76f7486f1ddc4e9856038',
+                        'size': 99,
                         'path': os.path.join(output_dir, 'portal/data_fusions.txt')},
                         {'class': 'Directory',
                         'basename': 'case_list',
