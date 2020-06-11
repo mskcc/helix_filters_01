@@ -20,3 +20,9 @@ sanitize
 __pycache__
 fixtures
 old_fixtures/
+output*
+facets_hisens_cncf_files.txt
+facets_hisens_seg_files.txt
+mutation_maf_files.txt
+mutation_svs_maf_files.txt
+mutation_svs_txt_files.txt

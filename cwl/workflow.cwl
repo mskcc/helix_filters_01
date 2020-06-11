@@ -518,15 +518,14 @@ steps:
       input_files: mutation_svs_txt_files
     out:
       [output_file]
-  rename_cbio_fusions_data:
-    run: cp.cwl
+  filter_cbio_fusions:
+    run: fusion_filter.cwl
     in:
-      input_file: generate_cbio_fusions_data/output_file
+      fusions_file: generate_cbio_fusions_data/output_file
       output_filename: cbio_fusion_data_filename # data_fusions.txt
+      known_fusions_file: known_fusions_file
     out:
       [output_file]
-
-
 
   # <project_id>.svs.maf (analysis_sv_filename)
   # (MAF_DIR)/*.svs.pass.vep.maf (mutation_svs_maf_files)
@@ -582,7 +581,7 @@ steps:
       cna_scna_file: generate_cna_data/output_cna_scna_file # data_CNA.scna.txt
       muts_file: rename_cbio_muts_maf/output_file # data_mutations_extended.txt
       hisens_segs: rename_cbio_hisens_segs/output_file # # <project_id>_data_cna_hg19.seg
-      fusions_data_file: rename_cbio_fusions_data/output_file # data_fusions.txt
+      fusions_data_file: filter_cbio_fusions/output_file # data_fusions.txt
       case_list_dir: make_case_list_dir/directory
       output_directory_name:
         valueFrom: ${ return "portal"; }
