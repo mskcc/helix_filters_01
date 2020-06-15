@@ -35,6 +35,7 @@ help:
 UNAME:=$(shell uname)
 export SINGULARITY_CACHEDIR:=/juno/work/ci/singularity_images
 # export PATH:=$(CURDIR)/conda/bin:$(CURDIR)/bin:$(PATH)
+export PATH:=$(CURDIR)/bin:$(PATH)
 # unexport PYTHONPATH
 # unexport PYTHONHOME
 
