@@ -256,12 +256,27 @@ GIT_TAG:=$(shell git describe --tags --abbrev=0)
 DOCKER_TAG:=mskcc/$(GIT_NAME):$(GIT_TAG)
 docker-build:
 	docker build -t "$(DOCKER_TAG)" .
+
+# shell into the container to check that it looks right
 docker-bash:
 	docker run --rm -ti "$(DOCKER_TAG)" bash
 
+# push the container to Dockerhub
 # $ docker login --username=<username>
 docker-push:
 	docker push "$(DOCKER_TAG)"
+
+# pull the Dockerhub container and convert to Singularity container
+SINGULARITY_SIF:=$(GIT_NAME)_$(GIT_TAG).sif
+singularity-pull:
+	module load singularity/3.3.0 && \
+	singularity pull docker://$(DOCKER_TAG)
+
+# shell into the Singularity container to check that it looks right
+singularity-shell:
+	-module load singularity/3.3.0 && \
+	singularity shell $(SINGULARITY_SIF)
+
 # ~~~~~ Debug & Development ~~~~~ #
 
 # run the pure-Makefile prototype reference version of the workflow
