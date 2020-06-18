@@ -49,7 +49,7 @@ ifeq ($(UNAME), Linux)
 CONDASH:=Miniconda3-4.5.4-Linux-x86_64.sh
 endif
 
-CONDAURL:=https://repo.continuum.io/miniconda/$(CONDASH)
+CONDAURL:=https://repo.anaconda.com/miniconda/$(CONDASH)
 
 conda:
 	@echo ">>> Setting up conda..."
