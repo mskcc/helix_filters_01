@@ -220,31 +220,6 @@ input.json: mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cnc
 	' > input.json
 .PHONY: input.json
 
-#
-# --arg segment_data_file "$(SEGMENT_DATA_FILE)" \
-#
-#
-#
-#
-# --arg cbio_mutation_data_filename "$(CBIO_MUTATION_DATA_FILENAME)" \
-# --arg cbio_cna_data_filename "$(CBIO_CNA_DATA_FILENAME)" \
-# --arg targets_list "$(TARGETS_LIST)" \
-
-
-# {"argos_version_string":$$argos_version_string,
-# "segment_data_file":$$segment_data_file,
-# "cancer_study_identifier":$$cancer_study_identifier,
-# "is_impact":$$is_impact,
-# "analyst_file":$$analyst_file,
-# "portal_file":$$portal_file,
-# "maf_files":$$maf_files,
-# "portal_CNA_file": $$portal_CNA_file,
-# "analysis_gene_cna_file": $$analysis_gene_cna_file,
-# "hisens_cncfs":$$hisens_cncfs,
-# "hisens_segs": $$hisens_segs,
-# "targets_list":{"class": "File", "path": $$targets_list } }
-
-
 # locations for running the CWL workflow
 TMP_DIR:=$(CURDIR)/tmp/
 OUTPUT_DIR:=$(CURDIR)/output/
@@ -287,6 +262,8 @@ workflow-test:
 export FIXTURES_DIR:=/juno/work/ci/helix_filters_01/fixtures
 test:
 	export PATH=/opt/local/singularity/3.3.0/bin:$(PATH) && \
+	module load python/3.7.1 && \
+	module load cwl/cwltool && \
 	python3 test.py
 
 # interactive session with environment populated
