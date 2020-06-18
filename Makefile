@@ -11,12 +11,6 @@ This repo contains scripts and workflows for usage with the Roslin pipeline in o
 
 The subdir "roslin-post" is meant to include the main helix filter workflow + extra cBio Portal file generations (in development)
 
-Dependencies can be installed with:
-
-make install
-
-- NOTE: This is no longer required since Makefile recipes have been refactored to instead use HPC modules present on Juno/Silo
-
 Example usage of this helix filter workflow:
 
 make run PROJ_ID=My_Project MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets OUTPUT_DIR=/path/to/helix_filters TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist
@@ -41,28 +35,29 @@ help:
 # unexport PYTHONPATH
 # unexport PYTHONHOME
 
-ifeq ($(UNAME), Darwin)
-CONDASH:=Miniconda3-4.5.4-MacOSX-x86_64.sh
-endif
-
-ifeq ($(UNAME), Linux)
-CONDASH:=Miniconda3-4.5.4-Linux-x86_64.sh
-endif
-
-CONDAURL:=https://repo.anaconda.com/miniconda/$(CONDASH)
-
-conda:
-	@echo ">>> Setting up conda..."
-	@wget "$(CONDAURL)" && \
-	bash "$(CONDASH)" -b -p conda && \
-	rm -f "$(CONDASH)"
-
-install: conda
-	conda install -y \
-	conda-forge::jq=1.5
-	pip install \
-	cwltool==2.0.20200126090152 \
-	cwlref-runner==1.0
+# ifeq ($(UNAME), Darwin)
+# CONDASH:=Miniconda3-4.5.4-MacOSX-x86_64.sh
+# endif
+#
+# ifeq ($(UNAME), Linux)
+# CONDASH:=Miniconda3-4.5.4-Linux-x86_64.sh
+# endif
+#
+# CONDAURL:=https://repo.anaconda.com/miniconda/$(CONDASH)
+#
+# conda:
+# 	@set +e
+# 	echo ">>> Setting up conda..."
+# 	wget "$(CONDAURL)"
+# 	bash "$(CONDASH)" -b -p conda
+# 	rm -f "$(CONDASH)"
+#
+# install: conda
+# 	conda install -y \
+# 	conda-forge::jq=1.5
+# 	pip install \
+# 	cwltool==2.0.20200126090152 \
+# 	cwlref-runner==1.0
 
 
 # ~~~~~ Setup Up and Run the CWL Workflow ~~~~~ #
