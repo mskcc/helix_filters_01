@@ -34,9 +34,10 @@ help:
 # ~~~~~ Install Dependencies ~~~~~ #
 UNAME:=$(shell uname)
 export SINGULARITY_CACHEDIR:=/juno/work/ci/singularity_images
-export PATH:=$(CURDIR)/conda/bin:$(CURDIR)/bin:$(PATH)
-unexport PYTHONPATH
-unexport PYTHONHOME
+# export PATH:=$(CURDIR)/conda/bin:$(CURDIR)/bin:$(PATH)
+export PATH:=$(CURDIR)/bin:$(PATH)
+# unexport PYTHONPATH
+# unexport PYTHONHOME
 
 ifeq ($(UNAME), Darwin)
 CONDASH:=Miniconda3-4.5.4-MacOSX-x86_64.sh
@@ -123,28 +124,33 @@ SAMPLE_SUMMARY_FILE:=$(QC_DIR)/$(PROJ_ID)_SampleSummary.txt
 
 # .maf input files JSON muts.maf.txt
 mutation_maf_files.txt:
+	module load jq/1.6 && \
 	find $(MAF_DIR) -type f -name "*.muts.maf" | \
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > mutation_maf_files.txt
 .PHONY: mutation_maf_files.txt
 
 # the segmented copy number files hisens.seg.txt
 facets_hisens_seg_files.txt:
+	module load jq/1.6 && \
 	find $(FACETS_DIR) -type f -name "*_hisens.seg" | \
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > facets_hisens_seg_files.txt
 .PHONY: facets_hisens_seg_files.txt
 
 # the copy_number_files input JSON hisens.cncf.txt
 facets_hisens_cncf_files.txt:
+	module load jq/1.6 && \
 	find $(FACETS_DIR) -type f -name "*_hisens.cncf.txt" | \
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > facets_hisens_cncf_files.txt
 .PHONY: facets_hisens_cncf_files.txt
 
 mutation_svs_txt_files.txt:
+	module load jq/1.6 && \
 	find $(MAF_DIR) -type f -name "*.svs.pass.vep.portal.txt" | \
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > mutation_svs_txt_files.txt
 .PHONY: mutation_svs_txt_files.txt
 
 mutation_svs_maf_files.txt:
+	module load jq/1.6 && \
 	find $(MAF_DIR) -type f -name "*.svs.pass.vep.maf" | \
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > mutation_svs_maf_files.txt
 .PHONY: mutation_svs_maf_files.txt
@@ -157,6 +163,7 @@ input.json: mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cnc
 	if [ "$$(cat facets_hisens_cncf_files.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File facets_hisens_cncf_files.txt is empty"; exit 1; fi
 	if [ "$$(cat mutation_svs_txt_files.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File mutation_svs_txt_files.txt is empty"; exit 1; fi
 	if [ "$$(cat mutation_svs_maf_files.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File mutation_svs_maf_files.txt is empty"; exit 1; fi
+	module load jq/1.6 && \
 	jq -n \
 	--slurpfile mutation_maf_files mutation_maf_files.txt \
 	--slurpfile facets_hisens_seg_files facets_hisens_seg_files.txt \
@@ -253,6 +260,7 @@ INPUT_JSON:=input.json
 DEBUG:=
 run: $(INPUT_JSON) $(OUTPUT_DIR)
 	module load singularity/3.3.0 && \
+	module load cwl/cwltool && \
 	cwl-runner $(DEBUG) \
 	--parallel \
 	--leave-tmpdir \
@@ -279,7 +287,7 @@ workflow-test:
 export FIXTURES_DIR:=/juno/work/ci/helix_filters_01/fixtures
 test:
 	export PATH=/opt/local/singularity/3.3.0/bin:$(PATH) && \
-	python test.py
+	python3 test.py
 
 # interactive session with environment populated
 bash:
