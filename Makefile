@@ -233,9 +233,11 @@ $(OUTPUT_DIR):
 # make run PROJ_ID=10753_B MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist OUTPUT_DIR=/path/to/helix_filters
 INPUT_JSON:=input.json
 DEBUG:=
-run: $(INPUT_JSON) $(OUTPUT_DIR)
+run: $(INPUT_JSON) $(OUTPUT_DIR) $(SINGULARITY_SIF)
 	module load singularity/3.3.0 && \
 	module load cwl/cwltool && \
+	module load python/3.7.1 && \
+	if [ ! -e "$(SINGULARITY_SIF)" ]; then $(MAKE) singularity-pull; fi && \
 	cwl-runner $(DEBUG) \
 	--parallel \
 	--leave-tmpdir \
@@ -267,15 +269,17 @@ docker-push:
 	docker push "$(DOCKER_TAG)"
 
 # pull the Dockerhub container and convert to Singularity container
-SINGULARITY_SIF:=$(GIT_NAME)_$(GIT_TAG).sif
+# NOTE: you cannot use a filename with a ':' as a Makefile target
+SINGULARITY_SIF:=mskcc_$(GIT_NAME):$(GIT_TAG).sif
 singularity-pull:
+	unset SINGULARITY_CACHEDIR && \
 	module load singularity/3.3.0 && \
-	singularity pull docker://$(DOCKER_TAG)
+	singularity pull --force --name "$(SINGULARITY_SIF)" docker://$(DOCKER_TAG)
 
 # shell into the Singularity container to check that it looks right
 singularity-shell:
 	-module load singularity/3.3.0 && \
-	singularity shell $(SINGULARITY_SIF)
+	singularity shell "$(SINGULARITY_SIF)"
 
 # ~~~~~ Debug & Development ~~~~~ #
 
@@ -292,6 +296,7 @@ test:
 	export PATH=/opt/local/singularity/3.3.0/bin:$(PATH) && \
 	module load python/3.7.1 && \
 	module load cwl/cwltool && \
+	if [ ! -e "$(SINGULARITY_SIF)" ]; then $(MAKE) singularity-pull; fi && \
 	python3 test.py
 
 # interactive session with environment populated
