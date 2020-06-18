@@ -237,7 +237,7 @@ export SINGULARITY_CACHEDIR:=/juno/work/ci/singularity_images
 INPUT_JSON:=input.json
 # pass debug flags here;
 DEBUG:=
-run: $(INPUT_JSON) $(OUTPUT_DIR) $(SINGULARITY_SIF)
+run: $(INPUT_JSON) $(OUTPUT_DIR)
 	module load singularity/3.3.0 && \
 	module load cwl/cwltool && \
 	module load python/3.7.1 && \
