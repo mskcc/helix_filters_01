@@ -47,3 +47,8 @@ clean-all: clean
 bash:
 	@source "$(ENV)"
 	bash
+
+DOCKERTAG:=helix_filter
+docker-build:
+	cd containers/helix_filters_01 && \
+	docker build -t "$(DOCKERTAG)" .
