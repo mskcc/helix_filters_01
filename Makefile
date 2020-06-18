@@ -249,6 +249,19 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 	cwl/workflow.cwl $(INPUT_JSON)
 
 
+# ~~~~~ Container ~~~~~ #
+# make the Docker container
+GIT_NAME:=helix_filters_01
+GIT_TAG:=$(shell git describe --tags --abbrev=0)
+DOCKER_TAG:=mskcc/$(GIT_NAME):$(GIT_TAG)
+docker-build:
+	docker build -t "$(DOCKER_TAG)" .
+docker-bash:
+	docker run --rm -ti "$(DOCKER_TAG)" bash
+
+# $ docker login --username=<username>
+docker-push:
+	docker push "$(DOCKER_TAG)"
 # ~~~~~ Debug & Development ~~~~~ #
 
 # run the pure-Makefile prototype reference version of the workflow
