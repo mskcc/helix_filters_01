@@ -5,7 +5,7 @@
 
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: /usr/bin/helix_filters_01/bin/maf_filter.py
+baseCommand: ['maf_filter.py']
 
 requirements:
   DockerRequirement:
