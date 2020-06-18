@@ -9,7 +9,8 @@ requirements:
   ScatterFeatureRequirement: {}
   StepInputExpressionRequirement: {}
   InlineJavascriptRequirement: {}
-
+  DockerRequirement:
+    dockerPull: mskcc/helix_filters_01:20.06.1
 
 # echo ${return item['path'] for item in inputs.input_files}
 inputs:

@@ -1,6 +1,8 @@
 export SHELL:=/bin/bash
 .ONESHELL:
 export SHELLOPTS:=$(if $(SHELLOPTS),$(SHELLOPTS):)pipefail:errexit
+export PATH:=$(CURDIR)/bin:$(PATH)
+UNAME:=$(shell uname)
 
 define help
 This is the Makefile for helix filters
@@ -12,6 +14,8 @@ The subdir "roslin-post" is meant to include the main helix filter workflow + ex
 Dependencies can be installed with:
 
 make install
+
+- NOTE: This is no longer required since Makefile recipes have been refactored to instead use HPC modules present on Juno/Silo
 
 Example usage of this helix filter workflow:
 
@@ -32,10 +36,8 @@ help:
 .PHONY : help
 
 # ~~~~~ Install Dependencies ~~~~~ #
-UNAME:=$(shell uname)
-export SINGULARITY_CACHEDIR:=/juno/work/ci/singularity_images
+# NOTE: this is no longer used with `make run`, etc
 # export PATH:=$(CURDIR)/conda/bin:$(CURDIR)/bin:$(PATH)
-export PATH:=$(CURDIR)/bin:$(PATH)
 # unexport PYTHONPATH
 # unexport PYTHONHOME
 
@@ -231,7 +233,9 @@ $(OUTPUT_DIR):
 # Run the CWL workflow
 # example:
 # make run PROJ_ID=10753_B MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist OUTPUT_DIR=/path/to/helix_filters
+export SINGULARITY_CACHEDIR:=/juno/work/ci/singularity_images
 INPUT_JSON:=input.json
+# pass debug flags here;
 DEBUG:=
 run: $(INPUT_JSON) $(OUTPUT_DIR) $(SINGULARITY_SIF)
 	module load singularity/3.3.0 && \
