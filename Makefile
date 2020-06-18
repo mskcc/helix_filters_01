@@ -1,6 +1,8 @@
 export SHELL:=/bin/bash
 .ONESHELL:
 export SHELLOPTS:=$(if $(SHELLOPTS),$(SHELLOPTS):)pipefail:errexit
+export PATH:=$(CURDIR)/bin:$(PATH)
+UNAME:=$(shell uname)
 
 define help
 This is the Makefile for helix filters
@@ -12,6 +14,8 @@ The subdir "roslin-post" is meant to include the main helix filter workflow + ex
 Dependencies can be installed with:
 
 make install
+
+- NOTE: This is no longer required since Makefile recipes have been refactored to instead use HPC modules present on Juno/Silo
 
 Example usage of this helix filter workflow:
 
@@ -32,11 +36,10 @@ help:
 .PHONY : help
 
 # ~~~~~ Install Dependencies ~~~~~ #
-UNAME:=$(shell uname)
-export SINGULARITY_CACHEDIR:=/juno/work/ci/singularity_images
-export PATH:=$(CURDIR)/conda/bin:$(CURDIR)/bin:$(PATH)
-unexport PYTHONPATH
-unexport PYTHONHOME
+# NOTE: this is no longer used with `make run`, etc
+# export PATH:=$(CURDIR)/conda/bin:$(CURDIR)/bin:$(PATH)
+# unexport PYTHONPATH
+# unexport PYTHONHOME
 
 ifeq ($(UNAME), Darwin)
 CONDASH:=Miniconda3-4.5.4-MacOSX-x86_64.sh
@@ -123,28 +126,33 @@ SAMPLE_SUMMARY_FILE:=$(QC_DIR)/$(PROJ_ID)_SampleSummary.txt
 
 # .maf input files JSON muts.maf.txt
 mutation_maf_files.txt:
+	module load jq/1.6 && \
 	find $(MAF_DIR) -type f -name "*.muts.maf" | \
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > mutation_maf_files.txt
 .PHONY: mutation_maf_files.txt
 
 # the segmented copy number files hisens.seg.txt
 facets_hisens_seg_files.txt:
+	module load jq/1.6 && \
 	find $(FACETS_DIR) -type f -name "*_hisens.seg" | \
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > facets_hisens_seg_files.txt
 .PHONY: facets_hisens_seg_files.txt
 
 # the copy_number_files input JSON hisens.cncf.txt
 facets_hisens_cncf_files.txt:
+	module load jq/1.6 && \
 	find $(FACETS_DIR) -type f -name "*_hisens.cncf.txt" | \
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > facets_hisens_cncf_files.txt
 .PHONY: facets_hisens_cncf_files.txt
 
 mutation_svs_txt_files.txt:
+	module load jq/1.6 && \
 	find $(MAF_DIR) -type f -name "*.svs.pass.vep.portal.txt" | \
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > mutation_svs_txt_files.txt
 .PHONY: mutation_svs_txt_files.txt
 
 mutation_svs_maf_files.txt:
+	module load jq/1.6 && \
 	find $(MAF_DIR) -type f -name "*.svs.pass.vep.maf" | \
 	xargs -I{} jq -n --arg path "{}" '{"class": "File", "path":$$path}' > mutation_svs_maf_files.txt
 .PHONY: mutation_svs_maf_files.txt
@@ -157,6 +165,7 @@ input.json: mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cnc
 	if [ "$$(cat facets_hisens_cncf_files.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File facets_hisens_cncf_files.txt is empty"; exit 1; fi
 	if [ "$$(cat mutation_svs_txt_files.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File mutation_svs_txt_files.txt is empty"; exit 1; fi
 	if [ "$$(cat mutation_svs_maf_files.txt | wc -l)" -eq "0" ]; then echo ">>> ERROR: File mutation_svs_maf_files.txt is empty"; exit 1; fi
+	module load jq/1.6 && \
 	jq -n \
 	--slurpfile mutation_maf_files mutation_maf_files.txt \
 	--slurpfile facets_hisens_seg_files facets_hisens_seg_files.txt \
@@ -213,31 +222,6 @@ input.json: mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cnc
 	' > input.json
 .PHONY: input.json
 
-#
-# --arg segment_data_file "$(SEGMENT_DATA_FILE)" \
-#
-#
-#
-#
-# --arg cbio_mutation_data_filename "$(CBIO_MUTATION_DATA_FILENAME)" \
-# --arg cbio_cna_data_filename "$(CBIO_CNA_DATA_FILENAME)" \
-# --arg targets_list "$(TARGETS_LIST)" \
-
-
-# {"argos_version_string":$$argos_version_string,
-# "segment_data_file":$$segment_data_file,
-# "cancer_study_identifier":$$cancer_study_identifier,
-# "is_impact":$$is_impact,
-# "analyst_file":$$analyst_file,
-# "portal_file":$$portal_file,
-# "maf_files":$$maf_files,
-# "portal_CNA_file": $$portal_CNA_file,
-# "analysis_gene_cna_file": $$analysis_gene_cna_file,
-# "hisens_cncfs":$$hisens_cncfs,
-# "hisens_segs": $$hisens_segs,
-# "targets_list":{"class": "File", "path": $$targets_list } }
-
-
 # locations for running the CWL workflow
 TMP_DIR:=$(CURDIR)/tmp/
 OUTPUT_DIR:=$(CURDIR)/output/
@@ -249,10 +233,15 @@ $(OUTPUT_DIR):
 # Run the CWL workflow
 # example:
 # make run PROJ_ID=10753_B MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist OUTPUT_DIR=/path/to/helix_filters
+export SINGULARITY_CACHEDIR:=/juno/work/ci/singularity_images
 INPUT_JSON:=input.json
+# pass debug flags here;
 DEBUG:=
 run: $(INPUT_JSON) $(OUTPUT_DIR)
 	module load singularity/3.3.0 && \
+	module load cwl/cwltool && \
+	module load python/3.7.1 && \
+	if [ ! -e "$(SINGULARITY_SIF)" ]; then $(MAKE) singularity-pull; fi && \
 	cwl-runner $(DEBUG) \
 	--parallel \
 	--leave-tmpdir \
@@ -265,6 +254,36 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 	--preserve-environment SINGULARITY_CACHEDIR \
 	cwl/workflow.cwl $(INPUT_JSON)
 
+
+# ~~~~~ Container ~~~~~ #
+# make the Docker container
+GIT_NAME:=helix_filters_01
+GIT_TAG:=$(shell git describe --tags --abbrev=0)
+DOCKER_TAG:=mskcc/$(GIT_NAME):$(GIT_TAG)
+docker-build:
+	docker build -t "$(DOCKER_TAG)" .
+
+# shell into the container to check that it looks right
+docker-bash:
+	docker run --rm -ti "$(DOCKER_TAG)" bash
+
+# push the container to Dockerhub
+# $ docker login --username=<username>
+docker-push:
+	docker push "$(DOCKER_TAG)"
+
+# pull the Dockerhub container and convert to Singularity container
+# NOTE: you cannot use a filename with a ':' as a Makefile target
+SINGULARITY_SIF:=mskcc_$(GIT_NAME):$(GIT_TAG).sif
+singularity-pull:
+	unset SINGULARITY_CACHEDIR && \
+	module load singularity/3.3.0 && \
+	singularity pull --force --name "$(SINGULARITY_SIF)" docker://$(DOCKER_TAG)
+
+# shell into the Singularity container to check that it looks right
+singularity-shell:
+	-module load singularity/3.3.0 && \
+	singularity shell "$(SINGULARITY_SIF)"
 
 # ~~~~~ Debug & Development ~~~~~ #
 
@@ -279,11 +298,16 @@ workflow-test:
 export FIXTURES_DIR:=/juno/work/ci/helix_filters_01/fixtures
 test:
 	export PATH=/opt/local/singularity/3.3.0/bin:$(PATH) && \
-	python test.py
+	module load python/3.7.1 && \
+	module load cwl/cwltool && \
+	if [ ! -e "$(SINGULARITY_SIF)" ]; then $(MAKE) singularity-pull; fi && \
+	python3 test.py
 
 # interactive session with environment populated
 bash:
 	module load singularity/3.3.0 && \
+	module load python/3.7.1 && \
+	module load cwl/cwltool && \
 	bash
 
 clean:

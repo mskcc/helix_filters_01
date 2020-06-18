@@ -4,6 +4,10 @@ cwlVersion: v1.0
 class: CommandLineTool
 baseCommand: [ "generate_cbioPortal_files.py" ]
 
+requirements:
+  DockerRequirement:
+    dockerPull: mskcc/helix_filters_01:20.06.1
+
 inputs:
   # required for every invocation
   subcommand:
