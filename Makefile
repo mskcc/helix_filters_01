@@ -297,6 +297,8 @@ test:
 # interactive session with environment populated
 bash:
 	module load singularity/3.3.0 && \
+	module load python/3.7.1 && \
+	module load cwl/cwltool && \
 	bash
 
 clean:
