@@ -2,9 +2,28 @@
 
 cwlVersion: v1.0
 class: Workflow
-doc: "
+doc: '
 Workflow for running Facets-suite on a set of tumor normal pairs
-"
+
+
+input JSON format;
+
+{
+  "pairs": [
+    {
+      "tumor_bam": {
+        "class": "File",
+        "path": "/test_data/bam/s_C_ABCD_P001_d.rg.md.abra.printreads.bam"
+      },
+      "normal_bam": {
+        "class": "File",
+        "path": "/test_data/bam/s_C_ABCD_N001_d.rg.md.abra.printreads.bam"
+      },
+      "pair_id": "s_C_ABCD_P001_d.s_C_ABCD_N001_d"
+    }
+  ]
+}
+'
 
 inputs:
   pairs:
