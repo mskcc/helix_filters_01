@@ -114,6 +114,7 @@ ARGOS_VERSION_STRING:=2.x
 INPUTS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/inputs
 QC_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/qc
 MAF_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/maf
+BAM_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/bam
 FACETS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/facets
 DATA_CLINICAL_FILE:=$(INPUTS_DIR)/$(PROJ_ID)_sample_data_clinical.txt
 SAMPLE_SUMMARY_FILE:=$(QC_DIR)/$(PROJ_ID)_SampleSummary.txt
@@ -248,6 +249,51 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 	--preserve-environment PATH \
 	--preserve-environment SINGULARITY_CACHEDIR \
 	cwl/workflow.cwl $(INPUT_JSON)
+
+
+
+# ~~~~~ Run Facets CWL Workflow ~~~~~ #
+PAIRING_FILE:=$(INPUTS_DIR)/$(PROJ_ID)_sample_pairing.txt
+
+# file to hold facets pairing json data
+facets-pairs.txt: $(PAIRING_FILE)
+	module load jq
+	while IFS="$$(printf '\t')" read -r normal tumor; do
+	pair_id="$${tumor}.$${normal}"
+	tumor_bam="$(BAM_DIR)/$$tumor.rg.md.abra.printreads.bam"
+	normal_bam="$(BAM_DIR)/$$normal.rg.md.abra.printreads.bam"
+	jq -n \
+	--arg tumor_bam "$${tumor_bam}" \
+	--arg normal_bam "$${normal_bam}" \
+	--arg pair_id "$${pair_id}" \
+	'{
+	"tumor_bam": { "class": "File", "path": $$tumor_bam },
+	"normal_bam": { "class": "File", "path": $$normal_bam },
+	"pair_id": $$pair_id
+	}
+	'
+	done <$(PAIRING_FILE) > facets-pairs.txt
+.PHONY: facets-pairs.txt
+
+facets-input.json: facets-pairs.txt
+	jq -n \
+	--slurpfile pairs facets-pairs.txt \
+	'{
+	"pairs" :$$pairs
+	}
+	'
+.PHONY:facets-input.json
+
+facets: facets-input.json
+	module load cwl/cwltool
+	cwl-runner \
+	cwl/facets-workflow.cwl facets-input.json
+
+
+
+
+
+
 
 
 # ~~~~~ Container ~~~~~ #
