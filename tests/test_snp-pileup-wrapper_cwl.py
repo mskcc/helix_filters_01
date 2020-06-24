@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
 cwl_file = os.path.join(CWL_DIR, 'snp-pileup-wrapper.cwl')
 
-class TestGenerateCbioFilesCWL(unittest.TestCase):
+class TestSnpPileupCWL(unittest.TestCase):
     def test_snp_pileup1(self):
         """
         """
