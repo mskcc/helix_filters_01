@@ -32,6 +32,7 @@ DATA_SETS = {
         "BAM_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "bam"),
         "SNP_PILEUP_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "snp_pileup"),
         "FACETS_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "facets"),
+        "FACETS_SUITE_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "facets-suite"),
         "INPUTS_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "inputs"),
         "QC_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "qc"),
         "targets_list": "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist",
