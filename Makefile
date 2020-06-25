@@ -262,7 +262,7 @@ $(FACETS_OUTPUT_DIR):
 # NOTE:only using first two pairs from file for debug here; full dataset takes 60min+ to run
 facets-pairs.txt: $(PAIRING_FILE)
 	module load jq
-	head -2 $(PAIRING_FILE) | while IFS="$$(printf '\t')" read -r normal tumor; do
+	cat $(PAIRING_FILE) | while IFS="$$(printf '\t')" read -r normal tumor; do
 	pair_id="$${tumor}.$${normal}"
 	tumor_bam="$(BAM_DIR)/$$tumor.rg.md.abra.printreads.bam"
 	normal_bam="$(BAM_DIR)/$$normal.rg.md.abra.printreads.bam"
