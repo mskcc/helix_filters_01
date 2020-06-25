@@ -253,40 +253,61 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 
 
 # ~~~~~ Run Facets CWL Workflow ~~~~~ #
+FACETS_SNPS_VCF:=/juno/work/ci/resources/genomes/GRCh37/facets_snps/dbsnp_137.b37__RmDupsClean__plusPseudo50__DROP_SORT.vcf
 PAIRING_FILE:=$(INPUTS_DIR)/$(PROJ_ID)_sample_pairing.txt
-
+FACETS_OUTPUT_DIR:=$(OUTPUT_DIR)/facets-suite
+$(FACETS_OUTPUT_DIR):
+	mkdir -p "$(FACETS_OUTPUT_DIR)"
 # file to hold facets pairing json data
+# NOTE:only using first two pairs from file for debug here; full dataset takes 60min+ to run
 facets-pairs.txt: $(PAIRING_FILE)
 	module load jq
-	while IFS="$$(printf '\t')" read -r normal tumor; do
+	head -2 $(PAIRING_FILE) | while IFS="$$(printf '\t')" read -r normal tumor; do
 	pair_id="$${tumor}.$${normal}"
 	tumor_bam="$(BAM_DIR)/$$tumor.rg.md.abra.printreads.bam"
 	normal_bam="$(BAM_DIR)/$$normal.rg.md.abra.printreads.bam"
+	pair_maf="$(MAF_DIR)/$${pair_id}.muts.maf"
 	jq -n \
 	--arg tumor_bam "$${tumor_bam}" \
 	--arg normal_bam "$${normal_bam}" \
 	--arg pair_id "$${pair_id}" \
+	--arg pair_maf "$${pair_maf}" \
 	'{
 	"tumor_bam": { "class": "File", "path": $$tumor_bam },
 	"normal_bam": { "class": "File", "path": $$normal_bam },
+	"pair_maf": { "class": "File", "path": $$pair_maf },
 	"pair_id": $$pair_id
 	}
 	'
-	done <$(PAIRING_FILE) > facets-pairs.txt
+	done > facets-pairs.txt
 .PHONY: facets-pairs.txt
 
 facets-input.json: facets-pairs.txt
+	module load jq
 	jq -n \
 	--slurpfile pairs facets-pairs.txt \
+	--arg snps_vcf "$(FACETS_SNPS_VCF)" \
 	'{
-	"pairs" :$$pairs
+	"pairs" :$$pairs,
+	"snps_vcf": { "class": "File", "path": $$snps_vcf }
 	}
-	'
+	' > facets-input.json
 .PHONY:facets-input.json
 
-facets: facets-input.json
+facets: facets-input.json $(FACETS_OUTPUT_DIR)
+	module load singularity/3.3.0
 	module load cwl/cwltool
+	module load python/3.7.1
 	cwl-runner \
+	--parallel \
+	--leave-tmpdir \
+	--tmpdir-prefix $(TMP_DIR) \
+	--outdir $(FACETS_OUTPUT_DIR) \
+	--cachedir $(CACHE_DIR) \
+	--copy-outputs \
+	--singularity \
+	--preserve-environment PATH \
+	--preserve-environment SINGULARITY_CACHEDIR \
 	cwl/facets-workflow.cwl facets-input.json
 
 
