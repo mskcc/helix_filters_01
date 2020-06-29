@@ -19,6 +19,7 @@ project_description
 cancer_type
 cancer_study_identifier
 argos_version_string
+helix_filter_version
 is_impact
 extra_pi_groups
 
@@ -118,6 +119,9 @@ inputs:
   argos_version_string:
     type: string
     doc: "the version label of Roslin / Argos used to run the project analysis (ARGOS_VERSION_STRING)"
+  helix_filter_version:
+    type: string
+    doc: "the version label of this helix filter repo (HELIX_FILTER_VERSION; git describe --all --long)"
   is_impact:
     default: "True"
     type: string
@@ -428,20 +432,12 @@ steps:
 
   # <project_id>.muts.maf (analysis_mutations_filename)
   # data_mutations_extended.txt (cbio_mutation_data_filename)
-  # need to remove the '#' comment lines from the maf so we can concat them cleanly later
-  strip_muts_maf:
-    run: strip.cwl
-    scatter: input_file
-    in:
-      input_file: mutation_maf_files
-    out:
-      [output_file]
   # filter each maf file
   muts_maf_filter:
     run: maf_filter.cwl
     scatter: maf_file
     in:
-      maf_file: strip_muts_maf/output_file
+      maf_file: mutation_maf_files
       argos_version_string: argos_version_string
       is_impact: is_impact
       analysis_mutations_filename: analysis_mutations_filename # <project_id>.muts.maf
@@ -449,9 +445,10 @@ steps:
     out: [cbio_mutation_data_file, analysis_mutations_file]
     # concat all the maf files into a single table
   concat_analysis_muts_maf:
-    run: concat.cwl
+    run: concat_with_comments.cwl
     in:
       input_files: muts_maf_filter/analysis_mutations_file
+      comment_value: helix_filter_version
     out:
       [output_file]
   concat_cbio_muts_maf:
@@ -530,9 +527,10 @@ steps:
   # <project_id>.svs.maf (analysis_sv_filename)
   # (MAF_DIR)/*.svs.pass.vep.maf (mutation_svs_maf_files)
   generate_analysis_svs_maf:
-    run: concat.cwl
+    run: concat_with_comments.cwl
     in:
       input_files: mutation_svs_maf_files
+      comment_value: helix_filter_version
     out:
       [output_file]
   rename_analysis_svs_maf:

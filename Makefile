@@ -11,12 +11,6 @@ This repo contains scripts and workflows for usage with the Roslin pipeline in o
 
 The subdir "roslin-post" is meant to include the main helix filter workflow + extra cBio Portal file generations (in development)
 
-Dependencies can be installed with:
-
-make install
-
-- NOTE: This is no longer required since Makefile recipes have been refactored to instead use HPC modules present on Juno/Silo
-
 Example usage of this helix filter workflow:
 
 make run PROJ_ID=My_Project MAF_DIR=/path/to/outputs/maf FACETS_DIR=/path/to/outputs/facets OUTPUT_DIR=/path/to/helix_filters TARGETS_LIST=/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist
@@ -41,28 +35,29 @@ help:
 # unexport PYTHONPATH
 # unexport PYTHONHOME
 
-ifeq ($(UNAME), Darwin)
-CONDASH:=Miniconda3-4.5.4-MacOSX-x86_64.sh
-endif
-
-ifeq ($(UNAME), Linux)
-CONDASH:=Miniconda3-4.5.4-Linux-x86_64.sh
-endif
-
-CONDAURL:=https://repo.continuum.io/miniconda/$(CONDASH)
-
-conda:
-	@echo ">>> Setting up conda..."
-	@wget "$(CONDAURL)" && \
-	bash "$(CONDASH)" -b -p conda && \
-	rm -f "$(CONDASH)"
-
-install: conda
-	conda install -y \
-	conda-forge::jq=1.5
-	pip install \
-	cwltool==2.0.20200126090152 \
-	cwlref-runner==1.0
+# ifeq ($(UNAME), Darwin)
+# CONDASH:=Miniconda3-4.5.4-MacOSX-x86_64.sh
+# endif
+#
+# ifeq ($(UNAME), Linux)
+# CONDASH:=Miniconda3-4.5.4-Linux-x86_64.sh
+# endif
+#
+# CONDAURL:=https://repo.anaconda.com/miniconda/$(CONDASH)
+#
+# conda:
+# 	@set +e
+# 	echo ">>> Setting up conda..."
+# 	wget "$(CONDAURL)"
+# 	bash "$(CONDASH)" -b -p conda
+# 	rm -f "$(CONDASH)"
+#
+# install: conda
+# 	conda install -y \
+# 	conda-forge::jq=1.5
+# 	pip install \
+# 	cwltool==2.0.20200126090152 \
+# 	cwlref-runner==1.0
 
 
 # ~~~~~ Setup Up and Run the CWL Workflow ~~~~~ #
@@ -119,6 +114,7 @@ ARGOS_VERSION_STRING:=2.x
 INPUTS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/inputs
 QC_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/qc
 MAF_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/maf
+BAM_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/bam
 FACETS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/facets
 DATA_CLINICAL_FILE:=$(INPUTS_DIR)/$(PROJ_ID)_sample_data_clinical.txt
 SAMPLE_SUMMARY_FILE:=$(QC_DIR)/$(PROJ_ID)_SampleSummary.txt
@@ -172,6 +168,7 @@ input.json: mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cnc
 	--slurpfile facets_hisens_cncf_files facets_hisens_cncf_files.txt \
 	--slurpfile mutation_svs_txt_files mutation_svs_txt_files.txt \
 	--slurpfile mutation_svs_maf_files mutation_svs_maf_files.txt \
+	--arg helix_filter_version "$(HELIX_FILTER_VERSION)" \
 	--arg project_id "$(PROJ_ID)" \
 	--arg project_pi "$(PROJ_PI)" \
 	--arg request_pi "$(REQUEST_PI)" \
@@ -207,6 +204,7 @@ input.json: mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cnc
 	"cancer_type": $$cancer_type,
 	"cancer_study_identifier": $$cancer_study_identifier,
 	"argos_version_string": $$argos_version_string,
+	"helix_filter_version": $$helix_filter_version,
 	"is_impact": $$is_impact,
 	"analysis_segment_cna_filename": $$analysis_segment_cna_filename,
 	"analysis_sv_filename": $$analysis_sv_filename,
@@ -253,6 +251,72 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 	--preserve-environment PATH \
 	--preserve-environment SINGULARITY_CACHEDIR \
 	cwl/workflow.cwl $(INPUT_JSON)
+
+
+
+# ~~~~~ Run Facets CWL Workflow ~~~~~ #
+FACETS_SNPS_VCF:=/juno/work/ci/resources/genomes/GRCh37/facets_snps/dbsnp_137.b37__RmDupsClean__plusPseudo50__DROP_SORT.vcf
+PAIRING_FILE:=$(INPUTS_DIR)/$(PROJ_ID)_sample_pairing.txt
+FACETS_OUTPUT_DIR:=$(OUTPUT_DIR)/facets-suite
+$(FACETS_OUTPUT_DIR):
+	mkdir -p "$(FACETS_OUTPUT_DIR)"
+# file to hold facets pairing json data
+# NOTE:only using first two pairs from file for debug here; full dataset takes 60min+ to run
+facets-pairs.txt: $(PAIRING_FILE)
+	module load jq
+	cat $(PAIRING_FILE) | while IFS="$$(printf '\t')" read -r normal tumor; do
+	pair_id="$${tumor}.$${normal}"
+	tumor_bam="$(BAM_DIR)/$$tumor.rg.md.abra.printreads.bam"
+	normal_bam="$(BAM_DIR)/$$normal.rg.md.abra.printreads.bam"
+	pair_maf="$(MAF_DIR)/$${pair_id}.muts.maf"
+	jq -n \
+	--arg tumor_bam "$${tumor_bam}" \
+	--arg normal_bam "$${normal_bam}" \
+	--arg pair_id "$${pair_id}" \
+	--arg pair_maf "$${pair_maf}" \
+	'{
+	"tumor_bam": { "class": "File", "path": $$tumor_bam },
+	"normal_bam": { "class": "File", "path": $$normal_bam },
+	"pair_maf": { "class": "File", "path": $$pair_maf },
+	"pair_id": $$pair_id
+	}
+	'
+	done > facets-pairs.txt
+.PHONY: facets-pairs.txt
+
+facets-input.json: facets-pairs.txt
+	module load jq
+	jq -n \
+	--slurpfile pairs facets-pairs.txt \
+	--arg snps_vcf "$(FACETS_SNPS_VCF)" \
+	'{
+	"pairs" :$$pairs,
+	"snps_vcf": { "class": "File", "path": $$snps_vcf }
+	}
+	' > facets-input.json
+.PHONY:facets-input.json
+
+facets: facets-input.json $(FACETS_OUTPUT_DIR)
+	module load singularity/3.3.0
+	module load cwl/cwltool
+	module load python/3.7.1
+	cwl-runner \
+	--parallel \
+	--leave-tmpdir \
+	--tmpdir-prefix $(TMP_DIR) \
+	--outdir $(FACETS_OUTPUT_DIR) \
+	--cachedir $(CACHE_DIR) \
+	--copy-outputs \
+	--singularity \
+	--preserve-environment PATH \
+	--preserve-environment SINGULARITY_CACHEDIR \
+	cwl/facets-workflow.cwl facets-input.json
+
+
+
+
+
+
 
 
 # ~~~~~ Container ~~~~~ #
@@ -308,6 +372,7 @@ bash:
 	module load singularity/3.3.0 && \
 	module load python/3.7.1 && \
 	module load cwl/cwltool && \
+	module load jq && \
 	bash
 
 clean:

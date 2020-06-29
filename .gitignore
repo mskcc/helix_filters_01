@@ -26,3 +26,6 @@ facets_hisens_seg_files.txt
 mutation_maf_files.txt
 mutation_svs_maf_files.txt
 mutation_svs_txt_files.txt
+facets-pairs.txt
+analyst.txt
+portal.txt

@@ -16,7 +16,7 @@ CWL_ARGS = [
 
 # location on the filesystem for static fixtures
 FIXTURES_DIR = os.environ.get('FIXTURES_DIR', '/juno/work/ci/helix_filters_01/fixtures')
-
+FACETS_SNPS_VCF = os.environ.get('FACETS_SNPS_FILE', '/juno/work/ci/resources/genomes/GRCh37/facets_snps/dbsnp_137.b37__RmDupsClean__plusPseudo50__DROP_SORT.vcf')
 KNOWN_FUSIONS_FILE = os.path.join(REF_DIR, "known_fusions_at_mskcc.txt")
 
 ARGOS_VERSION_STRING = os.environ.get('ARGOS_VERSION_STRING', '2.x') # TODO: deprecate this
@@ -29,7 +29,10 @@ DATA_SETS = {
     "Proj_08390_G": {
         "DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G"),
         "MAF_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "maf"),
+        "BAM_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "bam"),
+        "SNP_PILEUP_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "snp_pileup"),
         "FACETS_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "facets"),
+        "FACETS_SUITE_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "facets-suite"),
         "INPUTS_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "inputs"),
         "QC_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "qc"),
         "targets_list": "/juno/work/ci/resources/roslin_resources/targets/HemePACT_v4/b37/HemePACT_v4_b37_targets.ilist",
