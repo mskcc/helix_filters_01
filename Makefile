@@ -349,6 +349,13 @@ singularity-shell:
 	-module load singularity/3.3.0 && \
 	singularity shell "$(SINGULARITY_SIF)"
 
+OLD_TAG:=20.06.1
+NEW_TAG:=20.06.2
+update-container-tags:
+	for i in $$(find cwl -type f -exec grep -l 'dockerPull: mskcc/helix_filters_01' {} \;); do \
+	perl -i -pe 's/$(OLD_TAG)/$(NEW_TAG)/g' $$i ; \
+	done
+
 # ~~~~~ Debug & Development ~~~~~ #
 
 # run the pure-Makefile prototype reference version of the workflow
