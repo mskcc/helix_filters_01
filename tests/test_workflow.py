@@ -44,6 +44,7 @@ class TestWorkflow(unittest.TestCase):
             "analysis_sv_filename": "Proj_08390_G.svs.maf",
             "cbio_meta_cna_segments_filename": "Proj_08390_G_meta_cna_hg19_seg.txt",
             "cbio_segment_data_filename": "Proj_08390_G_data_cna_hg19.seg",
+            "helix_filter_version": "20.06.1",
             "data_clinical_file": {
                 "path": data_clinical_file,
                 "class": "File"
@@ -139,8 +140,8 @@ class TestWorkflow(unittest.TestCase):
                             'location': 'file://' + os.path.join(output_dir, 'analysis/Proj_08390_G.muts.maf'),
                             'basename': 'Proj_08390_G.muts.maf',
                             'class': 'File',
-                            'checksum': 'sha1$7a1dbde2f538e72d1dcb9baa7def46922e7454d9',
-                            'size': 27901,
+                            'checksum': 'sha1$99d2b44a2a65fa909c5816c997ab1275c6656fe1',
+                            'size': 27944,
                             'path': os.path.join(output_dir, 'analysis/Proj_08390_G.muts.maf')
                         },
                         {
@@ -155,8 +156,8 @@ class TestWorkflow(unittest.TestCase):
                             'location': 'file://' + os.path.join(output_dir, 'analysis/Proj_08390_G.svs.maf'),
                             'basename': 'Proj_08390_G.svs.maf',
                             'class': 'File',
-                            'checksum': 'sha1$2c99a7eb005d68815f056f15bd66cf4b4cca3c4f',
-                            'size': 23563,
+                            'checksum': 'sha1$df420706bb5b772a79317843c0a01a3c88a9571d',
+                            'size': 23603,
                             'path': os.path.join(output_dir, 'analysis/Proj_08390_G.svs.maf')
                             }
                         ]
@@ -348,6 +349,7 @@ class TestWorkflow(unittest.TestCase):
             "analysis_sv_filename": "Proj_08390_G.svs.maf",
             "cbio_meta_cna_segments_filename": "Proj_08390_G_meta_cna_hg19_seg.txt",
             "cbio_segment_data_filename": "Proj_08390_G_data_cna_hg19.seg",
+            "helix_filter_version": "20.06.1",
             "data_clinical_file": {
                 "path": data_clinical_file,
                 "class": "File"
@@ -458,8 +460,8 @@ class TestWorkflow(unittest.TestCase):
                         {'location': 'file://' + os.path.join(output_dir, 'analysis/Proj_08390_G.muts.maf'),
                         'basename': 'Proj_08390_G.muts.maf',
                         'class': 'File',
-                        'checksum': 'sha1$5b2f8277269026d2b7ea0edc4455cc97c7f68523',
-                        'size': 46695,
+                        'checksum': 'sha1$d8ff47d86ac944ccc24bf5f3e6881940d8da1ce4',
+                        'size': 46738,
                         'path': os.path.join(output_dir, 'analysis/Proj_08390_G.muts.maf')},
                         {'location': 'file://' + os.path.join(output_dir, 'analysis/Proj_08390_G.seg.cna.txt'),
                         'basename': 'Proj_08390_G.seg.cna.txt',
@@ -470,8 +472,8 @@ class TestWorkflow(unittest.TestCase):
                         {'location': 'file://' + os.path.join(output_dir, 'analysis/Proj_08390_G.svs.maf'),
                         'basename': 'Proj_08390_G.svs.maf',
                         'class': 'File',
-                        'checksum': 'sha1$c9c9eeee564e1842240cbec7c88bf1ea9f78a953',
-                        'size': 35555,
+                        'checksum': 'sha1$5c2a63fc01980550108e58079a8b689d53c97d8c',
+                        'size': 35595,
                         'path': os.path.join(output_dir, 'analysis/Proj_08390_G.svs.maf')}
                     ]
                 },
