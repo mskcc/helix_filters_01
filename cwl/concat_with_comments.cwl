@@ -23,11 +23,11 @@ inputs:
       position: 3
   input_files:
     type: File[]
-  inputs_file_arg:
-    type: ["null", string]
-    default:
-      valueFrom: ${ return inputs.input_files.map(file => file.path).join(' ') }
     inputBinding:
       position: 4
 
-outputs: []
+outputs:
+  output_file:
+    type: File
+    outputBinding:
+      glob: $(inputs.output_filename)
