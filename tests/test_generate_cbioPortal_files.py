@@ -90,6 +90,23 @@ class TestGenerateCBioFiles(unittest.TestCase):
         ]
         self.assertEqual(clinical_patient_data, expected_data)
 
+    def test_generate_portal_data_clinical_patient_dupes(self):
+        """
+        Test that clinical patient data is generated correctly
+        There should be no duplicate PATIENT_ID's in the output even if the input has duplicates
+        """
+        clinical_data = [
+        {'PATIENT_ID': 'Patient1', 'SEX': 'M', 'foo': 'bar', 'baz': 'buzz'},
+        {'PATIENT_ID': 'Patient1', 'SEX': 'M', 'foo': 'bar', 'baz': 'buzz'},
+        {'PATIENT_ID': 'Patient2', 'SEX': 'F', 'foo': 'bar1', 'baz': 'buzz1'}
+        ]
+        clinical_patient_data = generate_portal_data_clinical_patient(clinical_data)
+        expected_data = [
+        {'PATIENT_ID': 'Patient1', 'SEX': 'M'},
+        {'PATIENT_ID': 'Patient2', 'SEX': 'F'}
+        ]
+        self.assertEqual(clinical_patient_data, expected_data)
+
     def test_generate_portal_data_clinical_sample(self):
         """
         Test that clinical patient data is generated correctly
