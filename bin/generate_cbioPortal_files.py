@@ -268,12 +268,15 @@ def generate_portal_data_clinical_patient(clinical_data):
     list
         a list of dict's subset for just the keys used in the data_clinical_patient.txt file
     """
+    patient_ids = {} # use this dict to prevent duplicate patient IDs from being emitted
     clinical_patient_data = []
     for row in clinical_data:
-        new_row = {}
-        new_row['PATIENT_ID'] = row['PATIENT_ID']
-        new_row['SEX'] = row['SEX']
-        clinical_patient_data.append(new_row)
+        if row['PATIENT_ID'] not in patient_ids:
+            new_row = {}
+            new_row['PATIENT_ID'] = row['PATIENT_ID']
+            new_row['SEX'] = row['SEX']
+            clinical_patient_data.append(new_row)
+            patient_ids[row['PATIENT_ID']] = ''
     return(clinical_patient_data)
 
 def generate_portal_data_clinical_sample(clinical_data):
