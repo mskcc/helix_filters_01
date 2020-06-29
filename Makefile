@@ -168,6 +168,7 @@ input.json: mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cnc
 	--slurpfile facets_hisens_cncf_files facets_hisens_cncf_files.txt \
 	--slurpfile mutation_svs_txt_files mutation_svs_txt_files.txt \
 	--slurpfile mutation_svs_maf_files mutation_svs_maf_files.txt \
+	--arg helix_filter_version "$(HELIX_FILTER_VERSION)" \
 	--arg project_id "$(PROJ_ID)" \
 	--arg project_pi "$(PROJ_PI)" \
 	--arg request_pi "$(REQUEST_PI)" \
@@ -203,6 +204,7 @@ input.json: mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cnc
 	"cancer_type": $$cancer_type,
 	"cancer_study_identifier": $$cancer_study_identifier,
 	"argos_version_string": $$argos_version_string,
+	"helix_filter_version": $$helix_filter_version,
 	"is_impact": $$is_impact,
 	"analysis_segment_cna_filename": $$analysis_segment_cna_filename,
 	"analysis_sv_filename": $$analysis_sv_filename,
