@@ -8,7 +8,7 @@ set -eux
 #
 # EXAMPLE:
 # $ bin/concat_with_comments.sh helix_filters_01 concat-with-comments-0-ga478e4e output.txt ../test_data/maf/*.muts.maf
-# 
+#
 # EXTENDED EXAMPLE:
 # $ cat input1.txt
 # # comment 1
@@ -46,9 +46,9 @@ input_files=( "$@" )
 # echo ${input_files[@]}
 
 # get the unique header lines from all files
-old_comment_lines="$(grep --no-filename '#' ${input_files[@]} | sort -u)"
-if [ -n "${old_comment_lines}" ]; then
-    printf "%s\n" "$old_comment_lines" > "$output_file"
+# NOTE: grep exits with code 1 if no comments are found
+if grep -q '#' ${input_files[@]}; then
+    printf "%s\n" "$(grep --no-filename '#' ${input_files[@]} | sort -u)" > "$output_file"
 fi
 
 # make new comment line
