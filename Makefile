@@ -23,6 +23,22 @@ make test
 
 NOTE: requires the fixtures directory on juno
 
+cBioPortal Validation
+---------------------
+
+- git clone the cBioPortal repo (git@github.com:cBioPortal/cbioportal.git)
+- set up a virtual environment
+$ python3 -m venv venv
+
+- activate virtual environment
+$ source venv/bin/activate
+
+- install the libraries from requirements.txt with pip into the env (except the MySql ones)
+
+- run a command like this against a demo workflow output directory;
+
+cbioportal/core/src/main/scripts/importer$ ./validateData.py  --study_directory /juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/helix_filters_01/output/portal -n
+
 endef
 export help
 help:
