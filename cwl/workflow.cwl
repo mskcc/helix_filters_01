@@ -429,6 +429,15 @@ steps:
       output_filename: analysis_gene_cna_filename
     out:
       [ output_file ]
+  # replace the 'ILLOGICAL' values in the data_CNA.scna.txt file
+  # and output it as 'data_CNA.txt' instead
+  replace_illogical_values:
+    run: replace.cwl
+    in:
+      input_file: generate_cna_data/output_cna_scna_file # data_CNA.scna.txt
+      output_filename: cbio_cna_data_filename # data_CNA.txt
+    out:
+      [ output_file ]
 
   # <project_id>.muts.maf (analysis_mutations_filename)
   # data_mutations_extended.txt (cbio_mutation_data_filename)
@@ -551,7 +560,7 @@ steps:
       cases_cna: generate_cases_cna/output_file
       cases_sequenced: generate_cases_sequenced/output_file
       output_directory_name:
-        valueFrom: ${ return "case_list"; }
+        valueFrom: ${ return "case_lists"; }
       files:
         valueFrom: ${return [
           inputs.cases_all,
@@ -574,9 +583,9 @@ steps:
       meta_fusions_file: generate_cbio_meta_fusions/output_file # meta_fusions.txt
       meta_mutations_extended_file: generate_meta_mutations_extended/output_file # meta_mutations_extended.txt
       meta_cna_segments_file: generate_meta_cna_segments/output_file  # <project_id>_meta_cna_hg19_seg.txt
-      cna_data_file: generate_cna_data/output_cna_file # data_CNA.txt
+      cna_data_file: replace_illogical_values/output_file # data_CNA.txt
       cna_ascna_file: generate_cna_data/output_cna_ascna_file # data_CNA.ascna.txt
-      cna_scna_file: generate_cna_data/output_cna_scna_file # data_CNA.scna.txt
+      # cna_scna_file: generate_cna_data/output_cna_scna_file # data_CNA.scna.txt
       muts_file: rename_cbio_muts_maf/output_file # data_mutations_extended.txt
       hisens_segs: rename_cbio_hisens_segs/output_file # # <project_id>_data_cna_hg19.seg
       fusions_data_file: filter_cbio_fusions/output_file # data_fusions.txt
