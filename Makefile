@@ -1,7 +1,7 @@
 export SHELL:=/bin/bash
 .ONESHELL:
 export SHELLOPTS:=$(if $(SHELLOPTS),$(SHELLOPTS):)pipefail:errexit
-export PATH:=$(CURDIR)/bin:$(PATH)
+# export PATH:=$(CURDIR)/bin:$(PATH)
 UNAME:=$(shell uname)
 
 define help
@@ -111,13 +111,16 @@ HELIX_FILTER_VERSION:=$(shell git describe --all --long | sed -e 's|.*/\(.*\)|\1
 ARGOS_VERSION_STRING:=2.x
 
 # demo locations for use for development; set these from the command line for real-world usage (not used for CWL input)
-INPUTS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/inputs
-QC_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/qc
-MAF_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/maf
-BAM_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/bam
-FACETS_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data/facets
+TESTS_DATA_DIR:=/juno/work/ci/helix_filters_01/test_data/$(PROJ_ID)
+DATA_DIR:=$(TESTS_DATA_DIR)
+INPUTS_DIR:=$(DATA_DIR)/inputs
+QC_DIR:=$(DATA_DIR)/qc
+MAF_DIR:=$(DATA_DIR)/maf
+BAM_DIR:=$(DATA_DIR)/bam
+FACETS_DIR:=$(DATA_DIR)/facets
 DATA_CLINICAL_FILE:=$(INPUTS_DIR)/$(PROJ_ID)_sample_data_clinical.txt
 SAMPLE_SUMMARY_FILE:=$(QC_DIR)/$(PROJ_ID)_SampleSummary.txt
+
 # Need to create some psuedo-JSON files for use in creating the input.json
 
 # .maf input files JSON muts.maf.txt
@@ -251,7 +254,6 @@ run: $(INPUT_JSON) $(OUTPUT_DIR)
 	--preserve-environment PATH \
 	--preserve-environment SINGULARITY_CACHEDIR \
 	cwl/workflow.cwl $(INPUT_JSON)
-
 
 
 # ~~~~~ Run Facets CWL Workflow ~~~~~ #
