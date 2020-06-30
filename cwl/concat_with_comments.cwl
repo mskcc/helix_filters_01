@@ -6,6 +6,10 @@ cwlVersion: v1.0
 class: CommandLineTool
 baseCommand: [ 'concat_with_comments.sh' ]
 
+requirements:
+  DockerRequirement:
+    dockerPull: mskcc/helix_filters_01:20.06.2
+
 inputs:
   comment_label:
     type: ["null", string]
