@@ -318,6 +318,7 @@ facets: facets-input.json $(FACETS_OUTPUT_DIR)
 	module load singularity/3.3.0
 	module load cwl/cwltool
 	module load python/3.7.1
+	if [ ! -e $(FACETS_SIF) ]; then $(MAKE) singularity-pull-facets; fi
 	cwl-runner \
 	--parallel \
 	--leave-tmpdir \
@@ -361,6 +362,13 @@ singularity-pull:
 	unset SINGULARITY_CACHEDIR && \
 	module load singularity/3.3.0 && \
 	singularity pull --force --name "$(SINGULARITY_SIF)" docker://$(DOCKER_TAG)
+
+FACETS_DOCKERTAG:=stevekm/facets-suite:dev
+FACETS_SIF:=stevekm_facets-suite:dev.sif
+singularity-pull-facets:
+	unset SINGULARITY_CACHEDIR && \
+	module load singularity/3.3.0 && \
+	singularity pull --force --name "$(FACETS_SIF)" docker://$(FACETS_DOCKERTAG)
 
 # shell into the Singularity container to check that it looks right
 singularity-shell:
