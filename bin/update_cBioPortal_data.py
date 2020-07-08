@@ -77,6 +77,13 @@ ASCN.ASCN_INTEGER_COPY_NUMBER will equal 1
 Facets documentation for the value:
 https://github.com/mskcc/facets-suite/blob/f2b3a46ef00085fd56c693536f66992c691809be/data-raw/sysdata.R#L174
 
+Usage
+-----
+
+$ update_cBioPortal_data.py sample --input output/portal/data_clinical_sample.txt --facets-txt output/facets-suite/s_C_ABCDE_P001_d.s_C_ABCDE_N001_d.txt --output foo.txt
+
+$ bin/update_cBioPortal_data.py mutations --input data_mutations.cc.maf --facets-txt facets-data.txt --output bar.txt
+
 """
 import csv
 import sys
@@ -249,29 +256,9 @@ def update_mutation_data(mut_data, facets_data = None, sample_id = None):
             d['ASCN.ASCN_INTEGER_COPY_NUMBER'] = numeric_call
     return(d)
 
-#
-# def main(**kwargs):
-#     """
-#     Main control function for the script
-#     """
-#     input_file = kwargs.pop('input_file', None)
-#     output_file = kwargs.pop('output_file', None)
-#
-#     if input_file:
-#         fin = open(input_file)
-#     else:
-#         fin = sys.stdin
-#
-#     if output_file:
-#         fout = open(output_file, "w")
-#     else:
-#         fout = sys.stdout
-#
-#     fout.close()
-#     fin.close()
-
 def update_sample_file(**kwargs):
     """
+    Update the data_clinical_sample.txt file with the new Facets Suite data
     """
     input_file = kwargs.pop('input_file')
     output_file = kwargs.pop('output_file')
@@ -322,13 +309,42 @@ def update_sample_file(**kwargs):
 
 def update_mutations_file(**kwargs):
     """
+    Update the data_mutations_extended.txt file with the Facets data saved to the updated data_clinical_sample.txt file
     """
     input_file = kwargs.pop('input_file')
     output_file = kwargs.pop('output_file')
-    sample_data_file = kwargs.pop('sample_data_file', None)
+    facets_txt_file = kwargs.pop('facets_txt_file')
 
+    # LOAD ALL FACETS DATA
+    all_facets_data = []
+    with open(facets_txt_file) as fin:
+        reader = csv.DictReader(fin, delimiter = '\t')
+        for row in reader:
+            all_facets_data.append(row)
 
-def parse():
+    # clean up the facets data to remove stuff we dont want and recalculate things
+    parsed_facets_data = parse_facets_data(all_facets_data)
+
+    # UPDATE ALL THE MUTATIONS DATA
+    with open(input_file) as fin, open(output_file, "w") as fout:
+        reader = csv.DictReader(fin, delimiter = '\t')
+
+        # need to update the first row in order to know what fieldnames to output
+        first_row = next(reader)
+        updated_first_row = update_mutation_data(mut_data = first_row, facets_data = parsed_facets_data)
+        fieldnames = updated_first_row.keys()
+
+        # set up the output file
+        writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = fieldnames)
+        writer.writeheader()
+        writer.writerow(updated_first_row)
+
+        # update all the rows and write them out
+        for row in reader:
+            updated_row = update_mutation_data(mut_data = row, facets_data = parsed_facets_data)
+            writer.writerow(updated_row)
+
+def main():
     """
     Parse command line arguments to run the script
     """
@@ -348,11 +364,12 @@ def parse():
     mutations = subparsers.add_parser('mutations', help = 'Update the clinical mutations data file')
     mutations.add_argument('--input', dest = 'input_file', required = True, help = 'Name of the input file')
     mutations.add_argument('--output', dest = 'output_file', required = True, help = 'Name of the output file')
-    mutations.add_argument('--sample-data', dest = 'sample_data_file', help = 'The updated data_clinical_sample.txt file to use')
+    # mutations.add_argument('--sample-data', dest = 'sample_data_file', help = 'The updated data_clinical_sample.txt file to use')
+    mutations.add_argument('--facets-txt', dest = 'facets_txt_file', required = True, help = 'The .txt output from Facets Suite')
     mutations.set_defaults(func = update_mutations_file)
 
     args = parser.parse_args()
     args.func(**vars(args))
 
 if __name__ == '__main__':
-    parse()
+    main()
