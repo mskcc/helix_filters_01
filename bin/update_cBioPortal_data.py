@@ -77,60 +77,17 @@ ASCN.ASCN_INTEGER_COPY_NUMBER will equal 1
 Facets documentation for the value:
 https://github.com/mskcc/facets-suite/blob/f2b3a46ef00085fd56c693536f66992c691809be/data-raw/sysdata.R#L174
 
-I converted that into python dictionaries:
-wgdtruedict = {
-(0,0):-2,
-(1,0):-1,
-(2,0):-1,
-(3,0):-1,
-(4,0):-1,
-(5,0):1,
-(6,0):2,
-(1,1):-1,
-(2,1):-1,
-(3,1):-1,
-(4,1):1,
-(5,1):2,
-(6,1):2,
-(2,2):0,
-(3,2):1,
-(4,2):2,
-(5,2):2,
-(6,2):2,
-(3,3):2,
-(4,3):2,
-(5,3):2,
-(6,3):2,
-}
-wgdfalsedict = {
-(0,0):-2,
-(1,0):-1,
-(2,0):-1,
-(3,0):1,
-(4,0):1,
-(5,0):2,
-(6,0):2,
-(1,1):0,
-(2,1):1,
-(3,1):1,
-(4,1):2,
-(5,1):2,
-(6,1):2,
-(2,2):1,
-(3,2):2,
-(4,2):2,
-(5,2):2,
-(6,2):2,
-(3,3):2,
-(4,3):2,
-(5,3):2,
-(6,3):2,
-}
-
 """
 import csv
 import sys
 import argparse
+
+# relative imports, from CLI and from parent project
+if __name__ != "__main__":
+    from .generate_cbioPortal_files import create_file_lines
+
+if __name__ == "__main__":
+    from generate_cbioPortal_files import create_file_lines
 
 # keep only these columns, and rename them to the listed values
 facets_data_keep_cols_map = { # old:new
@@ -139,6 +96,7 @@ facets_data_keep_cols_map = { # old:new
     "facets_version": "ASCN_VERSION",
     "genome_doubled": "ASCN_WGD"
 }
+
 # remove these columns from data_clinical_sample.txt data while updating it with Facets Suite data
 sample_data_remove_cols = ["purity", "ploidy", "facets_version"]
 mutation_data_keep_cols_map = {
@@ -319,6 +277,49 @@ def update_sample_file(**kwargs):
     output_file = kwargs.pop('output_file')
     facets_txt_file = kwargs.pop('facets_txt_file')
 
+    # LOAD ALL SAMPLE DATA
+    all_sample_data = []
+
+    # need to find the row to start reading from
+    skip_row = 0
+    with open(input_file) as fin:
+        for i, line in enumerate(fin):
+            if line.startswith('#'):
+                skip_row += 1
+
+    # skip all '#' comment rows in header and load all the data
+    with open(input_file) as fin:
+        while skip_row > 0:
+            next(fin)
+            skip_row -= 1
+        reader = csv.DictReader(fin, delimiter = '\t')
+        for row in reader:
+            all_sample_data.append(row)
+
+    # LOAD ALL FACETS DATA
+    all_facets_data = []
+    with open(facets_txt_file) as fin:
+        reader = csv.DictReader(fin, delimiter = '\t')
+        for row in reader:
+            all_facets_data.append(row)
+
+    # clean up the facets data to remove stuff we dont want and recalculate things
+    parsed_facets_data = parse_facets_data(all_facets_data)
+
+    # update all the sample datas based on facets data
+    updated_sample_data = []
+    for sample_data in all_sample_data:
+        new_sample_data = update_sample_data(sample_data, facets_data = parsed_facets_data)
+        updated_sample_data.append(new_sample_data)
+
+    # create the lines to output to the file
+    lines = create_file_lines(updated_sample_data)
+
+    # write all the lines to file
+    with open(output_file, "w") as fout:
+        fout.writelines(lines)
+
+
 def update_mutations_file(**kwargs):
     """
     """
@@ -339,7 +340,7 @@ def parse():
 
     # update the data_clinical_sample.txt file
     sample = subparsers.add_parser('sample', help = 'Update the clinical sample data file')
-    sample.add_argument('--input', dest = 'input_file', required = True, help = 'Name of the input file')
+    sample.add_argument('--input', dest = 'input_file', required = True, help = 'Path to the data_clinical_sample.txt input file')
     sample.add_argument('--output', dest = 'output_file', required = True, help = 'Name of the output file')
     sample.add_argument('--facets-txt', dest = 'facets_txt_file', required = True, help = 'The .txt output from Facets Suite')
     sample.set_defaults(func = update_sample_file)

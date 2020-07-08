@@ -202,6 +202,36 @@ header_lines_map = {
     '2': 'REQUEST_PI',
     '3': 'STRING',
     '4': '1'
+    },
+    'ASCN_PURITY': {
+    '1': 'ASCN_PURITY',
+    '2': 'ASCN_PURITY',
+    '3': 'NUMBER',
+    '4': '1'
+    },
+    'ASCN_PLOIDY': {
+    '1': 'ASCN_PLOIDY',
+    '2': 'ASCN_PLOIDY',
+    '3': 'NUMBER',
+    '4': '1'
+    },
+    'ASCN_VERSION': {
+    '1': 'ASCN_VERSION',
+    '2': 'ASCN_VERSION',
+    '3': 'STRING',
+    '4': '0'
+    },
+    'genome_doubled': {
+    '1': 'genome_doubled',
+    '2': 'genome_doubled',
+    '3': 'STRING',
+    '4': '0'
+    },
+    'ASCN_WGD': {
+    '1': 'ASCN_WGD',
+    '2': 'ASCN_WGD',
+    '3': 'STRING',
+    '4': '1'
     }
 }
 
