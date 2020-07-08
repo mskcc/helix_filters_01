@@ -248,12 +248,15 @@ def update_mutation_data(mut_data, facets_data = None, sample_id = None):
             d['ASCN.ASCN_INTEGER_COPY_NUMBER'] = 'NA'
         else:
             # calculate the ASCN.ASCN_INTEGER_COPY_NUMBER value
-            wgd = facets_data[sample_id]['genome_doubled'] # 'TRUE' or 'FALSE'
-            tcn = int(d['tcn'])
-            lcn = int(d['lcn'])
-            mcn = tcn - lcn
-            numeric_call = str(facets_call_states[(wgd, mcn, lcn)])
-            d['ASCN.ASCN_INTEGER_COPY_NUMBER'] = numeric_call
+            try:
+                wgd = facets_data[sample_id]['genome_doubled'] # 'TRUE' or 'FALSE'
+                tcn = int(d['tcn'])
+                lcn = int(d['lcn'])
+                mcn = tcn - lcn
+                numeric_call = str(facets_call_states[(wgd, mcn, lcn)])
+                d['ASCN.ASCN_INTEGER_COPY_NUMBER'] = numeric_call
+            except ValueError:
+                d['ASCN.ASCN_INTEGER_COPY_NUMBER'] = 'NA'
     return(d)
 
 def update_sample_file(**kwargs):
@@ -364,7 +367,6 @@ def main():
     mutations = subparsers.add_parser('mutations', help = 'Update the clinical mutations data file')
     mutations.add_argument('--input', dest = 'input_file', required = True, help = 'Name of the input file')
     mutations.add_argument('--output', dest = 'output_file', required = True, help = 'Name of the output file')
-    # mutations.add_argument('--sample-data', dest = 'sample_data_file', help = 'The updated data_clinical_sample.txt file to use')
     mutations.add_argument('--facets-txt', dest = 'facets_txt_file', required = True, help = 'The .txt output from Facets Suite')
     mutations.set_defaults(func = update_mutations_file)
 
