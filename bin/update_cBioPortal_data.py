@@ -255,7 +255,7 @@ def update_mutation_data(mut_data, facets_data = None, sample_id = None):
                 mcn = tcn - lcn
                 numeric_call = str(facets_call_states[(wgd, mcn, lcn)])
                 d['ASCN.ASCN_INTEGER_COPY_NUMBER'] = numeric_call
-            except ValueError:
+            except (ValueError, KeyError):
                 d['ASCN.ASCN_INTEGER_COPY_NUMBER'] = 'NA'
     return(d)
 

@@ -500,5 +500,45 @@ class TestGenerateCBioFiles(unittest.TestCase):
         self.assertDictEqual(new_data, expected_data)
 
 
+        # test handling for sets of values that are not in the key
+        # mcn = tcn - lcn
+        # numeric_call = str(facets_call_states[(wgd, mcn, lcn)])
+        # KeyError: ('TRUE', 2, 3)
+        mut_data = {
+        'tcn': "1",
+        "lcn": "3",
+        "expected_alt_copies": "4",
+        "ccf_expected_copies": "0.127",
+        "ccf_expected_copies_lower": "0.615",
+        "ccf_expected_copies_upper": "0.375"
+        }
+        facets_data = {
+        'Tumor1': {
+            "genome_doubled": 'TRUE',
+            },
+        'Tumor2': {
+            "genome_doubled": 'FALSE',
+            }
+        }
+        new_data = update_mutation_data(mut_data, facets_data, sample_id = "Tumor1")
+        expected_data = {
+        'tcn': "1",
+        "lcn": "3",
+        "expected_alt_copies": "4",
+        "ccf_expected_copies": "0.127",
+        "ccf_expected_copies_lower": "0.615",
+        "ccf_expected_copies_upper": "0.375",
+        'ASCN.TOTAL_COPY_NUMBER': "1",
+        'ASCN.MINOR_COPY_NUMBER': "3",
+        'ASCN.EXPECTED_ALT_COPIES': "4",
+        "ASCN.CCF_EXPECTED_COPIES": "0.127",
+        "ASCN.CCF_EXPECTED_COPIES_LOWER": "0.615",
+        "ASCN.CCF_EXPECTED_COPIES_UPPER": "0.375",
+        "ASCN.ASCN_METHOD": "FACETS",
+        "ASCN.ASCN_INTEGER_COPY_NUMBER": 'NA',
+        }
+        self.assertDictEqual(new_data, expected_data)
+
+
 if __name__ == "__main__":
     unittest.main()
