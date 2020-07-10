@@ -16,7 +16,7 @@ if __name__ != "__main__":
 
 if __name__ == "__main__":
     from tools import run_command
-    from settings import CWL_DIR, CWL_ARGS, DATA_SETS 
+    from settings import CWL_DIR, CWL_ARGS, DATA_SETS
 
 cwl_file = os.path.join(CWL_DIR, 'generate_cBioPortal_file.cwl')
 
@@ -196,6 +196,28 @@ class TestGenerateCbioFilesCWL(unittest.TestCase):
             }
             self.maxDiff = None
             self.assertDictEqual(output_json, expected_output)
+
+    def test_generate_data_clinical_sample_with_facets(self):
+        """
+        Test that including facets data gives correct updates to the output data_clinical_sample.txt file
+        """
+        data_clinical_file = os.path.join(DATA_SETS['Proj_08390_G']['INPUTS_DIR'], "Proj_08390_G_sample_data_clinical.txt")
+        sample_summary_file = os.path.join(DATA_SETS['Proj_08390_G']['QC_DIR'], "Proj_08390_G_SampleSummary.txt")
+
+        input_json = {
+        "subcommand": "sample",
+        "data_clinical_file": {
+            "path": data_clinical_file,
+            "class": "File"
+            },
+        "sample_summary_file": {
+            "path": sample_summary_file,
+            "class": "File"
+            },
+        "output_filename": "data_clinical_sample.txt",
+        "project_pi": "Dr. Jones",
+        "request_pi": "Dr. Franklin"
+        }
 
     def test_generate_meta_study(self):
         """
