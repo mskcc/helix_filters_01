@@ -23,8 +23,6 @@ sys.path.insert(0, PARENT_DIR)
 from bin.generate_cbioPortal_files import load_clinical_data, load_sample_coverages, header_lines_map
 from bin.generate_cbioPortal_files import generate_portal_data_clinical_patient
 from bin.generate_cbioPortal_files import generate_portal_data_clinical_sample
-from bin.generate_cbioPortal_files import generate_header_lines
-from bin.generate_cbioPortal_files import create_file_lines
 from bin.generate_cbioPortal_files import generate_study_meta
 from bin.generate_cbioPortal_files import generate_extra_group_labels_string
 from bin.generate_cbioPortal_files import generate_meta_lines
@@ -128,56 +126,6 @@ class TestGenerateCBioFiles(unittest.TestCase):
             }
         ]
         self.assertEqual(clinical_sample_data, expected_data)
-
-
-    def test_generate_header_lines(self):
-        """
-        Test that the header lines are generated as expected for the given column headers
-        """
-        keys = [
-        'SAMPLE_ID',
-        'IGO_ID',
-        'PATIENT_ID',
-        'SAMPLE_TYPE',
-        'SAMPLE_CLASS',
-        'GENE_PANEL',
-        'ONCOTREE_CODE',
-        'SPECIMEN_PRESERVATION_TYPE',
-        'SEX',
-        'TISSUE_SITE',
-        'REQUEST_ID',
-        'PROJECT_ID',
-        'PIPELINE',
-        'PIPELINE_VERSION'
-        ]
-        header_lines = generate_header_lines(keys)
-        expected_lines = [
-        '#SAMPLE_ID\tIGO_ID\tPATIENT_ID\tSAMPLE_TYPE\tSAMPLE_CLASS\tGENE_PANEL\tONCOTREE_CODE\tSPECIMEN_PRESERVATION_TYPE\tSEX\tTISSUE_SITE\tREQUEST_ID\tPROJECT_ID\tPIPELINE\tPIPELINE_VERSION\n',
-        '#SAMPLE_ID\tIGO_ID\tPATIENT_ID\tSAMPLE_TYPE\tSAMPLE_CLASS\tGENE_PANEL\tONCOTREE_CODE\tSPECIMEN_PRESERVATION_TYPE\tSEX\tTISSUE_SITE\tREQUEST_ID\tPROJECT_ID\tPIPELINE\tPIPELINE_VERSION\n',
-        '#STRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\tSTRING\n',
-        '#1\t1\t1\t1\t1\t1\t1\t1\t1\t1\t1\t1\t1\t1\n'
-        ]
-        self.assertEqual(header_lines, expected_lines)
-
-    def test_create_file_lines(self):
-        """
-        Test that all the lines for a set of data are created correctly
-        """
-        clinical_data = [
-        {'PATIENT_ID': 'Patient1', 'SEX': 'M'},
-        {'PATIENT_ID': 'Patient2', 'SEX': 'F'}
-        ]
-        lines = create_file_lines(clinical_data)
-        expected_lines = [
-        '#PATIENT_ID\tSEX\n',
-        '#PATIENT_ID\tSEX\n',
-        '#STRING\tSTRING\n',
-        '#1\t1\n',
-        'PATIENT_ID\tSEX\n',
-        'Patient1\tM\n',
-        'Patient2\tF\n'
-        ]
-        self.assertEqual(lines, expected_lines)
 
     def test_generate_study_meta(self):
         """

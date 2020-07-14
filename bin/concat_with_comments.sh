@@ -55,6 +55,9 @@ fi
 new_comment_line="#${comment_key}: ${comment_value}"
 echo "${new_comment_line}" >> "$output_file"
 
+# turn off set -e because it seems to have issues when the input files lack comments
+set +e
+
 # add the header line from the first file
 grep -v '#' ${input_files[0]} | head -1 >> "$output_file"
 

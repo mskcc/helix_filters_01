@@ -89,121 +89,22 @@ $ generate_cbioPortal_files.py cases_sequenced --cancer-study-id cancer_study --
 """
 import csv
 import argparse
-from collections import OrderedDict
+# from collections import OrderedDict
 
-# for each of the given header columns in the original data clinical file,
-# need to add the following lines to the file
-# preceeding the header line
-header_lines_map = {
-    'SAMPLE_ID' : {
-    '1': 'SAMPLE_ID',
-    '2': 'SAMPLE_ID',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'IGO_ID' : {
-    '1': 'IGO_ID',
-    '2': 'IGO_ID',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'PATIENT_ID': {
-    '1': 'PATIENT_ID',
-    '2': 'PATIENT_ID',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'COLLAB_ID': {
-    '1': 'COLLAB_ID',
-    '2': 'COLLAB_ID',
-    '3': 'STRING',
-    '4': '0'
-    },
-    'SAMPLE_TYPE': {
-    '1': 'SAMPLE_TYPE',
-    '2': 'SAMPLE_TYPE',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'SAMPLE_CLASS': {
-    '1': 'SAMPLE_CLASS',
-    '2': 'SAMPLE_CLASS',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'GENE_PANEL': {
-    '1': 'GENE_PANEL',
-    '2': 'GENE_PANEL',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'ONCOTREE_CODE': {
-    '1': 'ONCOTREE_CODE',
-    '2': 'ONCOTREE_CODE',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'SPECIMEN_PRESERVATION_TYPE': {
-    '1': 'SPECIMEN_PRESERVATION_TYPE',
-    '2': 'SPECIMEN_PRESERVATION_TYPE',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'SEX': {
-    '1': 'SEX',
-    '2': 'SEX',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'TISSUE_SITE': {
-    '1': 'TISSUE_SITE',
-    '2': 'TISSUE_SITE',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'REQUEST_ID': {
-    '1': 'REQUEST_ID',
-    '2': 'REQUEST_ID',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'PROJECT_ID': {
-    '1': 'PROJECT_ID',
-    '2': 'PROJECT_ID',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'PIPELINE': {
-    '1': 'PIPELINE',
-    '2': 'PIPELINE',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'PIPELINE_VERSION': {
-    '1': 'PIPELINE_VERSION',
-    '2': 'PIPELINE_VERSION',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'SAMPLE_COVERAGE': {
-    '1': 'SAMPLE_COVERAGE',
-    '2': 'SAMPLE_COVERAGE',
-    '3': 'NUMBER',
-    '4': '1'
-    },
-    'PROJECT_PI': {
-    '1': 'PROJECT_PI',
-    '2': 'PROJECT_PI',
-    '3': 'STRING',
-    '4': '1'
-    },
-    'REQUEST_PI': {
-    '1': 'REQUEST_PI',
-    '2': 'REQUEST_PI',
-    '3': 'STRING',
-    '4': '1'
-    }
-}
+# relative imports, from CLI and from parent project
+if __name__ != "__main__":
+    from .cBioPortal_utils import header_lines_map
+    from .cBioPortal_utils import generate_header_lines
+    from .cBioPortal_utils import create_file_lines
+    from .cBioPortal_utils import parse_facets_data
+    from .cBioPortal_utils import update_sample_data
+
+if __name__ == "__main__":
+    from cBioPortal_utils import header_lines_map
+    from cBioPortal_utils import generate_header_lines
+    from cBioPortal_utils import create_file_lines
+    from cBioPortal_utils import parse_facets_data
+    from cBioPortal_utils import update_sample_data
 
 
 # Utility functions
@@ -321,75 +222,6 @@ def generate_portal_data_clinical_sample(clinical_data):
         new_row = { key:value for key, value in row.items() if key in cols_to_keep }
         clinical_sample_data.append(new_row)
     return(clinical_sample_data)
-
-def generate_header_lines(keys, delimiter = '\t', header_lines_map = header_lines_map):
-    """
-    Generate the extra header lines needed for the cBio Portal files
-    https://github.com/cBioPortal/cbioportal/blob/master/docs/File-Formats.md#example-sample-data-file
-
-    Parameters
-    ----------
-    keys: list
-        a list of character string values for the columns, should correspond to values in `header_lines_map`
-    delimiter: str
-        the line delimiter value
-    header_lines_map: dict
-        the mapping of values for `1`, `2`, `3`, and `4` lines in the header for each key value
-
-    Returns
-    -------
-    list
-        a list of character strings representing the header lines to be printed to the file
-    """
-    lines_map = OrderedDict([
-    ("1", "#"),
-    ("2", "#"),
-    ("3", "#"),
-    ("4", "#")
-    ])
-
-    for key in keys:
-        lines_map["1"] += header_lines_map[key]["1"] + delimiter
-        lines_map["2"] += header_lines_map[key]["2"] + delimiter
-        lines_map["3"] += header_lines_map[key]["3"] + delimiter
-        lines_map["4"] += header_lines_map[key]["4"] + delimiter
-    lines = []
-    for line in lines_map.values():
-        # remove trailing delimiters, add trailing newline
-        lines.append(line.rstrip(delimiter) + '\n')
-    return(lines)
-
-def create_file_lines(clinical_data, delimiter = '\t'):
-    """
-    Create the lines in the file based on the provided clinical data
-    First gets the header lines for the file, then generates each remaining line in the file
-
-    Parameters
-    ----------
-    clinical_data: list
-        a list of dict's containing the clinical data to be output as a new file
-
-    Returns
-    -------
-    list
-        a list of character strings representing each line to be written out to the file
-    """
-    lines = []
-
-    # get the cBio header lines from the clinical data keys
-    # assume the first entry has the same keys as the rest
-    clinical_keys = [ k for k in clinical_data[0].keys() ]
-    for header_line in generate_header_lines(clinical_keys, delimiter = delimiter):
-        lines.append(header_line)
-
-    # add the dict header line
-    lines.append(delimiter.join(clinical_keys) + '\n')
-
-    # concat the rest of the clinical data values based on the delimiter
-    for row in clinical_data:
-        line = delimiter.join(row.values())
-        lines.append(line + '\n')
-    return(lines)
 
 def generate_extra_group_labels_string(extra_groups, exclude_groups = ('NA', 'PITT')):
     """
@@ -809,6 +641,7 @@ def generate_data_clinical_sample_file(**kwargs):
     """
     data_clinical_file = kwargs.pop('data_clinical_file')
     sample_summary_file = kwargs.pop('sample_summary_file', None)
+    facets_txt_file = kwargs.pop('facets_txt_file', None)
     output = kwargs.pop('output', 'data_clinical_sample.txt')
     project_pi = kwargs.pop('project_pi', None)
     request_pi = kwargs.pop('request_pi', None)
@@ -822,6 +655,18 @@ def generate_data_clinical_sample_file(**kwargs):
         for row in clinical_data:
             row['SAMPLE_COVERAGE'] = sample_coverages.get(row['SAMPLE_ID'], '')
 
+    # if facets data is provided, load it
+    all_facets_data = []
+    parsed_facets_data = None
+    if facets_txt_file != None:
+        with open(facets_txt_file) as fin:
+            reader = csv.DictReader(fin, delimiter = '\t')
+            for row in reader:
+                all_facets_data.append(row)
+
+        # clean up the facets data to remove stuff we dont want and recalculate things
+        parsed_facets_data = parse_facets_data(all_facets_data)
+
     # add more optional values, if they were passed
     for row in clinical_data:
         if project_pi != None:
@@ -832,8 +677,15 @@ def generate_data_clinical_sample_file(**kwargs):
     # parse the data down to the values needed for the sample file
     clinical_sample_data = generate_portal_data_clinical_sample(clinical_data)
 
+    if parsed_facets_data != None:
+        # update all the sample datas based on facets data
+        updated_sample_data = []
+        for sample_data in clinical_sample_data:
+            new_sample_data = update_sample_data(sample_data, facets_data = parsed_facets_data)
+            updated_sample_data.append(new_sample_data)
+
     # create the lines to output to the file
-    lines = create_file_lines(clinical_sample_data)
+    lines = create_file_lines(updated_sample_data)
 
     # write all the lines to file
     with open(output, "w") as fout:
@@ -887,6 +739,7 @@ def main():
     sample.add_argument('--sample-summary-file', dest = 'sample_summary_file', default = None, help = 'A supplemental sample summary file with coverage values to add to the output table')
     sample.add_argument('--project-pi', dest = 'project_pi', default = None, help = 'A Project PI value to add to entries in the table')
     sample.add_argument('--request-pi', dest = 'request_pi', default = None, help = 'A Request PI value to add to entries in the table')
+    sample.add_argument('--facets-txt', dest = 'facets_txt_file', default = None, help = 'The aggregated .txt output from Facets Suite')
     sample.set_defaults(func = generate_data_clinical_sample_file)
 
     # subparser for meta_study.txt
