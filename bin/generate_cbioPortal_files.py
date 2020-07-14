@@ -677,15 +677,18 @@ def generate_data_clinical_sample_file(**kwargs):
     # parse the data down to the values needed for the sample file
     clinical_sample_data = generate_portal_data_clinical_sample(clinical_data)
 
+    updated_sample_data = []
     if parsed_facets_data != None:
         # update all the sample datas based on facets data
-        updated_sample_data = []
         for sample_data in clinical_sample_data:
             new_sample_data = update_sample_data(sample_data, facets_data = parsed_facets_data)
             updated_sample_data.append(new_sample_data)
 
     # create the lines to output to the file
-    lines = create_file_lines(updated_sample_data)
+    if updated_sample_data:
+        lines = create_file_lines(updated_sample_data)
+    else:
+        lines = create_file_lines(clinical_sample_data)
 
     # write all the lines to file
     with open(output, "w") as fout:

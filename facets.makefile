@@ -6,7 +6,7 @@ PROJ_ID:=Proj_08390_G
 TEST_DATA_DIR:=/juno/work/ci/helix_filters_01/test_data/$(PROJ_ID)
 BAM_DIR:=$(TEST_DATA_DIR)/bam
 MAF_DIR:=$(TEST_DATA_DIR)/maf
-PAIRING_FILE:=$(TEST_DATA_DIR)/inputs/Proj_08390_G_sample_pairing.txt
+PAIRING_FILE:=$(TEST_DATA_DIR)/inputs/Proj_08390_G_sample_pairing.1.txt
 OUTPUT_DIR:=$(CURDIR)/output
 CONTAINER_SIF=$(CURDIR)/facets-suite_dev.sif
 
