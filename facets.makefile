@@ -2,7 +2,8 @@ SHELL:=/bin/bash
 .ONESHELL:
 
 FACETS_SNPS_VCF:=/juno/work/ci/resources/genomes/GRCh37/facets_snps/dbsnp_137.b37__RmDupsClean__plusPseudo50__DROP_SORT.vcf
-TEST_DATA_DIR:=/juno/work/ci/kellys5/projects/roslin-analysis-helper-dev/test_data
+PROJ_ID:=Proj_08390_G
+TEST_DATA_DIR:=/juno/work/ci/helix_filters_01/test_data/$(PROJ_ID)
 BAM_DIR:=$(TEST_DATA_DIR)/bam
 MAF_DIR:=$(TEST_DATA_DIR)/maf
 PAIRING_FILE:=$(TEST_DATA_DIR)/inputs/Proj_08390_G_sample_pairing.txt
