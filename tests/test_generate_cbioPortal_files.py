@@ -8,6 +8,7 @@ import os
 import csv
 import json
 import unittest
+from tempfile import TemporaryDirectory
 
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
@@ -37,6 +38,7 @@ from bin.generate_cbioPortal_files import generate_case_list_cna_data
 from bin.generate_cbioPortal_files import generate_case_list_sequenced_data
 from bin.generate_cbioPortal_files import get_sample_list
 from bin.generate_cbioPortal_files import generate_meta_segments_data
+from bin.generate_cbioPortal_files import generate_data_clinical_sample_file
 sys.path.pop(0)
 
 
@@ -126,6 +128,136 @@ class TestGenerateCBioFiles(unittest.TestCase):
             }
         ]
         self.assertEqual(clinical_sample_data, expected_data)
+
+    def test_generate_data_clinical_sample_file_with_facets_and_summary(self):
+        """
+        generate_data_clinical_sample_file
+        """
+        data_clinical_file = os.path.join(DATA_SETS['Proj_08390_G']['INPUTS_DIR'], 'Proj_08390_G_sample_data_clinical.1.txt')
+        sample_summary_file = os.path.join(DATA_SETS['Proj_08390_G']['QC_DIR'], 'Proj_08390_G_SampleSummary.txt')
+        facets_txt_file = os.path.join(DATA_SETS['Proj_08390_G']['FACETS_SUITE_DIR'], 'Proj_08390_G.facets.txt')
+        with TemporaryDirectory() as tmpdir:
+            output_file = os.path.join(tmpdir, "output.txt")
+            args = {
+            'data_clinical_file': data_clinical_file,
+            'sample_summary_file': sample_summary_file,
+            'facets_txt_file': facets_txt_file,
+            'output': output_file,
+            'project_pi': 'jonesd',
+            'request_pi': 'smithd'
+            }
+            generate_data_clinical_sample_file(**args)
+            with open(output_file) as fin:
+                lines = [ line.strip().split('\t') for line in fin ]
+
+        expected_lines = [
+        ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'SAMPLE_COVERAGE', 'PROJECT_PI', 'REQUEST_PI', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'genome_doubled', 'ASCN_WGD'],
+        ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'SAMPLE_COVERAGE', 'PROJECT_PI', 'REQUEST_PI', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'genome_doubled', 'ASCN_WGD'],
+        ['#STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'NUMBER', 'STRING', 'STRING', 'NUMBER', 'NUMBER', 'STRING', 'STRING', 'STRING'],
+        ['#1', '1', '1', '0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0', '0', '1'],
+        ['SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'SAMPLE_COVERAGE', 'PROJECT_PI', 'REQUEST_PI', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'genome_doubled', 'ASCN_WGD'],
+        ['Sample46', '08390_G_95', 'p_C_00001', 'COLLAB-01-T', 'Primary', 'Biopsy', 'IMPACT468+08390_Hg19', 'MEL', 'FFPE', '', '08390_G', '08390', 'roslin', '2.5.7', '108', 'jonesd', 'smithd', 'NA', 'NA', 'NA', 'NA', 'NA']
+        ]
+
+        self.assertEqual(lines, expected_lines)
+
+    def test_generate_data_clinical_sample_file_with_facets(self):
+        """
+        generate_data_clinical_sample_file
+        """
+        self.maxDiff = None
+
+        data_clinical_file = os.path.join(DATA_SETS['Proj_08390_G']['INPUTS_DIR'], 'Proj_08390_G_sample_data_clinical.1.txt')
+        facets_txt_file = os.path.join(DATA_SETS['Proj_08390_G']['FACETS_SUITE_DIR'], 'Proj_08390_G.facets.txt')
+        with TemporaryDirectory() as tmpdir:
+            output_file = os.path.join(tmpdir, "output.txt")
+            args = {
+            'data_clinical_file': data_clinical_file,
+            'sample_summary_file': None,
+            'facets_txt_file': facets_txt_file,
+            'output': output_file,
+            'project_pi': 'jonesd',
+            'request_pi': 'smithd'
+            }
+            generate_data_clinical_sample_file(**args)
+            with open(output_file) as fin:
+                lines = [ line.strip().split('\t') for line in fin ]
+
+        expected_lines = [
+        ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'genome_doubled', 'ASCN_WGD'],
+        ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'genome_doubled', 'ASCN_WGD'],
+        ['#STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'NUMBER', 'NUMBER', 'STRING', 'STRING', 'STRING'],
+        ['#1', '1', '1', '0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0', '0', '1'],
+        ['SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'genome_doubled', 'ASCN_WGD'],
+        ['Sample46', '08390_G_95', 'p_C_00001', 'COLLAB-01-T', 'Primary', 'Biopsy', 'IMPACT468+08390_Hg19', 'MEL', 'FFPE', '', '08390_G', '08390', 'roslin', '2.5.7', 'jonesd', 'smithd', 'NA', 'NA', 'NA', 'NA', 'NA']
+        ]
+
+        self.assertEqual(lines, expected_lines)
+
+
+    def test_generate_data_clinical_sample_file_with_summary(self):
+        """
+        generate_data_clinical_sample_file
+        """
+        self.maxDiff = None
+
+        data_clinical_file = os.path.join(DATA_SETS['Proj_08390_G']['INPUTS_DIR'], 'Proj_08390_G_sample_data_clinical.1.txt')
+        sample_summary_file = os.path.join(DATA_SETS['Proj_08390_G']['QC_DIR'], 'Proj_08390_G_SampleSummary.txt')
+        with TemporaryDirectory() as tmpdir:
+            output_file = os.path.join(tmpdir, "output.txt")
+            args = {
+            'data_clinical_file': data_clinical_file,
+            'sample_summary_file': sample_summary_file,
+            'facets_txt_file': None,
+            'output': output_file,
+            'project_pi': 'jonesd',
+            'request_pi': 'smithd'
+            }
+            generate_data_clinical_sample_file(**args)
+            with open(output_file) as fin:
+                lines = [ line.strip().split('\t') for line in fin ]
+
+        expected_lines = [
+        ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'SAMPLE_COVERAGE', 'PROJECT_PI', 'REQUEST_PI'],
+        ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'SAMPLE_COVERAGE', 'PROJECT_PI', 'REQUEST_PI'],
+        ['#STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'NUMBER', 'STRING', 'STRING'],
+        ['#1', '1', '1', '0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1'],
+        ['SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'SAMPLE_COVERAGE', 'PROJECT_PI', 'REQUEST_PI'],
+        ['Sample46', '08390_G_95', 'p_C_00001', 'COLLAB-01-T', 'Primary', 'Biopsy', 'IMPACT468+08390_Hg19', 'MEL', 'FFPE', '', '08390_G', '08390', 'roslin', '2.5.7', '108', 'jonesd', 'smithd']
+        ]
+
+        self.assertEqual(lines, expected_lines)
+
+    def test_generate_data_clinical_sample_file(self):
+        """
+        generate_data_clinical_sample_file
+        """
+        self.maxDiff = None
+
+        data_clinical_file = os.path.join(DATA_SETS['Proj_08390_G']['INPUTS_DIR'], 'Proj_08390_G_sample_data_clinical.1.txt')
+        with TemporaryDirectory() as tmpdir:
+            output_file = os.path.join(tmpdir, "output.txt")
+            args = {
+            'data_clinical_file': data_clinical_file,
+            'sample_summary_file': None,
+            'facets_txt_file': None,
+            'output': output_file,
+            'project_pi': 'jonesd',
+            'request_pi': 'smithd'
+            }
+            generate_data_clinical_sample_file(**args)
+            with open(output_file) as fin:
+                lines = [ line.strip().split('\t') for line in fin ]
+
+        expected_lines = [
+        ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI'],
+        ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI'],
+        ['#STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING'],
+        ['#1', '1', '1', '0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1'],
+        ['SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI'], ['Sample46', '08390_G_95', 'p_C_00001', 'COLLAB-01-T', 'Primary', 'Biopsy', 'IMPACT468+08390_Hg19', 'MEL', 'FFPE', '', '08390_G', '08390', 'roslin', '2.5.7', 'jonesd', 'smithd']
+        ]
+
+        self.assertEqual(lines, expected_lines)
 
     def test_generate_study_meta(self):
         """
