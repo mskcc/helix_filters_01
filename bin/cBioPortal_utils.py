@@ -205,7 +205,11 @@ maf_filter_portal_file_cols_to_keep = [
 "t_alt_count",
 "n_depth",
 "n_ref_count",
-"n_alt_count"
+"n_alt_count",
+"ASCN_PURITY",
+"ASCN_PLOIDY",
+"ASCN_VERSION",
+"ASCN_WGD"
 ]
 
 def generate_header_lines(keys, delimiter = '\t', header_lines_map = header_lines_map):

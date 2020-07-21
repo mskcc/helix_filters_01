@@ -20,37 +20,17 @@ if __name__ == "__main__":
     from cBioPortal_utils import maf_filter_portal_file_cols_to_keep
     from cBioPortal_utils import parse_header_comments
 
-input_file = sys.argv[1]
-roslin_version_string = sys.argv[2]
-is_impact = True if sys.argv[3]=='True' else False
-analyst_file = sys.argv[4]
-portal_file = sys.argv[5]
-roslin_version_line = "# Versions: " + roslin_version_string.replace('_',' ')
 
-# Read input maf file
-fillout_keep = []
-analysis_keep = []
-portal_keep = []
+def filter_rows(row_list, is_impact):
+    """
+    Filters the rows in the list
+    """
+    analysis_keep = []
+    portal_keep = []
+    fillout_keep = []
 
-
-# get the comments from the file and find the beginning of the table header
-comments, start_line = parse_header_comments(input_file)
-comments.append(roslin_version_line)
-comments = [ c + '\n' for c in comments ]
-
-with open(input_file,'r') as fin:
-
-    # skip comment lines
-    while start_line > 0:
-        next(fin)
-        start_line -= 1
-
-    reader = csv.DictReader(fin, delimiter = '\t')
-    fieldnames = reader.fieldnames
-
-    for row in reader:
+    for row in row_list:
         # The portal MAF can be minimized since Genome Nexus re-annotates it when HGVSp_Short column is missing
-        # header[header.index('HGVSp_Short')] = 'Amino_Acid_Change'
         row['Amino_Acid_Change'] = row['HGVSp_Short']
         event_type = row['Variant_Type']
         # For all events except point mutations, use the variant caller reported allele counts for filtering
@@ -111,27 +91,69 @@ with open(input_file,'r') as fin:
                     row['Mutation_Status'] = "skipped_by_portal"
                     analysis_keep.append(row)
 
+    return(analysis_keep, portal_keep, fillout_keep)
 
-# write into analysis files
-# NOTE: csv writer includes carriage returns
-# https://stackoverflow.com/questions/3191528/csv-in-python-adding-an-extra-carriage-return-on-windows
-with open(analyst_file,'w') as fout:
-    fout.writelines(comments)
-    # ignore fields not in fieldnames
-    writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = fieldnames, extrasaction = 'ignore', lineterminator='\n')
-    writer.writeheader()
-    for row in analysis_keep:
-        writer.writerow(row)
 
-# write portal file
-# only keep a subset of the fieldnames for the cBioPortal output file
-with open(portal_file,'w') as fout:
-    fout.writelines(comments)
-    # ignore fields not in fieldnames
-    writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = maf_filter_portal_file_cols_to_keep, extrasaction = 'ignore', lineterminator='\n')
-    writer.writeheader()
-    for row in portal_keep:
-        writer.writerow(row)
-    # write fillout if available
-    for row in fillout_keep:
-        writer.writerow(row)
+def main(input_file, version_string, is_impact, analyst_file, portal_file):
+    """
+    Main control function for the module when called as a script
+    """
+    version_line = "# Versions: " + version_string.replace('_',' ')
+
+    # get the comments from the file and find the beginning of the table header
+    comments, start_line = parse_header_comments(input_file)
+    comments.append(version_line)
+    comments_lines = [ c + '\n' for c in comments ]
+
+    with open(input_file,'r') as fin:
+        # skip comment lines
+        while start_line > 0:
+            next(fin)
+            start_line -= 1
+
+        reader = csv.DictReader(fin, delimiter = '\t')
+        fieldnames = reader.fieldnames
+
+        analysis_keep, portal_keep, fillout_keep = filter_rows(row_list = reader, is_impact = is_impact)
+
+    # write analysis files
+    with open(analyst_file,'w') as fout:
+        fout.writelines(comments_lines)
+        # ignore fields not in fieldnames
+        # NOTE: csv writer includes carriage returns that we dont want
+        # https://stackoverflow.com/questions/3191528/csv-in-python-adding-an-extra-carriage-return-on-windows
+        writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = fieldnames, extrasaction = 'ignore', lineterminator='\n')
+        writer.writeheader()
+        for row in analysis_keep:
+            writer.writerow(row)
+
+    # write portal file
+    # only keep a subset of the fieldnames for the cBioPortal output file
+    portal_fieldnames = [ f for f in fieldnames if f in maf_filter_portal_file_cols_to_keep ]
+    with open(portal_file,'w') as fout:
+        fout.writelines(comments_lines)
+        # ignore fields not in fieldnames
+        writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = portal_fieldnames, extrasaction = 'ignore', lineterminator='\n')
+        writer.writeheader()
+        for row in portal_keep:
+            writer.writerow(row)
+        # write fillout if available
+        for row in fillout_keep:
+            writer.writerow(row)
+
+def parse():
+    """
+    Parse the CLI args
+
+    maf_filter2.py Proj_08390_G.muts.maf 2.x True analyst_file3.tsv portal_file3.tsv
+    """
+    input_file = sys.argv[1]
+    version_string = sys.argv[2]
+    is_impact = True if sys.argv[3]=='True' else False
+    analyst_file = sys.argv[4]
+    portal_file = sys.argv[5]
+
+    main(input_file, version_string, is_impact, analyst_file, portal_file)
+
+if __name__ == '__main__':
+    parse()

@@ -7,7 +7,7 @@ import sys
 import os
 import unittest
 import csv
-from tempfile import TemporaryDirectory, NamedTemporaryFile
+from tempfile import TemporaryDirectory
 
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
@@ -23,6 +23,7 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(THIS_DIR)
 sys.path.insert(0, PARENT_DIR)
 from bin.cBioPortal_utils import parse_header_comments
+from bin import maf_filter2
 sys.path.pop(0)
 
 
@@ -160,6 +161,159 @@ X	123220555	123220555
             # make sure all the expected values are present
             self.assertEqual(set(analysis_mutations), set(expected_rows))
 
+maf_filter2_script = os.path.join(BIN_DIR, 'maf_filter2.py')
+class TestMafFilter2Script(unittest.TestCase):
+    def test_maf_filter2_filter_rows(self):
+        """
+        Test that rows get filtered from the maf_filter2 module as expected
+        """
+        row1 = { # bad row
+        "Hugo_Symbol" : "PNISR",
+        "Entrez_Gene_Id" : "25957",
+        "Chromosome" : "6",
+        "Start_Position" : "99865784",
+        "Variant_Type" : "SNP",
+        "Reference_Allele" : "C",
+        "Tumor_Seq_Allele2" : "A",
+        "Mutation_Status" : "",
+        "HGVSc" : "c.-111-1480G>T",
+        "HGVSp_Short" : "",
+        "t_depth" : "6",
+        "t_alt_count" : "3",
+        "Consequence" : "intron_variant",
+        "FILTER" : "q22.5;hstdp;hsndp;hstad",
+        "ExAC_FILTER" : "",
+        "set" : "VarDict",
+        "fillout_t_depth" : "8",
+        "fillout_t_alt" : "5",
+        "hotspot_whitelist" : "FALSE",
+        }
+        row2 = { # good row
+        "Hugo_Symbol" : "FGF3",
+        "Entrez_Gene_Id" : "2248",
+        "Chromosome" : "11",
+        "Start_Position" : "69625447",
+        "Variant_Type" : "SNP",
+        "Reference_Allele" : "C",
+        "Tumor_Seq_Allele2" : "T",
+        "Mutation_Status" : "",
+        "HGVSc" : "c.346G>A",
+        "HGVSp_Short" : "p.E116K",
+        "t_depth" : "109",
+        "t_alt_count" : "16",
+        "Consequence" : "missense_variant",
+        "FILTER" : "PASS",
+        "ExAC_FILTER" : "PASS",
+        "set" : "MuTect",
+        "fillout_t_depth" : "122",
+        "fillout_t_alt" : "28",
+        "hotspot_whitelist" : "FALSE"
+        }
+
+        row_list = [row1, row2]
+
+        analysis_keep, portal_keep, fillout_keep = maf_filter2.filter_rows(row_list, is_impact = True)
+
+        self.assertEqual(analysis_keep, [row2])
+        self.assertEqual(portal_keep, [row2])
+        self.assertEqual(fillout_keep, [])
+
+    def test_maf_filter2_script(self):
+        """
+        """
+        comments = [
+        '# some comment goes here\n'
+        ]
+        row1 = { # bad row
+        "Hugo_Symbol" : "PNISR",
+        "Entrez_Gene_Id" : "25957",
+        "Chromosome" : "6",
+        "Start_Position" : "99865784",
+        "Variant_Type" : "SNP",
+        "Reference_Allele" : "C",
+        "Tumor_Seq_Allele2" : "A",
+        "Mutation_Status" : "",
+        "HGVSc" : "c.-111-1480G>T",
+        "HGVSp_Short" : "",
+        "t_depth" : "6",
+        "t_alt_count" : "3",
+        "Consequence" : "intron_variant",
+        "FILTER" : "q22.5;hstdp;hsndp;hstad",
+        "ExAC_FILTER" : "",
+        "set" : "VarDict",
+        "fillout_t_depth" : "8",
+        "fillout_t_alt" : "5",
+        "hotspot_whitelist" : "FALSE",
+        }
+        row2 = { # good row
+        "Hugo_Symbol" : "FGF3",
+        "Entrez_Gene_Id" : "2248",
+        "Chromosome" : "11",
+        "Start_Position" : "69625447",
+        "Variant_Type" : "SNP",
+        "Reference_Allele" : "C",
+        "Tumor_Seq_Allele2" : "T",
+        "Mutation_Status" : "",
+        "HGVSc" : "c.346G>A",
+        "HGVSp_Short" : "p.E116K",
+        "t_depth" : "109",
+        "t_alt_count" : "16",
+        "Consequence" : "missense_variant",
+        "FILTER" : "PASS",
+        "ExAC_FILTER" : "PASS",
+        "set" : "MuTect",
+        "fillout_t_depth" : "122",
+        "fillout_t_alt" : "28",
+        "hotspot_whitelist" : "FALSE"
+        }
+
+        row_list = [row1, row2]
+
+        with TemporaryDirectory() as tmpdir:
+            input_maf_file = os.path.join(tmpdir, "input.txt")
+            analyst_file = os.path.join(tmpdir, "analyst_file.txt")
+            portal_file = os.path.join(tmpdir, "portal_file.txt")
+
+            # write out the intput maf
+            with open(input_maf_file, "w") as fout:
+                fout.writelines(comments)
+                writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = row1.keys())
+                writer.writeheader()
+                for row in row_list:
+                    writer.writerow(row)
+
+            # bin/maf_filter.py Sample1.Sample2.muts.maf 2.x True analyst_file.txt portal_file.txt
+            command = [ maf_filter2_script, input_maf_file, "2.x", "True", analyst_file, portal_file ]
+
+            returncode, proc_stdout, proc_stderr = run_command(command)
+
+            if returncode != 0:
+                print(proc_stderr)
+
+            self.assertEqual(returncode, 0)
+
+            with open(analyst_file) as fin:
+                analyst_lines = fin.readlines()
+            expected_analyst_lines = [
+            '# some comment goes here\n',
+            '# Versions: 2.x\n',
+            'Hugo_Symbol\tEntrez_Gene_Id\tChromosome\tStart_Position\tVariant_Type\tReference_Allele\tTumor_Seq_Allele2\tMutation_Status\tHGVSc\tHGVSp_Short\tt_depth\tt_alt_count\tConsequence\tFILTER\tExAC_FILTER\tset\tfillout_t_depth\tfillout_t_alt\thotspot_whitelist\n',
+            'FGF3\t2248\t11\t69625447\tSNP\tC\tT\t\tc.346G>A\tp.E116K\t109\t16\tmissense_variant\tPASS\tPASS\tMuTect\t122\t28\tFALSE\n'
+            ]
+
+            with open(portal_file) as fin:
+                portal_lines = fin.readlines()
+            expected_portal_lines = [
+            '# some comment goes here\n',
+            '# Versions: 2.x\n', 'Hugo_Symbol\tEntrez_Gene_Id\tChromosome\tStart_Position\tVariant_Type\tReference_Allele\tTumor_Seq_Allele2\tMutation_Status\tHGVSc\tt_depth\tt_alt_count\n',
+            'FGF3\t2248\t11\t69625447\tSNP\tC\tT\t\tc.346G>A\t109\t16\n'
+            ]
+
+            self.assertEqual(len(analyst_lines), 4)
+            self.assertEqual(len(portal_lines), 4)
+
+            self.assertEqual(analyst_lines, expected_analyst_lines)
+            self.assertEqual(portal_lines, expected_portal_lines)
 
 
 
