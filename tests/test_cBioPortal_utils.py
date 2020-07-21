@@ -6,6 +6,7 @@ unit tests for cBioPortal utility functions
 import sys
 import os
 import unittest
+from tempfile import TemporaryDirectory
 
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
@@ -22,9 +23,23 @@ from bin.cBioPortal_utils import create_file_lines
 from bin.cBioPortal_utils import generate_header_lines
 from bin.cBioPortal_utils import update_sample_data
 from bin.cBioPortal_utils import parse_facets_data
+from bin.cBioPortal_utils import parse_header_comments
 sys.path.pop(0)
 
 class TestCBioUtils(unittest.TestCase):
+    def test_parse_header_comments(self):
+        with TemporaryDirectory() as tmpdir:
+            filename = os.path.join(tmpdir, "file.txt")
+            lines = ['# comment1', '# comment2', 'header1\theader2', 'foo1\tfoo2']
+            with open(filename, "w") as fout:
+                for line in lines:
+                    fout.write(line + '\n')
+
+            comments, start_line = parse_header_comments(filename)
+
+            self.assertEqual(comments, ['# comment1', '# comment2'])
+            self.assertEqual(start_line, 2)
+
     def test_create_file_lines(self):
         """
         Test that all the lines for a set of data are created correctly

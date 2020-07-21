@@ -1,64 +1,53 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-unit tests for the maf_filter.cwl
+unit tests for the maf_filter.py script
 """
+import sys
 import os
-import json
 import unittest
+import csv
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
-    from .tools import run_command
-    from .settings import CWL_DIR, CWL_ARGS, DATA_SETS, ARGOS_VERSION_STRING, IS_IMPACT
+    from .tools import run_command, md5
+    from .settings import DATA_SETS, BIN_DIR
 
 if __name__ == "__main__":
-    from tools import run_command
-    from settings import CWL_DIR, CWL_ARGS, DATA_SETS, ARGOS_VERSION_STRING, IS_IMPACT
+    from tools import run_command, md5
+    from settings import DATA_SETS, BIN_DIR
 
-cwl_file = os.path.join(CWL_DIR, 'maf_filter.cwl')
+# need to import the module from the other dir
+THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+PARENT_DIR = os.path.dirname(THIS_DIR)
+sys.path.insert(0, PARENT_DIR)
+from bin.cBioPortal_utils import parse_header_comments
+sys.path.pop(0)
 
-class TestMafFilter(unittest.TestCase):
-    def test_filter_a_maf_file(self):
+
+maf_filter_script = os.path.join(BIN_DIR, 'maf_filter.py')
+
+class TestMafFilterScript(unittest.TestCase):
+    def test_maf_filter_script1(self):
         """
-        Test that a filtered maf file comes out as expected
         """
-        input_maf = os.path.join(DATA_SETS['Proj_08390_G']['MAF_DIR'], "Sample1.Sample2.muts.maf")
+        input_maf_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'Sample1.Sample2.muts.maf')
+        expected_analyst_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'analyst_file.txt') # 24
+        expected_portal_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'portal_file.txt') # 19
 
-        with open(input_maf) as fin:
+        # input fixture has the correct number of lines
+        with open(input_maf_file) as fin:
             input_maf_lines = len(fin.readlines())
 
         self.assertEqual(input_maf_lines, 12518)
 
         with TemporaryDirectory() as tmpdir:
-            output_dir = os.path.join(tmpdir, "output")
-            input_json = {
-                "maf_file": {
-                      "class": "File",
-                      "path": input_maf
-                    },
-                "argos_version_string": ARGOS_VERSION_STRING,
-                "is_impact": IS_IMPACT,
-                "analysis_mutations_filename": "Proj_08390_G.muts.maf",
-                "cbio_mutation_data_filename": 'data_mutations_extended.txt'
-            }
-            input_json_file = os.path.join(tmpdir, "input.json")
-            with open(input_json_file, "w") as input_json_file_data:
-                json.dump(input_json, input_json_file_data)
+            # bin/maf_filter.py Sample1.Sample2.muts.maf 2.x True analyst_file.txt portal_file.txt
+            analyst_file = os.path.join(tmpdir, "analyst_file.txt")
+            portal_file = os.path.join(tmpdir, "portal_file.txt")
 
-            output_dir = os.path.join(tmpdir, "output")
-            tmp_dir = os.path.join(tmpdir, "tmp")
-            cache_dir = os.path.join(tmpdir, "cache")
-
-            command = [
-            "cwl-runner",
-            *CWL_ARGS,
-            "--outdir", output_dir,
-            "--tmpdir-prefix", tmp_dir,
-            "--cachedir", cache_dir,
-            cwl_file, input_json_file
-            ]
+            command = [ maf_filter_script, input_maf_file, "2.x", "True", analyst_file, portal_file ]
 
             returncode, proc_stdout, proc_stderr = run_command(command)
 
@@ -67,178 +56,111 @@ class TestMafFilter(unittest.TestCase):
 
             self.assertEqual(returncode, 0)
 
-            output_json = json.loads(proc_stdout)
+            with open(analyst_file) as fin:
+                num_lines_analyst_file = len(fin.readlines())
 
-            with open(output_json['analysis_mutations_file']['path']) as fin:
-                output_maf_lines = len(fin.readlines())
-            self.assertEqual(output_maf_lines, 24)
+            with open(portal_file) as fin:
+                num_lines_portal_file = len(fin.readlines())
 
-            expected_output = {
-                'analysis_mutations_file': {
-                    'location': 'file://' + os.path.join(output_dir, "Proj_08390_G.muts.maf"),
-                    'basename': "Proj_08390_G.muts.maf",
-                    'class': 'File',
-                    'checksum': 'sha1$49086adcecc296905ed210ce512bf71a56a4e71a',
-                    'size': 27917,
-                    'path': os.path.join(output_dir, "Proj_08390_G.muts.maf")
-                    },
-                'cbio_mutation_data_file': {
-                    'location': 'file://' + os.path.join(output_dir, 'data_mutations_extended.txt'),
-                    'basename': 'data_mutations_extended.txt',
-                    'class': 'File',
-                    'checksum': 'sha1$f35288b7d321e34f17abbcb02e29df942e308601',
-                    'size': 4372,
-                    'path': os.path.join(output_dir, 'data_mutations_extended.txt')
-                    }
-                }
-            self.assertDictEqual(output_json, expected_output)
+            self.assertEqual(num_lines_analyst_file, 24)
+            self.assertEqual(num_lines_portal_file, 19)
 
-    def test_maf_filter_argos_3_2_0(self):
-        """
-        Test the maf filter script results when used with argos_version_string 3.2.0
-        """
-        input_maf = os.path.join(DATA_SETS['Proj_08390_G']['MAF_DIR'], "Sample1.Sample2.muts.maf")
+            comments, start_line = parse_header_comments(portal_file)
+            self.assertEqual(comments, ['# Versions: 2.x'])
+            with open(portal_file) as fin:
+                while start_line > 0:
+                    next(fin)
+                    start_line -= 1
+                reader = csv.DictReader(fin, delimiter = '\t') # header_line = next(fin)
+                portal_lines = [ row for row in reader ]
 
-        with open(input_maf) as fin:
-            input_maf_lines = len(fin.readlines())
+            self.assertEqual(len(portal_lines), 17)
 
-        self.assertEqual(input_maf_lines, 12518)
+            # get a subset of the lines' data for testing
+            portal_mutations = []
+            for row in portal_lines:
+                t = ( row["Chromosome"], row["Start_Position"], row["End_Position"] )
+                portal_mutations.append(t)
 
-        with TemporaryDirectory() as tmpdir:
-            output_dir = os.path.join(tmpdir, "output")
-            input_json = {
-                "maf_file": {
-                      "class": "File",
-                      "path": input_maf
-                    },
-                "argos_version_string": "3.2.0",
-                "is_impact": IS_IMPACT,
-                "analysis_mutations_filename": "Proj_08390_G.muts.maf",
-                "cbio_mutation_data_filename": 'data_mutations_extended.txt'
-            }
-            input_json_file = os.path.join(tmpdir, "input.json")
-            with open(input_json_file, "w") as input_json_file_data:
-                json.dump(input_json, input_json_file_data)
+            # block of text copied from portal file; Chromosome	Start_Position	End_Position
+            expected_contents = """8	56912099	56912099
+X	123220555	123220555
+11	69625447	69625447
+17	78938112	78938113
+12	102796343	102796343
+6	117687313	117687313
+8	141566089	141566089
+10	70406514	70406514
+X	76938716	76938716
+6	117622265	117622265
+5	1295250	1295250
+5	176721774	176721774
+12	57864555	57864555
+19	11018780	11018782
+5	176522632	176522632
+8	69136857	69136857
+7	2953083	2953083"""
+            expected_contents = expected_contents.split('\n')
+            expected_rows = []
+            for item in expected_contents:
+                Chromosome, Start_Position, End_Position = item.split('\t')
+                t = ( Chromosome, Start_Position, End_Position )
+                expected_rows.append(t)
 
-            output_dir = os.path.join(tmpdir, "output")
-            tmp_dir = os.path.join(tmpdir, "tmp")
-            cache_dir = os.path.join(tmpdir, "cache")
+            # make sure all the expected values are present
+            self.assertEqual(set(portal_mutations), set(expected_rows))
 
-            command = [
-            "cwl-runner",
-            *CWL_ARGS,
-            "--outdir", output_dir,
-            "--tmpdir-prefix", tmp_dir,
-            "--cachedir", cache_dir,
-            cwl_file, input_json_file
-            ]
 
-            returncode, proc_stdout, proc_stderr = run_command(command)
+            comments, start_line = parse_header_comments(analyst_file)
+            self.assertEqual(comments, ['# Versions: 2.x'])
+            with open(analyst_file) as fin:
+                while start_line > 0:
+                    next(fin)
+                    start_line -= 1
+                reader = csv.DictReader(fin, delimiter = '\t') # header_line = next(fin)
+                analysis_lines = [ row for row in reader ]
 
-            if returncode != 0:
-                print(proc_stderr)
+            self.assertEqual(len(analysis_lines), 22)
 
-            self.assertEqual(returncode, 0)
+            analysis_mutations = []
+            for row in analysis_lines:
+                t = ( row["Chromosome"], row["Start_Position"], row["End_Position"] )
+                analysis_mutations.append(t)
 
-            output_json = json.loads(proc_stdout)
+            # block of text copied from analyst file; Chromosome	Start_Position	End_Position
+            expected_contents = """11	69625447	69625447
+8	69136857	69136857
+8	141566089	141566089
+X	76938716	76938716
+12	49419992	49419992
+X	123220555	123220555
+5	176721774	176721774
+19	11018780	11018782
+5	176522632	176522632
+8	56912099	56912099
+17	78938112	78938113
+12	57864555	57864555
+6	117687313	117687313
+10	70406514	70406514
+3	142281434	142281434
+5	1295250	1295250
+6	117609901	117609901
+12	102796343	102796343
+6	117622265	117622265
+12	121438953	121438953
+7	2953083	2953083
+2	212989483	212989483"""
+            expected_contents = expected_contents.split('\n')
+            expected_rows = []
+            for item in expected_contents:
+                Chromosome, Start_Position, End_Position = item.split('\t')
+                t = ( Chromosome, Start_Position, End_Position )
+                expected_rows.append(t)
 
-            expected_output = {
-                'analysis_mutations_file': {
-                    'location': 'file://' + os.path.join(output_dir, "Proj_08390_G.muts.maf"),
-                    'basename': "Proj_08390_G.muts.maf",
-                    'class': 'File',
-                    'checksum': 'sha1$d9e2e80b925857252097c28d37e1aa0d879058c4',
-                    'size': 27919,
-                    'path': os.path.join(output_dir, "Proj_08390_G.muts.maf")
-                    },
-                'cbio_mutation_data_file': {
-                    'location': 'file://' + os.path.join(output_dir, 'data_mutations_extended.txt'),
-                    'basename': 'data_mutations_extended.txt',
-                    'class': 'File',
-                    'checksum': 'sha1$7f34d57cf40cec8ce8e0d9d5306380e5abfb4b70',
-                    'size': 4374,
-                    'path': os.path.join(output_dir, 'data_mutations_extended.txt')
-                    }
-                }
+            # make sure all the expected values are present
+            self.assertEqual(set(analysis_mutations), set(expected_rows))
 
-            with open(output_json['analysis_mutations_file']['path']) as fin:
-                output_maf_lines = len(fin.readlines())
-            self.assertEqual(output_maf_lines, 24)
 
-            self.assertDictEqual(output_json, expected_output)
-
-    def test_filter_maf_file_impact_false(self):
-        """
-        Test that a filtered maf file comes out as expected
-        """
-        input_maf = os.path.join(DATA_SETS['Proj_08390_G']['MAF_DIR'], "Sample1.Sample2.muts.maf")
-
-        with open(input_maf) as fin:
-            input_maf_lines = len(fin.readlines())
-
-        self.assertEqual(input_maf_lines, 12518)
-
-        with TemporaryDirectory() as tmpdir:
-            output_dir = os.path.join(tmpdir, "output")
-            input_json = {
-                "maf_file": {
-                      "class": "File",
-                      "path": input_maf
-                    },
-                "argos_version_string": ARGOS_VERSION_STRING,
-                "is_impact": "False",
-                "analysis_mutations_filename": "Proj_08390_G.muts.maf",
-                "cbio_mutation_data_filename": 'data_mutations_extended.txt'
-            }
-            input_json_file = os.path.join(tmpdir, "input.json")
-            with open(input_json_file, "w") as input_json_file_data:
-                json.dump(input_json, input_json_file_data)
-
-            output_dir = os.path.join(tmpdir, "output")
-            tmp_dir = os.path.join(tmpdir, "tmp")
-            cache_dir = os.path.join(tmpdir, "cache")
-
-            command = [
-            "cwl-runner",
-            *CWL_ARGS,
-            "--outdir", output_dir,
-            "--tmpdir-prefix", tmp_dir,
-            "--cachedir", cache_dir,
-            cwl_file, input_json_file
-            ]
-
-            returncode, proc_stdout, proc_stderr = run_command(command)
-
-            if returncode != 0:
-                print(proc_stderr)
-
-            self.assertEqual(returncode, 0)
-
-            output_json = json.loads(proc_stdout)
-
-            with open(output_json['analysis_mutations_file']['path']) as fin:
-                output_maf_lines = len(fin.readlines())
-            self.assertEqual(output_maf_lines, 20)
-
-            expected_output = {
-                'analysis_mutations_file': {
-                    'location': 'file://' + os.path.join(output_dir, "Proj_08390_G.muts.maf"),
-                    'basename': "Proj_08390_G.muts.maf",
-                    'class': 'File',
-                    'checksum': 'sha1$1f9ad9aec62836740f39732ea193591a725891f6',
-                    'size': 24362,
-                    'path': os.path.join(output_dir, "Proj_08390_G.muts.maf")
-                    },
-                'cbio_mutation_data_file': {
-                    'location': 'file://' + os.path.join(output_dir, 'data_mutations_extended.txt'),
-                    'basename': 'data_mutations_extended.txt',
-                    'class': 'File',
-                    'checksum': 'sha1$93fa92e4da62c072dbe8f0aa2d5ca733f3d44213',
-                    'size': 3769,
-                    'path': os.path.join(output_dir, 'data_mutations_extended.txt')
-                    }
-                }
-            self.assertDictEqual(output_json, expected_output)
 
 
 if __name__ == "__main__":

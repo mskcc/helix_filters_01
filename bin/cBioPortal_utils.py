@@ -160,6 +160,54 @@ header_lines_map = {
     }
 }
 
+maf_filter_portal_file_cols_to_keep = [
+"Hugo_Symbol",
+"Entrez_Gene_Id",
+"Center",
+"NCBI_Build",
+"Chromosome",
+"Start_Position",
+"End_Position",
+"Strand",
+"Variant_Classification",
+"Variant_Type",
+"Reference_Allele",
+"Tumor_Seq_Allele1",
+"Tumor_Seq_Allele2",
+"dbSNP_RS",
+"dbSNP_Val_Status",
+"Tumor_Sample_Barcode",
+"Matched_Norm_Sample_Barcode",
+"Match_Norm_Seq_Allele1",
+"Match_Norm_Seq_Allele2",
+"Tumor_Validation_Allele1",
+"Tumor_Validation_Allele2",
+"Match_Norm_Validation_Allele1",
+"Match_Norm_Validation_Allele2",
+"Verification_Status",
+"Validation_Status",
+"Mutation_Status",
+"Sequencing_Phase",
+"Sequence_Source",
+"Validation_Method",
+"Score",
+"BAM_File",
+"Sequencer",
+"Tumor_Sample_UUID",
+"Matched_Norm_Sample_UUID",
+"HGVSc",
+"HGVSp",
+"Amino_Acid_Change",
+"Transcript_ID",
+"Exon_Number",
+"t_depth",
+"t_ref_count",
+"t_alt_count",
+"n_depth",
+"n_ref_count",
+"n_alt_count"
+]
+
 def generate_header_lines(keys, delimiter = '\t', header_lines_map = header_lines_map):
     """
     Generate the extra header lines needed for the cBio Portal files
@@ -295,3 +343,26 @@ def parse_facets_data(rows):
             sample_id = row['sample'].split('.')[0]
             data[sample_id] = d
     return(data)
+
+
+def parse_header_comments(filename):
+    """
+    Parse a file with comments in its header to return the comments and the line number to start reader from
+
+    comments, start_line = parse_header_comments(filename)
+    with open(portal_file) as fin:
+        while start_line > 0:
+            next(fin)
+            start_line -= 1
+        reader = csv.DictReader(fin, delimiter = '\t') # header_line = next(fin)
+        portal_lines = [ row for row in reader ]
+    """
+    comments = []
+    start_line = 0
+    # find the first line without comments
+    with open(filename) as fin:
+        for i, line in enumerate(fin):
+            if line.startswith('#'):
+                comments.append(line.strip())
+                start_line += 1
+    return(comments, start_line)

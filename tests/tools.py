@@ -2,6 +2,7 @@
 Helper functions for running tests
 """
 import subprocess as sp
+import hashlib
 
 def run_command(args):
     """
@@ -18,3 +19,14 @@ def run_command(args):
     proc_stdout = proc_stdout.strip()
     proc_stderr = proc_stderr.strip()
     return(returncode, proc_stdout, proc_stderr)
+
+def md5(filename):
+    """
+    Generate md5sum hash of a file
+    https://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file
+    """
+    hash_md5 = hashlib.md5()
+    with open(filename, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
