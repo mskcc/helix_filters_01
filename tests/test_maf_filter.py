@@ -305,8 +305,9 @@ class TestMafFilter2Script(unittest.TestCase):
                 portal_lines = fin.readlines()
             expected_portal_lines = [
             '# some comment goes here\n',
-            '# Versions: 2.x\n', 'Hugo_Symbol\tEntrez_Gene_Id\tChromosome\tStart_Position\tVariant_Type\tReference_Allele\tTumor_Seq_Allele2\tMutation_Status\tHGVSc\tt_depth\tt_alt_count\n',
-            'FGF3\t2248\t11\t69625447\tSNP\tC\tT\t\tc.346G>A\t109\t16\n'
+            '# Versions: 2.x\n',
+            'Hugo_Symbol\tEntrez_Gene_Id\tChromosome\tStart_Position\tVariant_Type\tReference_Allele\tTumor_Seq_Allele2\tMutation_Status\tHGVSc\tAmino_Acid_Change\tt_depth\tt_alt_count\n',
+            'FGF3\t2248\t11\t69625447\tSNP\tC\tT\t\tc.346G>A\tp.E116K\t109\t16\n'
             ]
 
             self.assertEqual(len(analyst_lines), 4)

@@ -129,7 +129,9 @@ def main(input_file, version_string, is_impact, analyst_file, portal_file):
 
     # write portal file
     # only keep a subset of the fieldnames for the cBioPortal output file
-    portal_fieldnames = [ f for f in fieldnames if f in maf_filter_portal_file_cols_to_keep ]
+    portal_fieldnames = [ f for f in fieldnames ]
+    portal_fieldnames[portal_fieldnames.index('HGVSp_Short')] = 'Amino_Acid_Change'
+    portal_fieldnames = [ f for f in portal_fieldnames if f in maf_filter_portal_file_cols_to_keep ]
     with open(portal_file,'w') as fout:
         fout.writelines(comments_lines)
         # ignore fields not in fieldnames
