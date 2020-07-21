@@ -1,81 +1,68 @@
 #!/usr/bin/env python3
-# https://github.com/mskcc/roslin-variant/blob/2d0f7f7b78b89bb31f5bf8b8eb678fd41998213b/setup/bin/maf_filter.py
-import sys, os, csv, re
+# -*- coding: utf-8 -*-
+"""
+Script for filtering maf data for use with analysis and cBioPortal
 
-input_file = sys.argv[1]
-roslin_version_string = sys.argv[2]
-is_impact = True if sys.argv[3]=='True' else False
-analyst_file = sys.argv[4]
-portal_file = sys.argv[5]
-roslin_version_line = "# Versions: " + roslin_version_string.replace('_',' ') + "\n"
+derived from:
+https://github.com/mskcc/roslin-variant/blob/2d0f7f7b78b89bb31f5bf8b8eb678fd41998213b/setup/bin/maf_filter.py
+"""
+import sys
+import os
+import csv
+import re
 
-# Read input maf file
-dict_analyst_kept = dict()
-dict_fillout = dict()
-dict_portal_kept = dict()
-analyst_header = ''
-portal_header = ''
+# relative imports, from CLI and from parent project
+if __name__ != "__main__":
+    from .cBioPortal_utils import maf_filter_portal_file_cols_to_keep
+    from .cBioPortal_utils import parse_header_comments
 
-with open(input_file,'r') as input_maf:
-    header = input_maf.readline().strip('\r\n').split('\t')
-    # Skip all comment lines, and assume that the first line after them is the header
-    while header[0].startswith("#"):
-        header = input_maf.readline().strip('\r\n').split('\t')
-    # The analyst MAF needs all the same columns as the input MAF (from vcf2maf, ngs-filters, etc.)
-    analyst_header = '\t'.join(header) + '\n'
-    # The portal MAF can be minimized since Genome Nexus re-annotates it when HGVSp_Short column is missing
-    header[header.index('HGVSp_Short')] = 'Amino_Acid_Change'
-    portal_header = '\t'.join(header[0:45]) + '\n'
-    gene_col = header.index('Hugo_Symbol')
-    entrez_id_col = header.index('Entrez_Gene_Id')
-    chrom_col = header.index('Chromosome')
-    pos_col = header.index('Start_Position')
-    ref_col = header.index('Reference_Allele')
-    alt_col = header.index('Tumor_Seq_Allele2')
-    hgvsc_col = header.index('HGVSc')
-    mut_status_col = header.index('Mutation_Status')
-    csq_col = header.index('Consequence')
-    filter_col = header.index('FILTER')
-    hotspot_col = header.index('hotspot_whitelist')
-    tad_col = header.index('t_alt_count')
-    tdp_col = header.index('t_depth')
-    set_col = header.index('set')
-    variant_type = header.index('Variant_Type')
-    fillout_tad_col = header.index('fillout_t_alt')
-    fillout_tdp_col = header.index('fillout_t_depth')
-    maf_reader = csv.reader(input_maf,delimiter='\t')
-    for line in maf_reader:
-        event_type = line[variant_type]
+if __name__ == "__main__":
+    from cBioPortal_utils import maf_filter_portal_file_cols_to_keep
+    from cBioPortal_utils import parse_header_comments
+
+
+def filter_rows(row_list, is_impact):
+    """
+    Filters the rows in the list
+    """
+    analysis_keep = []
+    portal_keep = []
+    fillout_keep = []
+
+    for row in row_list:
+        # The portal MAF can be minimized since Genome Nexus re-annotates it when HGVSp_Short column is missing
+        row['Amino_Acid_Change'] = row['HGVSp_Short']
+        event_type = row['Variant_Type']
         # For all events except point mutations, use the variant caller reported allele counts for filtering
-        tdp = int(line[tdp_col])
-        tad = int(line[tad_col])
+        tdp = int(row['t_depth'])
+        tad = int(row['t_alt_count'])
         if event_type == "SNP":
-            tdp = int(line[fillout_tdp_col])
-            tad = int(line[fillout_tad_col])
+            tdp = int(row['fillout_t_depth'])
+            tad = int(row['fillout_t_alt'])
         # check if it is removed by one or more ccs filters and nothing else
         only_ccs_filters = True
-        filters = re.split(';|,', line[filter_col])
+        filters = re.split(';|,', row['FILTER'])
         for filter in filters:
             if filter != "mq55" and filter != "nm2" and filter != "asb" and filter != "nad3":
                 only_ccs_filters = False
                 break
-        arr_key = [line[chrom_col], line[pos_col], line[ref_col], line[alt_col]]
+        arr_key = [row['Chromosome'], row['Start_Position'], row['Reference_Allele'], row['Tumor_Seq_Allele2']]
         key = '\t'.join(arr_key)
-        # Store all fillout lines first
+        # Store all fillout rows first
         # Skip any that failed false-positive filters, except common_variant and Skip all events reported uniquely by Pindel
-        if line[mut_status_col] == 'None':
-            dict_fillout.setdefault(key, []).append('\t'.join(line))
-        elif (line[filter_col] == 'PASS' or line[filter_col] == 'common_variant' or (is_impact and only_ccs_filters)) and line[set_col] != 'Pindel':
+        if row['Mutation_Status'] == 'None':
+            fillout_keep.append(row)
+        elif (row['FILTER'] == 'PASS' or row['FILTER'] == 'common_variant' or (is_impact and only_ccs_filters)) and row['set'] != 'Pindel':
             # Skip MuTect-Rescue events for all but IMPACT/HemePACT projects
-            if line[set_col] == 'MuTect-Rescue' and not is_impact:
+            if row['set'] == 'MuTect-Rescue' and not is_impact:
                 continue
             # Skip splice region variants in non-coding genes, or those that are >3bp into introns
             splice_dist = 0
-            if re.match(r'splice_region_variant', line[csq_col]) is not None:
-                if re.search(r'non_coding_', line[csq_col]) is not None:
+            if re.match(r'splice_region_variant', row['Consequence']) is not None:
+                if re.search(r'non_coding_', row['Consequence']) is not None:
                     continue
                 # Parse the complex HGVSc format to determine the distance from the splice junction
-                m = re.match(r'[nc]\.\d+[-+](\d+)_\d+[-+](\d+)|[nc]\.\d+[-+](\d+)', line[hgvsc_col])
+                m = re.match(r'[nc]\.\d+[-+](\d+)_\d+[-+](\d+)|[nc]\.\d+[-+](\d+)', row['HGVSc'])
                 if m is not None:
                     # For indels, use the closest distance to the nearby splice junction
                     splice_dist = min(int(d) for d in [x for x in m.group(1,2,3) if x is not None])
@@ -85,49 +72,90 @@ with open(input_file,'r') as input_maf:
             csq_keep = ['missense_', 'stop_', 'frameshift_', 'splice_', 'inframe_', 'protein_altering_',
                 'start_', 'synonymous_', 'coding_sequence_', 'transcript_', 'exon_', 'initiator_codon_',
                 'disruptive_inframe_', 'conservative_missense_', 'rare_amino_acid_', 'mature_miRNA_', 'TFBS_']
-            if re.match(r'|'.join(csq_keep), line[csq_col]) is not None or (line[gene_col] == 'TERT' and int(line[pos_col]) >= 1295141 and int(line[pos_col]) <= 1295340):
+            if re.match(r'|'.join(csq_keep), row['Consequence']) is not None or (row['Hugo_Symbol'] == 'TERT' and int(row['Start_Position']) >= 1295141 and int(row['Start_Position']) <= 1295340):
                 # Skip reporting MT muts in IMPACT, and apply the DMP's depth/allele-count/VAF cutoffs as hard filters in IMPACT, and soft filters in non-IMPACT
-                if is_impact and line[chrom_col] == 'MT':
+                if is_impact and row['Chromosome'] == 'MT':
                     continue
                 tumor_vaf = float(tad) / float(tdp) if tdp != 0 else 0
-                if tdp < 20 or tad < 8 or tumor_vaf < 0.02 or (line[hotspot_col] == 'FALSE' and (tad < 10 or tumor_vaf < 0.05)):
+                if tdp < 20 or tad < 8 or tumor_vaf < 0.02 or (row['hotspot_whitelist'] == 'FALSE' and (tad < 10 or tumor_vaf < 0.05)):
                     if is_impact:
                         continue
                     else:
-                        line[filter_col] = "dmp_filter" if line[filter_col] == 'PASS' else line[filter_col] + ";dmp_filter"
+                        row['FILTER'] = "dmp_filter" if row['FILTER'] == 'PASS' else row['FILTER'] + ";dmp_filter"
                 # The portal also skips silent muts, genes without Entrez IDs, and intronic events
-                if re.match(r'synonymous_|stop_retained_', line[csq_col]) is None and line[entrez_id_col] != 0 and splice_dist <= 2:
-                    # portal_maf.write('\t'.join(line[0:45]) + '\n')
-                    dict_portal_kept.setdefault(key, []).append('\t'.join(line[0:45]))
-                    dict_analyst_kept.setdefault(key, []).append('\t'.join(line))
+                if re.match(r'synonymous_|stop_retained_', row['Consequence']) is None and row['Entrez_Gene_Id'] != 0 and splice_dist <= 2:
+                    portal_keep.append(row)
+                    analysis_keep.append(row)
                 # tag this events in analysis maf as "skipped_by_portal" in column "Mutation_Status"
                 else:
-                    line[mut_status_col] = "skipped_by_portal"
-                    dict_analyst_kept.setdefault(key, []).append('\t'.join(line))
+                    row['Mutation_Status'] = "skipped_by_portal"
+                    analysis_keep.append(row)
 
-# Keep fillout lines (Mutation_Status==None) in portal/data_mutations_extended.txt
-# write into analysis files
-with open(analyst_file,'w') as analyst_maf:
-    analyst_maf.write(roslin_version_line)
-    analyst_maf.write(analyst_header)
-    for key, values in dict_analyst_kept.items():
-        # write events first
-        for value in values:
-            analyst_maf.write(value + '\n')
+    return(analysis_keep, portal_keep, fillout_keep)
 
-# write into portal file
-with open(portal_file,'w') as portal_maf:
-    portal_maf.write(roslin_version_line)
-    portal_maf.write(portal_header)
-    for key, values in dict_portal_kept.items():
-        # write events first
-        for value in values:
-            portal_maf.write(value + '\n')
+
+def main(input_file, version_string, is_impact, analyst_file, portal_file):
+    """
+    Main control function for the module when called as a script
+    """
+    version_line = "# Versions: " + version_string.replace('_',' ')
+
+    # get the comments from the file and find the beginning of the table header
+    comments, start_line = parse_header_comments(input_file)
+    comments.append(version_line)
+    comments_lines = [ c + '\n' for c in comments ]
+
+    with open(input_file,'r') as fin:
+        # skip comment lines
+        while start_line > 0:
+            next(fin)
+            start_line -= 1
+
+        reader = csv.DictReader(fin, delimiter = '\t')
+        fieldnames = reader.fieldnames
+
+        analysis_keep, portal_keep, fillout_keep = filter_rows(row_list = reader, is_impact = is_impact)
+
+    # write analysis files
+    with open(analyst_file,'w') as fout:
+        fout.writelines(comments_lines)
+        # ignore fields not in fieldnames
+        # NOTE: csv writer includes carriage returns that we dont want
+        # https://stackoverflow.com/questions/3191528/csv-in-python-adding-an-extra-carriage-return-on-windows
+        writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = fieldnames, extrasaction = 'ignore', lineterminator='\n')
+        writer.writeheader()
+        for row in analysis_keep:
+            writer.writerow(row)
+
+    # write portal file
+    # only keep a subset of the fieldnames for the cBioPortal output file
+    portal_fieldnames = [ f for f in fieldnames ]
+    portal_fieldnames[portal_fieldnames.index('HGVSp_Short')] = 'Amino_Acid_Change'
+    portal_fieldnames = [ f for f in portal_fieldnames if f in maf_filter_portal_file_cols_to_keep ]
+    with open(portal_file,'w') as fout:
+        fout.writelines(comments_lines)
+        # ignore fields not in fieldnames
+        writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = portal_fieldnames, extrasaction = 'ignore', lineterminator='\n')
+        writer.writeheader()
+        for row in portal_keep:
+            writer.writerow(row)
         # write fillout if available
-        if key in dict_fillout:
-            for fillout in dict_fillout[key]:
-                portal_fillout = fillout.split('\t')
-                portal_maf.write('\t'.join(portal_fillout[0:45]) + '\n')
+        for row in fillout_keep:
+            writer.writerow(row)
 
-# The concatenated MAF can be enormous, so cleanup after
-# os.remove(input_file)
+def parse():
+    """
+    Parse the CLI args
+
+    maf_filter2.py Proj_08390_G.muts.maf 2.x True analyst_file3.tsv portal_file3.tsv
+    """
+    input_file = sys.argv[1]
+    version_string = sys.argv[2]
+    is_impact = True if sys.argv[3]=='True' else False
+    analyst_file = sys.argv[4]
+    portal_file = sys.argv[5]
+
+    main(input_file, version_string, is_impact, analyst_file, portal_file)
+
+if __name__ == '__main__':
+    parse()

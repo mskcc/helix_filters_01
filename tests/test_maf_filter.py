@@ -23,7 +23,7 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(THIS_DIR)
 sys.path.insert(0, PARENT_DIR)
 from bin.cBioPortal_utils import parse_header_comments
-from bin import maf_filter2
+from bin import maf_filter
 sys.path.pop(0)
 
 
@@ -63,11 +63,17 @@ class TestMafFilterScript(unittest.TestCase):
             with open(portal_file) as fin:
                 num_lines_portal_file = len(fin.readlines())
 
-            self.assertEqual(num_lines_analyst_file, 24)
-            self.assertEqual(num_lines_portal_file, 19)
+            self.assertEqual(num_lines_analyst_file, 27)
+            self.assertEqual(num_lines_portal_file, 22)
 
             comments, start_line = parse_header_comments(portal_file)
-            self.assertEqual(comments, ['# Versions: 2.x'])
+            expected_comments = [
+                '#version 2.4',
+                '#ngs-filters/applyFilter.sh VERSION=v1.2.1 FILTER=filter_blacklist_regions.R',
+                '#ngs-filters/applyFilter.sh VERSION=v1.2.1 FILTER=filter_normal_panel.R',
+                '# Versions: 2.x'
+            ]
+            self.assertEqual(comments, expected_comments)
             with open(portal_file) as fin:
                 while start_line > 0:
                     next(fin)
@@ -113,7 +119,13 @@ X	76938716	76938716
 
 
             comments, start_line = parse_header_comments(analyst_file)
-            self.assertEqual(comments, ['# Versions: 2.x'])
+            expected_comments = [
+            '#version 2.4',
+            '#ngs-filters/applyFilter.sh VERSION=v1.2.1 FILTER=filter_blacklist_regions.R',
+            '#ngs-filters/applyFilter.sh VERSION=v1.2.1 FILTER=filter_normal_panel.R',
+            '# Versions: 2.x'
+            ]
+            self.assertEqual(comments, expected_comments)
             with open(analyst_file) as fin:
                 while start_line > 0:
                     next(fin)
@@ -161,11 +173,10 @@ X	123220555	123220555
             # make sure all the expected values are present
             self.assertEqual(set(analysis_mutations), set(expected_rows))
 
-maf_filter2_script = os.path.join(BIN_DIR, 'maf_filter2.py')
 class TestMafFilter2Script(unittest.TestCase):
     def test_maf_filter2_filter_rows(self):
         """
-        Test that rows get filtered from the maf_filter2 module as expected
+        Test that rows get filtered from the maf_filter module as expected
         """
         row1 = { # bad row
         "Hugo_Symbol" : "PNISR",
@@ -212,7 +223,7 @@ class TestMafFilter2Script(unittest.TestCase):
 
         row_list = [row1, row2]
 
-        analysis_keep, portal_keep, fillout_keep = maf_filter2.filter_rows(row_list, is_impact = True)
+        analysis_keep, portal_keep, fillout_keep = maf_filter.filter_rows(row_list, is_impact = True)
 
         self.assertEqual(analysis_keep, [row2])
         self.assertEqual(portal_keep, [row2])
@@ -283,7 +294,7 @@ class TestMafFilter2Script(unittest.TestCase):
                     writer.writerow(row)
 
             # bin/maf_filter.py Sample1.Sample2.muts.maf 2.x True analyst_file.txt portal_file.txt
-            command = [ maf_filter2_script, input_maf_file, "2.x", "True", analyst_file, portal_file ]
+            command = [ maf_filter_script, input_maf_file, "2.x", "True", analyst_file, portal_file ]
 
             returncode, proc_stdout, proc_stderr = run_command(command)
 
