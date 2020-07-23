@@ -400,6 +400,15 @@ test:
 	if [ ! -e "$(SINGULARITY_SIF)" ]; then $(MAKE) singularity-pull; fi && \
 	python3 test.py
 
+# for some reason the test recipe is not running all tests....
+test2:
+	module load singularity/3.3.0 && \
+	module load python/3.7.1 && \
+	module load cwl/cwltool && \
+	if [ ! -e "$(SINGULARITY_SIF)" ]; then $(MAKE) singularity-pull; fi && \
+	for i in tests/test_*.py; do echo $$i; $$i; done
+
+
 # interactive session with environment populated
 bash:
 	module load singularity/3.3.0 && \

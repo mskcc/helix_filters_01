@@ -98,6 +98,7 @@ if __name__ != "__main__":
     from .cBioPortal_utils import create_file_lines
     from .cBioPortal_utils import parse_facets_data
     from .cBioPortal_utils import update_sample_data
+    from .cBioPortal_utils import load_facets_data
 
 if __name__ == "__main__":
     from cBioPortal_utils import header_lines_map
@@ -105,6 +106,7 @@ if __name__ == "__main__":
     from cBioPortal_utils import create_file_lines
     from cBioPortal_utils import parse_facets_data
     from cBioPortal_utils import update_sample_data
+    from cBioPortal_utils import load_facets_data
 
 
 # Utility functions
@@ -641,7 +643,7 @@ def generate_data_clinical_sample_file(**kwargs):
     """
     data_clinical_file = kwargs.pop('data_clinical_file')
     sample_summary_file = kwargs.pop('sample_summary_file', None)
-    facets_txt_file = kwargs.pop('facets_txt_file', None)
+    facets_txt_files = kwargs.pop('facets_txt_files', [])
     output = kwargs.pop('output', 'data_clinical_sample.txt')
     project_pi = kwargs.pop('project_pi', None)
     request_pi = kwargs.pop('request_pi', None)
@@ -658,14 +660,8 @@ def generate_data_clinical_sample_file(**kwargs):
     # if facets data is provided, load it
     all_facets_data = []
     parsed_facets_data = None
-    if facets_txt_file != None:
-        with open(facets_txt_file) as fin:
-            reader = csv.DictReader(fin, delimiter = '\t')
-            for row in reader:
-                all_facets_data.append(row)
-
-        # clean up the facets data to remove stuff we dont want and recalculate things
-        parsed_facets_data = parse_facets_data(all_facets_data)
+    if facets_txt_files:
+        parsed_facets_data = load_facets_data(facets_txt_files)
 
     # add more optional values, if they were passed
     for row in clinical_data:
@@ -742,7 +738,7 @@ def main():
     sample.add_argument('--sample-summary-file', dest = 'sample_summary_file', default = None, help = 'A supplemental sample summary file with coverage values to add to the output table')
     sample.add_argument('--project-pi', dest = 'project_pi', default = None, help = 'A Project PI value to add to entries in the table')
     sample.add_argument('--request-pi', dest = 'request_pi', default = None, help = 'A Request PI value to add to entries in the table')
-    sample.add_argument('--facets-txt', dest = 'facets_txt_file', default = None, help = 'The aggregated .txt output from Facets Suite')
+    sample.add_argument('--facets-txt-files', dest = 'facets_txt_files', nargs='*', help = 'The .txt output files from Facets Suite')
     sample.set_defaults(func = generate_data_clinical_sample_file)
 
     # subparser for meta_study.txt
