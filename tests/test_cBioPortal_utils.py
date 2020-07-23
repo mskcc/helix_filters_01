@@ -24,6 +24,7 @@ from bin.cBioPortal_utils import generate_header_lines
 from bin.cBioPortal_utils import update_sample_data
 from bin.cBioPortal_utils import parse_facets_data
 from bin.cBioPortal_utils import parse_header_comments
+from bin.cBioPortal_utils import load_facets_data
 sys.path.pop(0)
 
 class TestCBioUtils(unittest.TestCase):
@@ -381,6 +382,58 @@ class TestCBioUtils(unittest.TestCase):
         }
         self.maxDiff = None
         self.assertDictEqual(parsed_data, expected_data)
+
+    def test_load_1_facets_data(self):
+        """
+        Test that facets data is loaded from a file correctly
+        """
+        facets_txt_file = os.path.join(DATA_SETS['Proj_08390_G']['FACETS_SUITE_DIR'], 'Sample1.txt')
+        facets_data = load_facets_data([facets_txt_file])
+        expected_data = {
+            'Sample1': {
+                'purity': '0.36',
+                'ploidy': '7.9',
+                'facets_version': '0.5.14',
+                'genome_doubled': 'TRUE',
+                'ASCN_PURITY': '0.36',
+                'ASCN_PLOIDY': '7.9',
+                'ASCN_VERSION': '0.5.14',
+                'ASCN_WGD': 'WGD'
+                }
+            }
+        self.assertDictEqual(facets_data, expected_data)
+
+    def test_load_2_facets_data(self):
+        """
+        Test that Facets Suite .txt file data can be loaded from multiple files
+        """
+        facets_txt_file1 = os.path.join(DATA_SETS['Proj_08390_G']['FACETS_SUITE_DIR'], 'Sample1.txt')
+        facets_txt_file2 = os.path.join(DATA_SETS['Proj_08390_G']['FACETS_SUITE_DIR'], 'Sample96.txt')
+        facets_data = load_facets_data([facets_txt_file1, facets_txt_file2])
+        expected_data = {
+            'Sample1': {
+                'purity': '0.36',
+                'ploidy': '7.9',
+                'facets_version': '0.5.14',
+                'genome_doubled': 'TRUE',
+                'ASCN_PURITY': '0.36',
+                'ASCN_PLOIDY': '7.9',
+                'ASCN_VERSION': '0.5.14',
+                'ASCN_WGD': 'WGD'
+                },
+            'Sample96': {
+                'ASCN_PLOIDY': '1.4',
+                'ASCN_PURITY': '0.21',
+                'ASCN_VERSION': '0.5.14',
+                'ASCN_WGD': 'no WGD',
+                'facets_version': '0.5.14',
+                'genome_doubled': 'FALSE',
+                'ploidy': '1.4',
+                'purity': '0.21'
+                }
+            }
+        self.assertDictEqual(facets_data, expected_data)
+
 
 
 

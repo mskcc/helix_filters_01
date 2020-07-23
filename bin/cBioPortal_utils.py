@@ -3,6 +3,7 @@
 """
 Utility functions for cBioPortal file and data handling
 """
+import csv
 from collections import OrderedDict
 
 # keep only these columns, and rename them to the listed values
@@ -348,6 +349,22 @@ def parse_facets_data(rows):
             data[sample_id] = d
     return(data)
 
+def load_facets_data(files):
+    """
+    Load the data from all Facets Suite .txt files in the files list
+    """
+    all_data = {}
+    for file in files:
+        all_facets_data = []
+        with open(file) as fin:
+            reader = csv.DictReader(fin, delimiter = '\t')
+            for row in reader:
+                all_facets_data.append(row)
+
+        # clean up the facets data to remove stuff we dont want and recalculate things
+        parsed_facets_data = parse_facets_data(all_facets_data)
+        all_data = {**all_data, **parsed_facets_data}
+    return(all_data)
 
 def parse_header_comments(filename):
     """
