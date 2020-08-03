@@ -42,3 +42,5 @@ DATA_SETS = {
         "MAF_FILTER_DIR": os.path.join(FIXTURES_DIR, "Proj_08390_G", "maf_filter")
     }
 }
+
+MAF_FILTER_PARITY_DATA_DIR = '/juno/work/ci/helix_filters_01/parity_datasets/merged_datasets'
