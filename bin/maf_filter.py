@@ -10,6 +10,7 @@ import sys
 import os
 import csv
 import re
+import argparse
 
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
@@ -23,6 +24,28 @@ if __name__ == "__main__":
 def filter_row(row, is_impact):
     """
     Check filter criteria against a single row representing a variant
+
+    Parameters
+    ----------
+    row: dict
+        a dictionary representing a single row read in from a .maf file
+    is_impact: bool
+        wether the sample should be assumed to be IMPACT sample or not; adjusted filter criteria
+
+    Returns
+    -------
+    dict:
+        the original row that was passed into the filter function (row)
+    bool:
+        whether the row should be kept in the "analysis" output file (analysis_keep)
+    bool:
+        whether the row should be kept in the cBioPortal output file (portal_keep)
+    bool:
+        whether the row should be kept as a fillout row in the cBioPortal file (fillout_keep)
+    bool:
+        whether the row should be rejected (reject_row)
+    str|None:
+        the reason the row was rejected (reject_reason)
     """
     analysis_keep = False
     portal_keep = False
@@ -181,9 +204,33 @@ def filter_rows(row_list, is_impact, keep_rejects = False):
     return(analysis_keep_list, portal_keep_list, fillout_keep_list, rejected_list)
 
 
-def main(input_file, version_string, is_impact, analyst_file, portal_file, keep_rejects = False):
+def main(
+    input_file,
+    version_string,
+    analyst_file,
+    portal_file,
+    is_impact = True,
+    rejected_file = 'rejected.muts.maf',
+    keep_rejects = False):
     """
-    Main control function for the module when called as a script
+    Main control function for the module when called as a script. Filters the input .maf file into an "analyst file" and a "portal file", meant to be used for downstream data analysis and for import to cBioPortal, respectively.
+
+    Parameters
+    ----------
+    input_file: str
+        the input .maf file to be filtered
+    version_string: str
+        a verstion label to be used in the output comment
+    analyst_file: str
+        the name of the analysis output file
+    portal_file: str
+        the name of the cBioPortal output file
+    is_impact: bool
+        wether the sample is IMPACT or not; adjusts filter criteria
+    rejected_file: str
+        the name of the file to save rejected variants to
+    keep_rejects: bool
+        wether or not to save rejected variants to the rejected_file
     """
     version_line = "# Versions: " + version_string.replace('_',' ')
 
@@ -232,7 +279,7 @@ def main(input_file, version_string, is_impact, analyst_file, portal_file, keep_
 
     # save a copy of the rows that were rejected with their rejection reasons
     if keep_rejects:
-        with open("rejected.tsv", "w") as fout:
+        with open(rejected_file, "w") as fout:
             writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = [ *fieldnames, 'reject_reason'], extrasaction = 'ignore', lineterminator='\n')
             writer.writeheader()
             for row in rejected_list:
@@ -242,21 +289,19 @@ def parse():
     """
     Parse the CLI args
 
-    maf_filter2.py Proj_08390_G.muts.maf 2.x True analyst_file3.tsv portal_file3.tsv
+    maf_filter.py Proj_08390_G.muts.maf 2.x True analyst_file3.tsv portal_file3.tsv
     """
-    input_file = sys.argv[1]
-    version_string = sys.argv[2]
-    is_impact = True if sys.argv[3]=='True' else False
-    analyst_file = sys.argv[4]
-    portal_file = sys.argv[5]
-
-    # add secret positional arg for saving the rejected variants in a separate file
-    if len(sys.argv) > 6:
-        keep_rejects = True
-    else:
-        keep_rejects = False
-
-    main(input_file, version_string, is_impact, analyst_file, portal_file, keep_rejects)
+    parser = argparse.ArgumentParser(description = 'Script for filtering mutations in a .maf file')
+    parser.add_argument('input_file', help='Input maf file')
+    parser.add_argument('--version-string', dest = 'version_string', required = True, help='Version string label for output file comments')
+    parser.add_argument('--analyst-file', dest = 'analyst_file', required = True, help='Filename for filtered analysis file output')
+    parser.add_argument('--portal-file', dest = 'portal_file', required = True, help='Filename for filtered cBioPortal file output')
+    parser.add_argument('--rejected-file', dest = 'rejected_file', default = 'rejected.muts.maf', help='Filename for rejected variants output')
+    parser.add_argument('--keep-rejects', dest = 'keep_rejects', action="store_true", help='Whether to save rejected variants to the rejected file')
+    parser.add_argument('--is-impact', action="store_true", help='Whether the sample is an IMPACT sample or not')
+    args = parser.parse_args()
+    print(args)
+    main(**vars(args))
 
 if __name__ == '__main__':
     parse()
