@@ -3,6 +3,7 @@ Helper functions for running tests
 """
 import subprocess as sp
 import hashlib
+import csv
 
 def run_command(args):
     """
@@ -30,3 +31,54 @@ def md5(filename):
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
+
+def parse_header_comments(filename):
+    """
+    Parse a file with comments in its header to return the comments and the line number to start reader from
+
+    comments, start_line = parse_header_comments(filename)
+    with open(portal_file) as fin:
+        while start_line > 0:
+            next(fin)
+            start_line -= 1
+        reader = csv.DictReader(fin, delimiter = '\t') # header_line = next(fin)
+        portal_lines = [ row for row in reader ]
+    """
+    comments = []
+    start_line = 0
+    # find the first line without comments
+    with open(filename) as fin:
+        for i, line in enumerate(fin):
+            if line.startswith('#'):
+                comments.append(line.strip())
+                start_line += 1
+    return(comments, start_line)
+
+def load_mutations(filename, keep_cols = None, delete_cols = False):
+    """
+    Load the mutations from a file to use for testing
+    """
+    comments, start_line = parse_header_comments(filename)
+    with open(filename) as fin:
+        while start_line > 0:
+            next(fin)
+            start_line -= 1
+        reader = csv.DictReader(fin, delimiter = '\t')
+        # filter columns if they were passed
+        if keep_cols:
+            mutations = []
+            for row in reader:
+                d = {}
+                for key in keep_cols:
+                    d[key] = row[key]
+                mutations.append(d)
+                del row # remove immediately to save memory
+        # delete all columns to save memory on large datasets when we dont  actually need the mutation data
+        elif delete_cols:
+            mutations = []
+            for row in reader:
+                row.clear()
+                mutations.append(row)
+        else:
+            mutations = [ row for row in reader ]
+    return(comments, mutations)
