@@ -300,7 +300,7 @@ def parse():
     parser.add_argument('--keep-rejects', dest = 'keep_rejects', action="store_true", help='Whether to save rejected variants to the rejected file')
     parser.add_argument('--is-impact', action="store_true", help='Whether the sample is an IMPACT sample or not')
     args = parser.parse_args()
-    print(args)
+
     main(**vars(args))
 
 if __name__ == '__main__':
