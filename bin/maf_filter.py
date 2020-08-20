@@ -11,6 +11,7 @@ import os
 import csv
 import re
 import argparse
+import json
 
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
@@ -195,7 +196,7 @@ def filter_row(row, is_impact):
     if Mutation_Status_None:
         fillout_keep = True
         reject_row = False
-        return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
+        return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags)
     #
     # ~~~~~~~~~~~~~~ #
     #
@@ -212,7 +213,7 @@ def filter_row(row, is_impact):
             reject_row = True
             reject_reason = 'Skip MuTect-Rescue events for all but IMPACT/HemePACT projects'
             reject_flag = "set_MuTect_Rescue_and_not_is_impact"
-            return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
+            return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags)
 
         # Skip splice region variants in non-coding genes, or those that are >3bp into introns
         if splice_region_variant_with_Consequence:
@@ -220,7 +221,7 @@ def filter_row(row, is_impact):
                 reject_row = True
                 reject_reason = 'Skip splice region variants in non-coding genes'
                 reject_flag = "non_coding_with_Consequence"
-                return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
+                return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags)
 
             # Parse the complex HGVSc format to determine the distance from the splice junction
             if HGVSc_splice_match_is_not_None:
@@ -228,7 +229,7 @@ def filter_row(row, is_impact):
                     reject_row = True
                     reject_reason = 'Skip splice region variants that are >3bp into introns'
                     reject_flag = "splice_dist_min_pass"
-                    return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
+                    return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags)
 
         if not pass_consequence_or_is_TERT:
             reject_reason = 'Skip all non-coding events except interesting ones like TERT promoter mutations'
@@ -241,13 +242,13 @@ def filter_row(row, is_impact):
                 reject_row = True
                 reject_reason = 'Skip reporting MT muts in IMPACT'
                 reject_flag = "is_impact_and_is_MT"
-                return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
+                return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags)
 
             if dmp_fail_and_is_impact:
                 reject_row = True
                 reject_reason = 'Apply the DMP depth/allele-count/VAF cutoffs as hard filters in IMPACT, and soft filters in non-IMPACT'
                 reject_flag = "dmp_fail_and_is_impact"
-                return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
+                return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags)
 
             #
             # ~~~~~~~~ KEEP THESE MUTATIONS ~~~~~~ #
@@ -257,19 +258,19 @@ def filter_row(row, is_impact):
                 portal_keep = True
                 analysis_keep = True
                 reject_row = False
-                return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
+                return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags)
 
             # tag this events in analysis maf as "skipped_by_portal" in column "Mutation_Status"
             else:
                 row['Mutation_Status'] = "skipped_by_portal"
                 analysis_keep = True
                 reject_row = False
-                return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
+                return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags)
             #
             # ~~~~~~~~~~~~~~ #
             #
 
-    return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
+    return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags)
 
 def filter_rows(row_list, is_impact, keep_rejects = False):
     """
@@ -281,7 +282,7 @@ def filter_rows(row_list, is_impact, keep_rejects = False):
     rejected_list = []
 
     for row in row_list:
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = filter_row(row, is_impact)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = filter_row(row, is_impact)
         if analysis_keep:
             analysis_keep_list.append(row)
         if portal_keep:
@@ -290,8 +291,12 @@ def filter_rows(row_list, is_impact, keep_rejects = False):
             fillout_keep_list.append(row)
         if keep_rejects:
             if reject_row:
+                # make a copy of the row
                 rejected_row = { k:v for k,v in row.items() }
+                # add the reason to the row
                 rejected_row['reject_reason'] = reject_reason
+                rejected_row['reject_flag'] = reject_flag
+                rejected_row['filter_flags'] = json.dumps(filter_flags)
                 rejected_list.append(rejected_row)
 
     return(analysis_keep_list, portal_keep_list, fillout_keep_list, rejected_list)
@@ -372,8 +377,53 @@ def main(
 
     # save a copy of the rows that were rejected with their rejection reasons
     if keep_rejects:
+        # keep only a subset of fieldnames in the reject file output;
+        reject_fieldnames_keep = [
+        # keep every "row" field that is explicitly referenced in the filter_row function...
+        'Amino_Acid_Change',
+        'HGVSp_Short',
+        'Variant_Type',
+        't_depth',
+        't_alt_count',
+        'fillout_t_depth',
+        'fillout_t_alt',
+        'FILTER',
+        'HGVSc',
+        'set',
+        'Mutation_Status',
+        'Consequence',
+        'Hugo_Symbol',
+        'Start_Position',
+        'Chromosome',
+        'hotspot_whitelist',
+        'Entrez_Gene_Id',
+        # extra fields for easy variant idenfitication
+        "End_Position",
+        "Variant_Classification",
+        "Reference_Allele",
+        "Tumor_Seq_Allele1",
+        "Tumor_Seq_Allele2",
+        "Tumor_Sample_Barcode",
+        "Matched_Norm_Sample_Barcode",
+        "Match_Norm_Seq_Allele1",
+        "Match_Norm_Seq_Allele2",
+        "HGVSp",
+        "Transcript_ID"
+        "Exon_Number",
+        "t_ref_count",
+        "n_depth",
+        "n_ref_count",
+        "n_alt_count"
+        # "all_effects" # this one is too long
+        ]
+        reject_fieldnames_remove = []
+        reject_fieldnames = [ f for f in fieldnames if f in reject_fieldnames_keep ]
+        reject_fieldnames.append('reject_reason')
+        reject_fieldnames.append('reject_flag')
+        reject_fieldnames.append('filter_flags')
+
         with open(rejected_file, "w") as fout:
-            writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = [ *fieldnames, 'reject_reason'], extrasaction = 'ignore', lineterminator='\n')
+            writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = reject_fieldnames, extrasaction = 'ignore', lineterminator='\n')
             writer.writeheader()
             for row in rejected_list:
                 writer.writerow(row)

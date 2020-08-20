@@ -359,7 +359,7 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "5",
         "hotspot_whitelist" : "FALSE",
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
 
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
@@ -367,6 +367,7 @@ class TestMafFilter2Script(unittest.TestCase):
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Skip any that failed false-positive filters, except common_variant and Skip all events reported uniquely by Pindel')
+        self.assertEqual(reject_flag, 'pass_FILTER_or_is_common_variant_or_is_common_variant_and_is_not_Pindel')
 
         # good row but set = Pindel
         row = {
@@ -390,13 +391,14 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "28",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
         self.assertEqual(portal_keep, False)
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Skip any that failed false-positive filters, except common_variant and Skip all events reported uniquely by Pindel')
+        self.assertEqual(reject_flag, 'pass_FILTER_or_is_common_variant_or_is_common_variant_and_is_not_Pindel')
 
         # good row but set = MuTect-Rescue, is_impact = False
         row = {
@@ -420,13 +422,14 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "28",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = False)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = False)
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
         self.assertEqual(portal_keep, False)
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Skip MuTect-Rescue events for all but IMPACT/HemePACT projects')
+        self.assertEqual(reject_flag, 'set_MuTect_Rescue_and_not_is_impact')
 
         # good row but Consequence = splice_region_variant & non_coding_
         row = {
@@ -450,13 +453,14 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "28",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
         self.assertEqual(portal_keep, False)
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Skip splice region variants in non-coding genes')
+        self.assertEqual(reject_flag, 'non_coding_with_Consequence')
 
         # good row but Consequence = splice_region_variant &  "HGVSc" : "c.542-4G>T",
         row = {
@@ -480,13 +484,14 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "28",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
         self.assertEqual(portal_keep, False)
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Skip splice region variants that are >3bp into introns')
+        self.assertEqual(reject_flag, 'splice_dist_min_pass')
 
         # good row but Consequence = something bad
         # some bad consequence examples;
@@ -521,13 +526,14 @@ class TestMafFilter2Script(unittest.TestCase):
             "fillout_t_alt" : "28",
             "hotspot_whitelist" : "FALSE"
             }
-            new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+            new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
             self.assertDictEqual(new_row, row)
             self.assertEqual(analysis_keep, False)
             self.assertEqual(portal_keep, False)
             self.assertEqual(fillout_keep, False)
             self.assertEqual(reject_row, True)
             self.assertEqual(reject_reason, 'Skip all non-coding events except interesting ones like TERT promoter mutations')
+            self.assertEqual(reject_flag, 'pass_consequence_or_is_TERT')
 
         # good row but Chromosome = MT
         row = {
@@ -551,13 +557,14 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "28",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
         self.assertEqual(portal_keep, False)
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Skip reporting MT muts in IMPACT')
+        self.assertEqual(reject_flag, 'is_impact_and_is_MT')
 
         # some example bad mutations:
         # {'t_depth': 919, 'fail_DMP_t_depth': False, 't_alt_count': 37, 'fail_DMP_t_alt_count': False, 'tumor_vaf': 0.04026115342763874, 'fail_DMP_tumor_vaf': False, 'hotspot_whitelist': 'FALSE', 'fail_DMP_whitelist_filter': True}
@@ -587,13 +594,14 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "37",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
         self.assertEqual(portal_keep, False)
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Apply the DMP depth/allele-count/VAF cutoffs as hard filters in IMPACT, and soft filters in non-IMPACT')
+        self.assertEqual(reject_flag, 'dmp_fail_and_is_impact')
 
 
     def test_filter_single_good_row1(self):
@@ -621,7 +629,7 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "28",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
 
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, True)
@@ -629,6 +637,7 @@ class TestMafFilter2Script(unittest.TestCase):
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, False)
         self.assertEqual(reject_reason, None)
+        self.assertEqual(reject_flag, None)
 
     def test_maf_filter2_filter_rows(self):
         """
