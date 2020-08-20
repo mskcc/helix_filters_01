@@ -260,8 +260,12 @@ X	123220555	123220555
             with open(portal_file) as fin:
                 num_lines_portal_file = len(fin.readlines())
 
+            with open(rejected_file) as fin:
+                num_lines_rejected_file = len(fin.readlines())
+
             self.assertEqual(num_lines_analyst_file, 1664)
             self.assertEqual(num_lines_portal_file, 1141)
+            self.assertEqual(num_lines_rejected_file, 708663)
 
             # validate output mutation file contents
             comments, mutations = load_mutations(analyst_file)
@@ -279,6 +283,9 @@ X	123220555	123220555
                 self.assertTrue(mutation in mutations)
 
             self.assertEqual(len(mutations), len(expected_mutations))
+
+            comments, mutations = load_mutations(rejected_file)
+            self.assertEqual(len(mutations), 708662)
 
     def test_filter_test_large_maf_file_impact_false(self):
         """
@@ -308,14 +315,21 @@ X	123220555	123220555
             with open(portal_file) as fin:
                 num_lines_portal_file = len(fin.readlines())
 
+            with open(rejected_file) as fin:
+                num_lines_rejected_file = len(fin.readlines())
+
             self.assertEqual(num_lines_analyst_file, 1996)
             self.assertEqual(num_lines_portal_file, 1410)
+            self.assertEqual(num_lines_rejected_file, 708331)
 
             comments, mutations = load_mutations(analyst_file)
             self.assertEqual(len(mutations), 1994)
 
             comments, mutations = load_mutations(portal_file)
             self.assertEqual(len(mutations), 1408)
+
+            comments, mutations = load_mutations(rejected_file)
+            self.assertEqual(len(mutations), 708330)
 
 class TestMafFilter2Script(unittest.TestCase):
     def test_filter_single_bad_rows1(self):

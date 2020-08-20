@@ -133,10 +133,26 @@ def filter_row(row, is_impact):
     dmp_fail = fail_DMP_t_depth or fail_DMP_t_alt_count or fail_DMP_tumor_vaf or fail_DMP_whitelist_filter
     dmp_fail_and_is_impact = dmp_fail and is_impact
 
+    # NOTE: why are we changing the column value here???
+    if dmp_fail and not dmp_fail_and_is_impact:
+        row['FILTER'] = "dmp_filter" if row['FILTER'] == 'PASS' else row['FILTER'] + ";dmp_filter"
+
     synonymous_match = re.match(r'synonymous_|stop_retained_', row['Consequence']) is None
     entrez_gene_id_0 = row['Entrez_Gene_Id'] != 0
     intronic_event = splice_dist <= 2
     silent_mut_no_entrez_intronic = synonymous_match and entrez_gene_id_0 and intronic_event
+
+    # analysis_and_portal_pass = pass_FILTER_or_is_common_variant_or_is_common_variant_and_is_not_Pindel \
+    #     and pass_consequence_or_is_TERT \
+    #     and silent_mut_no_entrez_intronic
+    #
+    # analysis_pass = pass_FILTER_or_is_common_variant_or_is_common_variant_and_is_not_Pindel \
+    # and not set_MuTect_Rescue_and_not_is_impact \
+    # and not splice_region_variant_with_Consequence \
+    # and pass_consequence_or_is_TERT \
+    # and not is_impact_and_is_MT \
+    # and not dmp_fail_and_is_impact \
+    # and silent_mut_no_entrez_intronic
 
     filter_flags["silent_mut_no_entrez_intronic"] = silent_mut_no_entrez_intronic
     filter_flags["intronic_event"] = intronic_event
@@ -172,11 +188,17 @@ def filter_row(row, is_impact):
     filter_flags["splice_dist_min_pass"] = splice_dist_min_pass
     filter_flags["set_MuTect_Rescue"] = set_MuTect_Rescue
 
+    #
+    # ~~~~~~~~ KEEP THESE MUTATIONS ~~~~~~ #
+    #
     # Store all fillout rows
     if Mutation_Status_None:
         fillout_keep = True
         reject_row = False
         return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
+    #
+    # ~~~~~~~~~~~~~~ #
+    #
 
     # Skip any that failed false-positive filters, except common_variant and Skip all events reported uniquely by Pindel
     if not pass_FILTER_or_is_common_variant_or_is_common_variant_and_is_not_Pindel:
@@ -210,6 +232,7 @@ def filter_row(row, is_impact):
 
         if not pass_consequence_or_is_TERT:
             reject_reason = 'Skip all non-coding events except interesting ones like TERT promoter mutations'
+            reject_flag = 'pass_consequence_or_is_TERT'
 
         # Skip all non-coding events except interesting ones like TERT promoter mutations
         if pass_consequence_or_is_TERT:
@@ -223,12 +246,12 @@ def filter_row(row, is_impact):
             if dmp_fail_and_is_impact:
                 reject_row = True
                 reject_reason = 'Apply the DMP depth/allele-count/VAF cutoffs as hard filters in IMPACT, and soft filters in non-IMPACT'
+                reject_flag = "dmp_fail_and_is_impact"
                 return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
 
-            # NOTE: why are we changing the column value here???
-            if dmp_fail:
-                row['FILTER'] = "dmp_filter" if row['FILTER'] == 'PASS' else row['FILTER'] + ";dmp_filter"
-
+            #
+            # ~~~~~~~~ KEEP THESE MUTATIONS ~~~~~~ #
+            #
             # The portal also skips silent muts, genes without Entrez IDs, and intronic events
             if silent_mut_no_entrez_intronic:
                 portal_keep = True
@@ -242,6 +265,9 @@ def filter_row(row, is_impact):
                 analysis_keep = True
                 reject_row = False
                 return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
+            #
+            # ~~~~~~~~~~~~~~ #
+            #
 
     return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
 
