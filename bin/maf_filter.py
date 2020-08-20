@@ -47,22 +47,30 @@ def filter_row(row, is_impact):
     str|None:
         the reason the row was rejected (reject_reason)
     """
+    # flags to determine whether the row should be kept or rejected
     analysis_keep = False
     portal_keep = False
     fillout_keep = False
     reject_row = True
     reject_reason = None
+    reject_flag = None
 
-    # The portal MAF can be minimized since Genome Nexus re-annotates it when HGVSp_Short column is missing
+    # dict to hold the filter criteria we are testing against
+    filter_flags = {}
+
+    # update row keys;
+    # "The portal MAF can be minimized since Genome Nexus re-annotates it when HGVSp_Short column is missing"
     row['Amino_Acid_Change'] = row['HGVSp_Short']
     event_type = row['Variant_Type']
 
+    # get some values from the row to use for filter criteria
     # For all events except point mutations, use the variant caller reported allele counts for filtering
     t_depth = int(row['t_depth'])
     t_alt_count = int(row['t_alt_count'])
     if event_type == "SNP":
         t_depth = int(row['fillout_t_depth'])
         t_alt_count = int(row['fillout_t_alt'])
+    tumor_vaf = float(t_alt_count) / float(t_depth) if t_depth != 0 else 0
 
     # check if it is removed by one or more ccs filters and nothing else
     only_ccs_filters = True
@@ -72,70 +80,133 @@ def filter_row(row, is_impact):
             only_ccs_filters = False
             break
 
+    HGVSc_splice_match = re.match(r'[nc]\.\d+[-+](\d+)_\d+[-+](\d+)|[nc]\.\d+[-+](\d+)', row['HGVSc']) # c.36-3C>T ; 3
+
     # some filter criteria to check
     is_not_Pindel = row['set'] != 'Pindel'
     is_impact_and_only_ccs_filters = (is_impact and only_ccs_filters)
     pass_FILTER = row['FILTER'] == 'PASS'
     is_common_variant = row['FILTER'] == 'common_variant'
+    Mutation_Status_None = row['Mutation_Status'] == 'None'
+
+    # Skip any that failed false-positive filters, except common_variant and Skip all events reported uniquely by Pindel
+    pass_FILTER_or_is_common_variant_or_is_common_variant_and_is_not_Pindel = (pass_FILTER or is_common_variant or is_impact_and_only_ccs_filters) and is_not_Pindel
+
+    # Skip MuTect-Rescue events for all but IMPACT/HemePACT projects
+    set_MuTect_Rescue = row['set'] == 'MuTect-Rescue'
+    set_MuTect_Rescue_and_not_is_impact =  set_MuTect_Rescue and not is_impact
+    splice_region_variant_with_Consequence = re.match(r'splice_region_variant', row['Consequence']) is not None
+    non_coding_with_Consequence = re.search(r'non_coding_', row['Consequence']) is not None
+
+    splice_dist = 0
+    HGVSc_splice_match_is_not_None = HGVSc_splice_match is not None
+    if HGVSc_splice_match_is_not_None:
+        # For indels, use the closest distance to the nearby splice junction
+        splice_dist = min(int(d) for d in [x for x in HGVSc_splice_match.group(1,2,3) if x is not None])
+        # c.36-3C>T ; 3
+        # c.927-3C>G ; 3
+        # c.542-4G>T ; 4
+        # c.3664-8C>T ; 8
+        # c.628-7C>T ; 7
+        # c.1705-3C>T ; 3
+    splice_dist_min_pass = splice_dist > 3
+    # c.542-4G>T ; 4
+    # c.3664-8C>T ; 8
+    # c.628-7C>T ; 7
+
+    consequence_keep = ['missense_', 'stop_', 'frameshift_', 'splice_', 'inframe_', 'protein_altering_',
+        'start_', 'synonymous_', 'coding_sequence_', 'transcript_', 'exon_', 'initiator_codon_',
+        'disruptive_inframe_', 'conservative_missense_', 'rare_amino_acid_', 'mature_miRNA_', 'TFBS_']
+    consequence_pattern = r'|'.join(consequence_keep) # missense_|stop_|frameshift_|splice_|inframe_|protein_altering_|start_|synonymous_|coding_sequence_|transcript_|exon_|initiator_codon_|disruptive_inframe_|conservative_missense_|rare_amino_acid_|mature_miRNA_|TFBS_
+    consequence_match = re.match(consequence_pattern, row['Consequence'])
+
+    pass_consequence_match = consequence_match is not None
+    is_TERT = row['Hugo_Symbol'] == 'TERT'
+    pass_TERT_start = int(row['Start_Position']) >= 1295141
+    pass_TERT_end = int(row['Start_Position']) <= 1295340
+    pass_consequence_or_is_TERT = (pass_consequence_match or (is_TERT and pass_TERT_start and pass_TERT_end))
+    is_impact_and_is_MT = is_impact and row['Chromosome'] == 'MT'
+    fail_DMP_t_depth = t_depth < 20
+    fail_DMP_t_alt_count = t_alt_count < 8
+    fail_DMP_tumor_vaf = tumor_vaf < 0.02
+    fail_DMP_whitelist_filter = (row['hotspot_whitelist'] == 'FALSE' and (t_alt_count < 10 or tumor_vaf < 0.05))
+    dmp_fail = fail_DMP_t_depth or fail_DMP_t_alt_count or fail_DMP_tumor_vaf or fail_DMP_whitelist_filter
+    dmp_fail_and_is_impact = dmp_fail and is_impact
+
+    synonymous_match = re.match(r'synonymous_|stop_retained_', row['Consequence']) is None
+    entrez_gene_id_0 = row['Entrez_Gene_Id'] != 0
+    intronic_event = splice_dist <= 2
+    silent_mut_no_entrez_intronic = synonymous_match and entrez_gene_id_0 and intronic_event
+
+    filter_flags["silent_mut_no_entrez_intronic"] = silent_mut_no_entrez_intronic
+    filter_flags["intronic_event"] = intronic_event
+    filter_flags["entrez_gene_id_0"] = entrez_gene_id_0
+    filter_flags["synonymous_match"] = synonymous_match
+    filter_flags["tumor_vaf"] = tumor_vaf
+    filter_flags["is_not_Pindel"] = is_not_Pindel
+    filter_flags["is_impact"] = is_impact
+    filter_flags["only_ccs_filters"] = only_ccs_filters
+    filter_flags["is_impact_and_only_ccs_filters"] = is_impact_and_only_ccs_filters
+    filter_flags["pass_FILTER"] = pass_FILTER
+    filter_flags["is_common_variant"] = is_common_variant
+    filter_flags["Mutation_Status_None"] = Mutation_Status_None
+    filter_flags["pass_FILTER_or_is_common_variant_or_is_common_variant_and_is_not_Pindel"] = pass_FILTER_or_is_common_variant_or_is_common_variant_and_is_not_Pindel
+    filter_flags["set_MuTect_Rescue_and_not_is_impact"] = set_MuTect_Rescue_and_not_is_impact
+    # Skip splice region variants in non-coding genes, or those that are >3bp into introns
+    filter_flags["splice_region_variant_with_Consequence"] = splice_region_variant_with_Consequence
+    filter_flags["non_coding_with_Consequence"] = non_coding_with_Consequence
+    filter_flags["HGVSc_splice_match_is_not_None"] = HGVSc_splice_match_is_not_None
+    filter_flags["pass_consequence_match"] = pass_consequence_match
+    filter_flags["is_TERT"] = is_TERT
+    filter_flags["pass_TERT_start"] = pass_TERT_start
+    filter_flags["pass_TERT_end"] = pass_TERT_end
+    filter_flags["pass_consequence_or_is_TERT"] = pass_consequence_or_is_TERT
+    filter_flags["is_impact_and_is_MT"] = is_impact_and_is_MT
+    filter_flags["fail_DMP_t_depth"] = fail_DMP_t_depth
+    filter_flags["fail_DMP_t_alt_count"] = fail_DMP_t_alt_count
+    filter_flags["fail_DMP_tumor_vaf"] = fail_DMP_tumor_vaf
+    filter_flags["fail_DMP_whitelist_filter"] = fail_DMP_whitelist_filter
+    filter_flags["dmp_fail"] = dmp_fail
+    filter_flags["dmp_fail_and_is_impact"] = dmp_fail_and_is_impact
+    filter_flags["splice_dist"] = splice_dist
+    filter_flags["splice_dist_min_pass"] = splice_dist_min_pass
+    filter_flags["set_MuTect_Rescue"] = set_MuTect_Rescue
 
     # Store all fillout rows
-    if row['Mutation_Status'] == 'None':
+    if Mutation_Status_None:
         fillout_keep = True
         reject_row = False
         return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
 
     # Skip any that failed false-positive filters, except common_variant and Skip all events reported uniquely by Pindel
-    if not (( pass_FILTER or is_common_variant or is_impact_and_only_ccs_filters) and is_not_Pindel):
+    if not pass_FILTER_or_is_common_variant_or_is_common_variant_and_is_not_Pindel:
         reject_reason = 'Skip any that failed false-positive filters, except common_variant and Skip all events reported uniquely by Pindel'
+        reject_flag = "pass_FILTER_or_is_common_variant_or_is_common_variant_and_is_not_Pindel"
 
-    if (pass_FILTER or is_common_variant or is_impact_and_only_ccs_filters) and is_not_Pindel:
+    # Skip any that failed false-positive filters, except common_variant and Skip all events reported uniquely by Pindel
+    if pass_FILTER_or_is_common_variant_or_is_common_variant_and_is_not_Pindel:
         # Skip MuTect-Rescue events for all but IMPACT/HemePACT projects
-        if row['set'] == 'MuTect-Rescue' and not is_impact:
+        if set_MuTect_Rescue_and_not_is_impact:
             reject_row = True
             reject_reason = 'Skip MuTect-Rescue events for all but IMPACT/HemePACT projects'
+            reject_flag = "set_MuTect_Rescue_and_not_is_impact"
             return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
 
         # Skip splice region variants in non-coding genes, or those that are >3bp into introns
-        splice_dist = 0
-        if re.match(r'splice_region_variant', row['Consequence']) is not None:
-            if re.search(r'non_coding_', row['Consequence']) is not None:
+        if splice_region_variant_with_Consequence:
+            if non_coding_with_Consequence:
                 reject_row = True
                 reject_reason = 'Skip splice region variants in non-coding genes'
+                reject_flag = "non_coding_with_Consequence"
                 return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
 
             # Parse the complex HGVSc format to determine the distance from the splice junction
-            m = re.match(r'[nc]\.\d+[-+](\d+)_\d+[-+](\d+)|[nc]\.\d+[-+](\d+)', row['HGVSc'])
-            if m is not None:
-                # For indels, use the closest distance to the nearby splice junction
-                splice_dist = min(int(d) for d in [x for x in m.group(1,2,3) if x is not None])
-                # print(row['HGVSc'], ';', splice_dist)
-                # c.36-3C>T ; 3
-                # c.927-3C>G ; 3
-                # c.542-4G>T ; 4
-                # c.3664-8C>T ; 8
-                # c.628-7C>T ; 7
-                # c.1705-3C>T ; 3
-                if splice_dist > 3:
-                    # print(row['HGVSc'], ';', splice_dist)
-                    # c.542-4G>T ; 4
-                    # c.3664-8C>T ; 8
-                    # c.628-7C>T ; 7
+            if HGVSc_splice_match_is_not_None:
+                if splice_dist_min_pass:
                     reject_row = True
                     reject_reason = 'Skip splice region variants that are >3bp into introns'
+                    reject_flag = "splice_dist_min_pass"
                     return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
-
-        # more filter criteria;
-        csq_keep = ['missense_', 'stop_', 'frameshift_', 'splice_', 'inframe_', 'protein_altering_',
-            'start_', 'synonymous_', 'coding_sequence_', 'transcript_', 'exon_', 'initiator_codon_',
-            'disruptive_inframe_', 'conservative_missense_', 'rare_amino_acid_', 'mature_miRNA_', 'TFBS_']
-        csq_pattern = r'|'.join(csq_keep)
-        # missense_|stop_|frameshift_|splice_|inframe_|protein_altering_|start_|synonymous_|coding_sequence_|transcript_|exon_|initiator_codon_|disruptive_inframe_|conservative_missense_|rare_amino_acid_|mature_miRNA_|TFBS_
-        consequence_match = re.match(csq_pattern, row['Consequence'])
-        pass_consequence_match = consequence_match is not None
-        is_TERT = row['Hugo_Symbol'] == 'TERT'
-        pass_TERT_start = int(row['Start_Position']) >= 1295141
-        pass_TERT_end = int(row['Start_Position']) <= 1295340
-        pass_consequence_or_is_TERT = (pass_consequence_match or (is_TERT and pass_TERT_start and pass_TERT_end))
 
         if not pass_consequence_or_is_TERT:
             reject_reason = 'Skip all non-coding events except interesting ones like TERT promoter mutations'
@@ -143,27 +214,23 @@ def filter_row(row, is_impact):
         # Skip all non-coding events except interesting ones like TERT promoter mutations
         if pass_consequence_or_is_TERT:
             # Skip reporting MT muts in IMPACT, and apply the DMP's depth/allele-count/VAF cutoffs as hard filters in IMPACT, and soft filters in non-IMPACT
-            if is_impact and row['Chromosome'] == 'MT':
+            if is_impact_and_is_MT:
                 reject_row = True
                 reject_reason = 'Skip reporting MT muts in IMPACT'
+                reject_flag = "is_impact_and_is_MT"
                 return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
 
-            tumor_vaf = float(t_alt_count) / float(t_depth) if t_depth != 0 else 0
-            fail_DMP_t_depth = t_depth < 20
-            fail_DMP_t_alt_count = t_alt_count < 8
-            fail_DMP_tumor_vaf = tumor_vaf < 0.02
-            fail_DMP_whitelist_filter = (row['hotspot_whitelist'] == 'FALSE' and (t_alt_count < 10 or tumor_vaf < 0.05))
-            if fail_DMP_t_depth or fail_DMP_t_alt_count or fail_DMP_tumor_vaf or fail_DMP_whitelist_filter:
-                if is_impact:
-                    reject_row = True
-                    reject_reason = 'Apply the DMP depth/allele-count/VAF cutoffs as hard filters in IMPACT, and soft filters in non-IMPACT'
-                    return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
+            if dmp_fail_and_is_impact:
+                reject_row = True
+                reject_reason = 'Apply the DMP depth/allele-count/VAF cutoffs as hard filters in IMPACT, and soft filters in non-IMPACT'
+                return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason)
 
-                else:
-                    row['FILTER'] = "dmp_filter" if row['FILTER'] == 'PASS' else row['FILTER'] + ";dmp_filter"
+            # NOTE: why are we changing the column value here???
+            if dmp_fail:
+                row['FILTER'] = "dmp_filter" if row['FILTER'] == 'PASS' else row['FILTER'] + ";dmp_filter"
 
             # The portal also skips silent muts, genes without Entrez IDs, and intronic events
-            if re.match(r'synonymous_|stop_retained_', row['Consequence']) is None and row['Entrez_Gene_Id'] != 0 and splice_dist <= 2:
+            if silent_mut_no_entrez_intronic:
                 portal_keep = True
                 analysis_keep = True
                 reject_row = False
