@@ -1,11 +1,12 @@
 """
 Helper functions for running tests
 """
+import os
 import subprocess as sp
 import hashlib
 import csv
 
-def run_command(args):
+def run_command(args, testcase = None, validate = False):
     """
     Helper function to run a shell command easier
 
@@ -13,12 +14,22 @@ def run_command(args):
     ----------
     args: list
         a list of shell args to execute
+    validate: bool
+        whether to check that the exit code was 0; requires `testcase`
+    testcase: unittest.TestCase
+        a test case instance for making assertions
     """
     process = sp.Popen(args, stdout = sp.PIPE, stderr = sp.PIPE, universal_newlines = True)
     proc_stdout, proc_stderr = process.communicate()
     returncode = process.returncode
     proc_stdout = proc_stdout.strip()
     proc_stderr = proc_stderr.strip()
+
+    # check that it ran successfully; requires testcase to be passed !
+    if validate:
+        if returncode != 0:
+            print(proc_stderr)
+        testcase.assertEqual(returncode, 0)
     return(returncode, proc_stdout, proc_stderr)
 
 def md5(filename):
@@ -82,3 +93,14 @@ def load_mutations(filename, keep_cols = None, delete_cols = False):
         else:
             mutations = [ row for row in reader ]
     return(comments, mutations)
+
+def write_table(tmpdir, filename, lines, delimiter = '\t'):
+    """
+    Write a table to a temp location
+    """
+    filepath = os.path.join(tmpdir, filename)
+    with open(filepath, "w") as f:
+        for line in lines:
+            line_str = delimiter.join(line) + '\n'
+            f.write(line_str)
+    return(filepath)
