@@ -32,40 +32,53 @@ maf_filter_script = os.path.join(BIN_DIR, 'maf_filter.py')
 class TestMafFilterScript(unittest.TestCase):
     def test_maf_filter_script1(self):
         """
+        Test run of the maf_filter.py script on a sample pair .maf file and validate the results contain the expected variants
         """
+        # sample input files to use
         input_maf_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'Sample1.Sample2.muts.maf')
         expected_analyst_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'analyst_file.txt') # 24
         expected_portal_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'portal_file.txt') # 19
 
+        # NOTE: skip this it takes too long
         # input fixture has the correct number of lines
-        with open(input_maf_file) as fin:
-            input_maf_lines = len(fin.readlines())
+        # with open(input_maf_file) as fin:
+        #     input_maf_lines = len(fin.readlines())
+        # self.assertEqual(input_maf_lines, 12518)
 
-        self.assertEqual(input_maf_lines, 12518)
-
+        # run the maf_filter.py script in a temporary directory
         with TemporaryDirectory() as tmpdir:
-            # bin/maf_filter.py Sample1.Sample2.muts.maf 2.x True analyst_file.txt portal_file.txt
+            # files to output
             analyst_file = os.path.join(tmpdir, "analyst_file.txt")
             portal_file = os.path.join(tmpdir, "portal_file.txt")
+            rejected_file = os.path.join(tmpdir, "rejected.muts.maf")
 
-            command = [ maf_filter_script, input_maf_file, "2.x", "True", analyst_file, portal_file ]
+            # command line arguments to run script
+            command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", "--is-impact", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
 
+            # run the script in a subprocess
             returncode, proc_stdout, proc_stderr = run_command(command)
 
+            # check that it ran successfully
             if returncode != 0:
                 print(proc_stderr)
 
             self.assertEqual(returncode, 0)
 
+            # check the number of lines output
             with open(analyst_file) as fin:
                 num_lines_analyst_file = len(fin.readlines())
 
             with open(portal_file) as fin:
                 num_lines_portal_file = len(fin.readlines())
 
+            with open(rejected_file) as fin:
+                num_lines_rejected_file = len(fin.readlines())
+
             self.assertEqual(num_lines_analyst_file, 27)
             self.assertEqual(num_lines_portal_file, 22)
+            self.assertEqual(num_lines_rejected_file, 12493)
 
+            # check the comments written to the output files
             comments, start_line = parse_header_comments(portal_file)
             expected_comments = [
                 '#version 2.4',
@@ -74,6 +87,8 @@ class TestMafFilterScript(unittest.TestCase):
                 '# Versions: 2.x'
             ]
             self.assertEqual(comments, expected_comments)
+
+            # check the number of variants written to the file (no comments)
             with open(portal_file) as fin:
                 while start_line > 0:
                     next(fin)
@@ -83,7 +98,7 @@ class TestMafFilterScript(unittest.TestCase):
 
             self.assertEqual(len(portal_lines), 17)
 
-            # get a subset of the lines' data for testing
+            # get a subset of the lines' data for testing; too many columns to save here
             portal_mutations = []
             for row in portal_lines:
                 t = ( row["Chromosome"], row["Start_Position"], row["End_Position"] )
@@ -117,7 +132,7 @@ X	76938716	76938716
             # make sure all the expected values are present
             self.assertEqual(set(portal_mutations), set(expected_rows))
 
-
+            # check the comments and variants output by the analysis file as well
             comments, start_line = parse_header_comments(analyst_file)
             expected_comments = [
             '#version 2.4',
@@ -173,26 +188,64 @@ X	123220555	123220555
             # make sure all the expected values are present
             self.assertEqual(set(analysis_mutations), set(expected_rows))
 
+    def test_filter_maf_file_impact_false(self):
+        """
+        Test the maf_filter.py results with IMPACT flag not set
+        """
+        input_maf_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'Sample1.Sample2.muts.maf')
+
+        with TemporaryDirectory() as tmpdir:
+            # files to output
+            analyst_file = os.path.join(tmpdir, "analyst_file.txt")
+            portal_file = os.path.join(tmpdir, "portal_file.txt")
+            rejected_file = os.path.join(tmpdir, "rejected.muts.maf")
+
+            # command line arguments to run script
+            command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
+
+            # run the script in a subprocess
+            returncode, proc_stdout, proc_stderr = run_command(command)
+
+            # check that it ran successfully
+            if returncode != 0:
+                print(proc_stderr)
+
+            self.assertEqual(returncode, 0)
+
+            # check the number of lines output
+            with open(analyst_file) as fin:
+                num_lines_analyst_file = len(fin.readlines())
+
+            with open(portal_file) as fin:
+                num_lines_portal_file = len(fin.readlines())
+
+            with open(rejected_file) as fin:
+                num_lines_rejected_file = len(fin.readlines())
+
+            self.assertEqual(num_lines_analyst_file, 23)
+            self.assertEqual(num_lines_portal_file, 19)
+            self.assertEqual(num_lines_rejected_file, 12497)
+
     def test_filter_test_large_maf_file(self):
         """
         Test that a giant maf file with tons of variants gets filtered as expected
         """
-        # self.assertTrue(False, "skip this test")
         input_maf_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], "Proj_08390_G", "Proj_08390_G.muts.maf")
 
+        # NOTE: skip this it takes too long
         # make sure input file has expected number of lines
-        comments, mutations = load_mutations(input_maf_file, delete_cols = True) # try to reduce memory usage by deleting columns
-        self.assertEqual(len(mutations), 710324)
+        # comments, mutations = load_mutations(input_maf_file, delete_cols = True) # try to reduce memory usage by deleting columns
+        # self.assertEqual(len(mutations), 710324)
 
         # run the filter script
         with TemporaryDirectory() as tmpdir:
             # output files
             analyst_file = os.path.join(tmpdir, "analyst_file.txt")
             portal_file = os.path.join(tmpdir, "portal_file.txt")
+            rejected_file = os.path.join(tmpdir, "rejected.muts.maf")
 
             # run the command
-            # bin/maf_filter.py Sample1.Sample2.muts.maf 2.x True analyst_file.txt portal_file.txt
-            command = [ maf_filter_script, input_maf_file, "2.x", "True", analyst_file, portal_file ]
+            command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", "--is-impact", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
             returncode, proc_stdout, proc_stderr = run_command(command)
 
             # check that it ran successfully
@@ -207,8 +260,12 @@ X	123220555	123220555
             with open(portal_file) as fin:
                 num_lines_portal_file = len(fin.readlines())
 
+            with open(rejected_file) as fin:
+                num_lines_rejected_file = len(fin.readlines())
+
             self.assertEqual(num_lines_analyst_file, 1664)
             self.assertEqual(num_lines_portal_file, 1141)
+            self.assertEqual(num_lines_rejected_file, 708663)
 
             # validate output mutation file contents
             comments, mutations = load_mutations(analyst_file)
@@ -226,6 +283,53 @@ X	123220555	123220555
                 self.assertTrue(mutation in mutations)
 
             self.assertEqual(len(mutations), len(expected_mutations))
+
+            comments, mutations = load_mutations(rejected_file)
+            self.assertEqual(len(mutations), 708662)
+
+    def test_filter_test_large_maf_file_impact_false(self):
+        """
+        Filter the large maf file without IMPACT flag used and check the number of mutations output
+        """
+        input_maf_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], "Proj_08390_G", "Proj_08390_G.muts.maf")
+
+        with TemporaryDirectory() as tmpdir:
+            # output files
+            analyst_file = os.path.join(tmpdir, "analyst_file.txt")
+            portal_file = os.path.join(tmpdir, "portal_file.txt")
+            rejected_file = os.path.join(tmpdir, "rejected.muts.maf")
+
+            # run the command
+            command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
+            returncode, proc_stdout, proc_stderr = run_command(command)
+
+            # check that it ran successfully
+            if returncode != 0:
+                print(proc_stderr)
+            self.assertEqual(returncode, 0)
+
+            # check number of output lines and mutations
+            with open(analyst_file) as fin:
+                num_lines_analyst_file = len(fin.readlines())
+
+            with open(portal_file) as fin:
+                num_lines_portal_file = len(fin.readlines())
+
+            with open(rejected_file) as fin:
+                num_lines_rejected_file = len(fin.readlines())
+
+            self.assertEqual(num_lines_analyst_file, 1996)
+            self.assertEqual(num_lines_portal_file, 1410)
+            self.assertEqual(num_lines_rejected_file, 708331)
+
+            comments, mutations = load_mutations(analyst_file)
+            self.assertEqual(len(mutations), 1994)
+
+            comments, mutations = load_mutations(portal_file)
+            self.assertEqual(len(mutations), 1408)
+
+            comments, mutations = load_mutations(rejected_file)
+            self.assertEqual(len(mutations), 708330)
 
 class TestMafFilter2Script(unittest.TestCase):
     def test_filter_single_bad_rows1(self):
@@ -255,7 +359,7 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "5",
         "hotspot_whitelist" : "FALSE",
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
 
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
@@ -263,6 +367,7 @@ class TestMafFilter2Script(unittest.TestCase):
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Skip any that failed false-positive filters, except common_variant and Skip all events reported uniquely by Pindel')
+        self.assertEqual(reject_flag, 'pass_FILTER_or_is_common_variant_or_is_common_variant_and_is_not_Pindel')
 
         # good row but set = Pindel
         row = {
@@ -286,13 +391,14 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "28",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
         self.assertEqual(portal_keep, False)
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Skip any that failed false-positive filters, except common_variant and Skip all events reported uniquely by Pindel')
+        self.assertEqual(reject_flag, 'pass_FILTER_or_is_common_variant_or_is_common_variant_and_is_not_Pindel')
 
         # good row but set = MuTect-Rescue, is_impact = False
         row = {
@@ -316,13 +422,14 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "28",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = False)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = False)
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
         self.assertEqual(portal_keep, False)
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Skip MuTect-Rescue events for all but IMPACT/HemePACT projects')
+        self.assertEqual(reject_flag, 'set_MuTect_Rescue_and_not_is_impact')
 
         # good row but Consequence = splice_region_variant & non_coding_
         row = {
@@ -346,13 +453,14 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "28",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
         self.assertEqual(portal_keep, False)
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Skip splice region variants in non-coding genes')
+        self.assertEqual(reject_flag, 'non_coding_with_Consequence')
 
         # good row but Consequence = splice_region_variant &  "HGVSc" : "c.542-4G>T",
         row = {
@@ -376,13 +484,14 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "28",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
         self.assertEqual(portal_keep, False)
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Skip splice region variants that are >3bp into introns')
+        self.assertEqual(reject_flag, 'splice_dist_min_pass')
 
         # good row but Consequence = something bad
         # some bad consequence examples;
@@ -417,13 +526,14 @@ class TestMafFilter2Script(unittest.TestCase):
             "fillout_t_alt" : "28",
             "hotspot_whitelist" : "FALSE"
             }
-            new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+            new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
             self.assertDictEqual(new_row, row)
             self.assertEqual(analysis_keep, False)
             self.assertEqual(portal_keep, False)
             self.assertEqual(fillout_keep, False)
             self.assertEqual(reject_row, True)
             self.assertEqual(reject_reason, 'Skip all non-coding events except interesting ones like TERT promoter mutations')
+            self.assertEqual(reject_flag, 'pass_consequence_or_is_TERT')
 
         # good row but Chromosome = MT
         row = {
@@ -447,13 +557,14 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "28",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
         self.assertEqual(portal_keep, False)
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Skip reporting MT muts in IMPACT')
+        self.assertEqual(reject_flag, 'is_impact_and_is_MT')
 
         # some example bad mutations:
         # {'t_depth': 919, 'fail_DMP_t_depth': False, 't_alt_count': 37, 'fail_DMP_t_alt_count': False, 'tumor_vaf': 0.04026115342763874, 'fail_DMP_tumor_vaf': False, 'hotspot_whitelist': 'FALSE', 'fail_DMP_whitelist_filter': True}
@@ -483,13 +594,14 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "37",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, False)
         self.assertEqual(portal_keep, False)
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, True)
         self.assertEqual(reject_reason, 'Apply the DMP depth/allele-count/VAF cutoffs as hard filters in IMPACT, and soft filters in non-IMPACT')
+        self.assertEqual(reject_flag, 'dmp_fail_and_is_impact')
 
 
     def test_filter_single_good_row1(self):
@@ -517,7 +629,7 @@ class TestMafFilter2Script(unittest.TestCase):
         "fillout_t_alt" : "28",
         "hotspot_whitelist" : "FALSE"
         }
-        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason = maf_filter.filter_row(row, is_impact = True)
+        new_row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags = maf_filter.filter_row(row, is_impact = True)
 
         self.assertDictEqual(new_row, row)
         self.assertEqual(analysis_keep, True)
@@ -525,6 +637,7 @@ class TestMafFilter2Script(unittest.TestCase):
         self.assertEqual(fillout_keep, False)
         self.assertEqual(reject_row, False)
         self.assertEqual(reject_reason, None)
+        self.assertEqual(reject_flag, None)
 
     def test_maf_filter2_filter_rows(self):
         """
@@ -583,6 +696,7 @@ class TestMafFilter2Script(unittest.TestCase):
 
     def test_maf_filter2_script(self):
         """
+        Test that a maf file with comment line, one good variant, and one bad variant, produce the expected output
         """
         comments = [
         '# some comment goes here\n'
@@ -636,6 +750,7 @@ class TestMafFilter2Script(unittest.TestCase):
             input_maf_file = os.path.join(tmpdir, "input.txt")
             analyst_file = os.path.join(tmpdir, "analyst_file.txt")
             portal_file = os.path.join(tmpdir, "portal_file.txt")
+            rejected_file = os.path.join(tmpdir, "rejected.muts.maf")
 
             # write out the intput maf
             with open(input_maf_file, "w") as fout:
@@ -645,8 +760,7 @@ class TestMafFilter2Script(unittest.TestCase):
                 for row in row_list:
                     writer.writerow(row)
 
-            # bin/maf_filter.py Sample1.Sample2.muts.maf 2.x True analyst_file.txt portal_file.txt
-            command = [ maf_filter_script, input_maf_file, "2.x", "True", analyst_file, portal_file ]
+            command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", "--is-impact", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
 
             returncode, proc_stdout, proc_stderr = run_command(command)
 

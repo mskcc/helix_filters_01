@@ -383,22 +383,15 @@ update-container-tags:
 	done
 
 # ~~~~~ Debug & Development ~~~~~ #
-
-# run the pure-Makefile prototype reference version of the workflow
-workflow:
-	$(MAKE) -f workflow.makefile run
-
-workflow-test:
-	$(MAKE) -f workflow.makefile test
-
 # Run the test suite
 export FIXTURES_DIR:=/juno/work/ci/helix_filters_01/fixtures
-test:
-	export PATH=/opt/local/singularity/3.3.0/bin:$(PATH) && \
-	module load python/3.7.1 && \
-	module load cwl/cwltool && \
-	if [ ! -e "$(SINGULARITY_SIF)" ]; then $(MAKE) singularity-pull; fi && \
-	python3 test.py
+# run tests in parallel;
+# $ make test -j 4
+TESTS:=$(shell ls tests/test_*.py)
+$(TESTS):
+	module load singularity/3.3.0 && module load python/3.7.1 && module load cwl/cwltool && echo $@; python $@
+.PHONY: $(TESTS)
+test: $(TESTS)
 
 # for some reason the test recipe is not running all tests....
 test2:
@@ -408,6 +401,20 @@ test2:
 	if [ ! -e "$(SINGULARITY_SIF)" ]; then $(MAKE) singularity-pull; fi && \
 	for i in tests/test_*.py; do echo $$i; $$i; done
 
+# TODO: figure out why this is missing some tests
+test-old:
+	export PATH=/opt/local/singularity/3.3.0/bin:$(PATH) && \
+	module load python/3.7.1 && \
+	module load cwl/cwltool && \
+	if [ ! -e "$(SINGULARITY_SIF)" ]; then $(MAKE) singularity-pull; fi && \
+	python3 test.py
+
+# run the pure-Makefile prototype reference version of the workflow
+workflow:
+	$(MAKE) -f workflow.makefile run
+
+workflow-test:
+	$(MAKE) -f workflow.makefile test
 
 # interactive session with environment populated
 bash:
