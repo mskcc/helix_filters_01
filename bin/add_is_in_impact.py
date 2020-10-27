@@ -19,6 +19,7 @@ def load_IMPACT_data(filename):
 def is_in_IMPACT(chr,pos,IMPACT_d):
     return str(pos in IMPACT_d[chr])
 
+
 def parse_CLI_args():
     """
     Parse the CLI args
@@ -55,9 +56,9 @@ def main():
 
         reader = csv.DictReader(fin, delimiter = '\t')
         fieldnames = reader.fieldnames
-        fieldnames.append('Is_in_IMPACT')
+        fieldnames.append('is_in_impact')
         for row in reader:
-            row['Is_in_IMPACT']=is_in_IMPACT(row['Chromosome'],row['Start_Position'],IMPACT_d)
+            row['is_in_impact']=is_in_IMPACT(row['Chromosome'],row['Start_Position'],IMPACT_d)
             is_in_impact_added_output.append(row)
 
     # write analysis files
