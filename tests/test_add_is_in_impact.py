@@ -46,10 +46,10 @@ class TestInImpactScript(unittest.TestCase):
             # TODO: get this test case to work and validate output
             comments, mutations = load_mutations(output_file)
             expected_mutations = [
-                {'Chromosome': '1', 'Start_Position': '100', 'Is_in_IMPACT': 'True'},
-                {'Chromosome': '2', 'Start_Position': '200', 'Is_in_IMPACT': 'False'},
-                {'Chromosome': '3', 'Start_Position': '300', 'Is_in_IMPACT': 'False'},
-                {'Chromosome': '4', 'Start_Position': '400', 'Is_in_IMPACT': 'False'}
+                {'Chromosome': '1', 'Start_Position': '100', 'is_in_impact': 'True'},
+                {'Chromosome': '2', 'Start_Position': '200', 'is_in_impact': 'False'},
+                {'Chromosome': '3', 'Start_Position': '300', 'is_in_impact': 'False'},
+                {'Chromosome': '4', 'Start_Position': '400', 'is_in_impact': 'False'}
                 ]
 
             self.assertEqual(mutations, expected_mutations)
@@ -77,9 +77,9 @@ class TestInImpactScript(unittest.TestCase):
 
             comments, mutations = load_mutations(output_file)
             expected_mutations = [
-                {'Chromosome': '1', 'Start_Position': '100', 'Is_in_IMPACT': 'True'},
-                {'Chromosome': '2', 'Start_Position': '200', 'Is_in_IMPACT': 'False'},
-                {'Chromosome': '3', 'Start_Position': '300', 'Is_in_IMPACT': 'False'}]
+                {'Chromosome': '1', 'Start_Position': '100', 'is_in_impact': 'True'},
+                {'Chromosome': '2', 'Start_Position': '200', 'is_in_impact': 'False'},
+                {'Chromosome': '3', 'Start_Position': '300', 'is_in_impact': 'False'}]
 
             self.assertEqual(mutations, expected_mutations)
 
