@@ -48,7 +48,7 @@ class TestInImpactScript(unittest.TestCase):
             expected_mutations = [
                 {'Chromosome': '1', 'Start_Position': '100', 'Is_in_IMPACT': 'True'},
                 {'Chromosome': '2', 'Start_Position': '200', 'Is_in_IMPACT': 'False'},
-                {'Chromosome': '3', 'Start_Position': '300', 'Is_in_IMPACT': 'False'}
+                {'Chromosome': '3', 'Start_Position': '300', 'Is_in_IMPACT': 'False'},
                 {'Chromosome': '4', 'Start_Position': '400', 'Is_in_IMPACT': 'False'}
                 ]
 
