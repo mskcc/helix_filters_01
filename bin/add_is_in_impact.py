@@ -3,6 +3,11 @@ import argparse,csv
 from cBioPortal_utils import parse_header_comments
 
 def load_IMPACT_data(filename):
+    """
+    load the regions from the IMPACT targets file into a dict of type
+    { chrom: [1, 2, ..., n], ... }
+    for each Chromosome and all covered positions in the file
+    """
     d={}
     with open(filename,'r') as f:#
         for line in f:
@@ -10,14 +15,19 @@ def load_IMPACT_data(filename):
             chr=line[0]
             spos=int(line[1])
             epos=int(line[2])
-            range_l=range(spos,epos+1)
+            range_l=range(spos,epos+1) # expand the start and stop positions into a list of ints for each position
             if chr not in d:
-                d[chr]=[]
-            d[chr]+=range_l
+                d[chr]=[] # each chrom starts with a list to hold values
+            d[chr]+=range_l # append new range values to the chrom position entries list
     return d
 
 def is_in_IMPACT(chr,pos,IMPACT_d):
-    return str(pos in IMPACT_d[chr])
+    position_present = False # start False by default
+    try:
+        position_present = str(pos in IMPACT_d[chr])
+    except KeyError: # chrom not in the IMPACT list
+        pass # do nothing because False is the default value
+    return(position_present)
 
 
 def parse_CLI_args():
