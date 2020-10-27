@@ -6,7 +6,7 @@ import subprocess as sp
 import hashlib
 import csv
 
-def run_command(args, testcase = None, validate = False):
+def run_command(args, testcase = None, validate = False, print_stdout = False):
     """
     Helper function to run a shell command easier
 
@@ -24,6 +24,9 @@ def run_command(args, testcase = None, validate = False):
     returncode = process.returncode
     proc_stdout = proc_stdout.strip()
     proc_stderr = proc_stderr.strip()
+
+    if print_stdout:
+        print(proc_stdout)
 
     # check that it ran successfully; requires testcase to be passed !
     if validate:

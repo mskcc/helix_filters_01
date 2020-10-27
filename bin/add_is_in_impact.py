@@ -58,7 +58,7 @@ def main():
         fieldnames = reader.fieldnames
         fieldnames.append('is_in_impact')
         for row in reader:
-            row['is_in_impact']=is_in_IMPACT(row['Chromosome'],row['Start_Position'],IMPACT_d)
+            row['is_in_impact']=is_in_IMPACT(row['Chromosome'],int(row['Start_Position']),IMPACT_d)
             is_in_impact_added_output.append(row)
 
     # write analysis files
