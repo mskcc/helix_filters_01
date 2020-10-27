@@ -9,11 +9,11 @@ from tempfile import TemporaryDirectory
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
     from .tools import run_command, load_mutations, write_table
-    from .settings import DATA_SETS, BIN_DIR
+    from .settings import DATA_SETS, BIN_DIR, TARGETS
 
 if __name__ == "__main__":
     from tools import run_command, load_mutations, write_table
-    from settings import DATA_SETS, BIN_DIR
+    from settings import DATA_SETS, BIN_DIR, TARGETS
 
 impact_script = os.path.join(BIN_DIR, 'add_is_in_impact.py')
 
@@ -115,6 +115,30 @@ class TestInImpactScript(unittest.TestCase):
                     num_False += 1
             self.assertEqual(num_True, 3)
             self.assertEqual(num_False, 12511)
+
+    def test_is_in_impact_with_targets(self):
+        """
+        Test IMPACT script with full size maf file and real targets file
+        """
+        input_maf_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'Sample1.Sample2.muts.maf')
+        impact_file = TARGETS['IMPACT468_b37']['targets_list']
+        with TemporaryDirectory() as tmpdir:
+            output_file = os.path.join(tmpdir, "output.txt")
+            command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file ]
+            returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
+
+            # validate output mutations
+            comments, mutations = load_mutations(output_file)
+            self.assertEqual(len(mutations), 12514)
+            num_True = 0
+            num_False = 0
+            for mut in mutations:
+                if mut['is_in_impact'] == 'True':
+                    num_True += 1
+                elif mut['is_in_impact'] == 'False':
+                    num_False += 1
+            self.assertEqual(num_True, 6160)
+            self.assertEqual(num_False, 6354)
 
 
 # run the test suite from the command line

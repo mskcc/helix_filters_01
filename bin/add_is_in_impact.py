@@ -9,16 +9,17 @@ def load_IMPACT_data(filename):
     for each Chromosome and all covered positions in the file
     """
     d={}
-    with open(filename,'r') as f:#
+    with open(filename,'r') as f:
         for line in f:
-            line=line.rstrip().split()
-            chr=line[0]
-            spos=int(line[1])
-            epos=int(line[2])
-            range_l=range(spos,epos+1) # expand the start and stop positions into a list of ints for each position
-            if chr not in d:
-                d[chr]=[] # each chrom starts with a list to hold values
-            d[chr]+=range_l # append new range values to the chrom position entries list
+            if not line.startswith('@'): # skip header lines in the file
+                line=line.rstrip().split()
+                chr=line[0]
+                spos=int(line[1])
+                epos=int(line[2])
+                range_l=range(spos,epos+1) # expand the start and stop positions into a list of ints for each position
+                if chr not in d:
+                    d[chr]=[] # each chrom starts with a list to hold values
+                d[chr]+=range_l # append new range values to the chrom position entries list
     return d
 
 def is_in_IMPACT(chr,pos,IMPACT_d):
