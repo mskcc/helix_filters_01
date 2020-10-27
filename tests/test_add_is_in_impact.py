@@ -44,6 +44,15 @@ class TestInImpactScript(unittest.TestCase):
             returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
 
             # TODO: get this test case to work and validate output
+            comments, mutations = load_mutations(output_file)
+            expected_mutations = [
+                {'Chromosome': '1', 'Start_Position': '100', 'Is_in_IMPACT': 'True'},
+                {'Chromosome': '2', 'Start_Position': '200', 'Is_in_IMPACT': 'False'},
+                {'Chromosome': '3', 'Start_Position': '300', 'Is_in_IMPACT': 'False'}
+                {'Chromosome': '4', 'Start_Position': '400', 'Is_in_IMPACT': 'False'}
+                ]
+
+            self.assertEqual(mutations, expected_mutations)
 
     def test_is_in_impact_1(self):
         maf_lines = [
