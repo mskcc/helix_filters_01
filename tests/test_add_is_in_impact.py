@@ -21,7 +21,7 @@ class TestInImpactScript(unittest.TestCase):
     def test_is_in_impact_0(self):
         """
         Test that maf entries are flagged if they are in the IMPACT set
-        This test case handles the usage of an IMPACT list that lacks some chroms in the maf file
+        Use tiny dummy maf and IMPACT gene list files
         """
         maf_lines = [
             ['Hugo_Symbol'],
@@ -48,6 +48,45 @@ class TestInImpactScript(unittest.TestCase):
             expected_mutations = [
                 {'Hugo_Symbol': 'SUFU', 'is_in_impact': 'True'},
                 {'Hugo_Symbol': 'GOT1', 'is_in_impact': 'False'}
+                ]
+
+            self.assertEqual(mutations, expected_mutations)
+
+
+    def test_is_in_impact_1(self):
+        """
+        Test that maf entries are flagged if they are in the IMPACT set
+        Use tiny dummy maf and IMPACT gene list files
+        """
+        maf_lines = [
+            ['Hugo_Symbol'],
+            ['SUFU'],
+            ['GOT1'],
+            ['EGFR'],
+            ['SOX9'],
+        ]
+        impact_lines = [
+            ['SUFU'],
+            ['SOX9']
+        ]
+
+        # run the script in a temporary directory
+        with TemporaryDirectory() as tmpdir:
+            input_maf_file = write_table(tmpdir = tmpdir, filename = 'input.maf', lines = maf_lines)
+            impact_file = write_table(tmpdir = tmpdir, filename = 'IMPACT.txt', lines = impact_lines)
+            output_file = os.path.join(tmpdir, "output.txt")
+
+            # command line arguments to run script
+            command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file ]
+            returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
+
+            # TODO: get this test case to work and validate output
+            comments, mutations = load_mutations(output_file)
+            expected_mutations = [
+                {'Hugo_Symbol': 'SUFU', 'is_in_impact': 'True'},
+                {'Hugo_Symbol': 'GOT1', 'is_in_impact': 'False'},
+                {'Hugo_Symbol': 'EGFR', 'is_in_impact': 'False'},
+                {'Hugo_Symbol': 'SOX9', 'is_in_impact': 'True'}
                 ]
 
             self.assertEqual(mutations, expected_mutations)
