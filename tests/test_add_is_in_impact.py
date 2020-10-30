@@ -160,6 +160,48 @@ class TestInImpactScript(unittest.TestCase):
 
             self.assertEqual(mutations, expected_mutations)
 
+    def test_is_in_impact_assay_labels_in_output(self):
+        """
+        Test case for including assay labels in the IMPACT gene list file
+        Also include the assay labels in the output
+        """
+        self.maxDiff = None
+        impact_lines = [
+            ['SUFU', 'IMPACT468'], # same gene, multiple assays
+            ['SUFU', 'IMPACT505'],
+            ['TP53', 'IMPACT505'],
+            ['TP53', 'IMPACT468'],
+            ['SOX9', 'IMPACT468'], # only one assay
+        ]
+        maf_lines = [
+            ['Hugo_Symbol'],
+            ['SUFU'],
+            ['GOT1'], # not in the IMPACT list
+            ['EGFR'],  # not in the IMPACT list
+            ['TP53'],
+            ['SOX9'],
+        ]
+        with TemporaryDirectory() as tmpdir:
+            input_maf_file = write_table(tmpdir = tmpdir, filename = 'input.maf', lines = maf_lines)
+            impact_file = write_table(tmpdir = tmpdir, filename = 'IMPACT.txt', lines = impact_lines)
+            output_file = os.path.join(tmpdir, "output.txt")
+
+            # command line arguments to run script
+            command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file, '--include-assay' ]
+            returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
+
+            # TODO: get this test case to work and validate output
+            comments, mutations = load_mutations(output_file)
+            expected_mutations = [
+                {'Hugo_Symbol': 'SUFU', 'is_in_impact': 'True', 'impact_assays': 'IMPACT468,IMPACT505'},
+                {'Hugo_Symbol': 'GOT1', 'is_in_impact': 'False', 'impact_assays': '.'},
+                {'Hugo_Symbol': 'EGFR', 'is_in_impact': 'False', 'impact_assays': '.'},
+                {'Hugo_Symbol': 'TP53', 'is_in_impact': 'True', 'impact_assays': 'IMPACT468,IMPACT505'},
+                {'Hugo_Symbol': 'SOX9', 'is_in_impact': 'True', 'impact_assays': 'IMPACT468'}
+                ]
+
+            self.assertEqual(mutations, expected_mutations)
+
 # TODO: restore this test case once we have the actual IMPACT gene list file
 #    def test_is_in_impact_with_targets(self):
 #        """

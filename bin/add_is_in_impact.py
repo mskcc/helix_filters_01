@@ -8,13 +8,42 @@ def load_IMPACT_data(filename, delimiter = '\t'):
     TODO: Gene,panel
           TP53, Impact468
     """
+    genes = {}
     with open(filename) as f:
         # read the gene from the value in the first column in the file
-        genes = set([ line.split(delimiter)[0].strip() for line in f ])
+        for line in f:
+            parts = line.split(delimiter)
+            gene_label = parts[0].strip()
+
+            # initialize set of assays so we dont accumulate duplicates
+            if gene_label not in genes:
+                genes[gene_label] = set()
+
+            if len(parts) > 1: # line has gene and assay label
+                assay_label = parts[1].strip()
+                genes[gene_label].add(assay_label)
+            else:
+                genes[gene_label].add('')
     return(genes)
 
-def is_in_IMPACT(gene,IMPACT_genes_l):
-    return(gene in IMPACT_genes_l)
+def is_in_IMPACT(gene, IMPACT_genes_l, NA_str = '.'):
+    """
+    Check if the gene is in the IMPACT gene set
+
+    IMPACT_genes_l is a dict of sets;
+
+    {
+    'TP53': set(['IMPACT505', 'Impact468']),
+    }
+    """
+    present_in_set = False # start false by default
+    assays = NA_str # default value for no assay's present
+
+    present_in_set = gene in IMPACT_genes_l
+
+    if present_in_set:
+        assays = ','.join(sorted(IMPACT_genes_l[gene])) # comma-delimited string of all the assays for the gene
+    return(present_in_set, assays)
 
 
 def parse_CLI_args():
@@ -26,6 +55,7 @@ def parse_CLI_args():
     parser.add_argument('--input_file',    dest = 'input_file',          required = True,                     help='Input maf filename')
     parser.add_argument('--output_file',   dest = 'output_file',         required = False, default='default', help='Output maf filename')
     parser.add_argument('--IMPACT_file',   dest = 'IMPACT_genes_files', required = True,                     help='IMPACT file to use')
+    parser.add_argument('--include-assay', dest = 'include_assay', action="store_true", help='Include the assay labels for matches (IMPACT file must have assay labels in second column)')
 
     args = parser.parse_args()
 
@@ -37,6 +67,7 @@ def parse_CLI_args():
 
 def main():
     args=parse_CLI_args()
+    include_assay = args.include_assay # store_true; False by default
 
     IMPACT_genes_l=load_IMPACT_data(args.IMPACT_genes_files)
 
@@ -54,8 +85,13 @@ def main():
         reader = csv.DictReader(fin, delimiter = '\t')
         fieldnames = reader.fieldnames
         fieldnames.append('is_in_impact')
+        if include_assay:
+            fieldnames.append('impact_assays')
         for row in reader:
-            row['is_in_impact']=is_in_IMPACT(row['Hugo_Symbol'],IMPACT_genes_l)
+            present_in_set, assays = is_in_IMPACT(row['Hugo_Symbol'],IMPACT_genes_l)
+            row['is_in_impact'] = present_in_set
+            if include_assay:
+                row['impact_assays'] = assays
             is_in_impact_added_output.append(row)
 
     # write analysis files
