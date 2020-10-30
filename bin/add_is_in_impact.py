@@ -2,14 +2,15 @@
 import argparse,csv
 from cBioPortal_utils import parse_header_comments
 
-def load_IMPACT_data(filename):
+def load_IMPACT_data(filename, delimiter = '\t'):
     """
     load the IMPACT genes from a file
     TODO: Gene,panel
           TP53, Impact468
     """
     with open(filename) as f:
-        genes = set([ line.strip() for line in f ])
+        # read the gene from the value in the first column in the file
+        genes = set([ line.split(delimiter)[0].strip() for line in f ])
     return(genes)
 
 def is_in_IMPACT(gene,IMPACT_genes_l):
