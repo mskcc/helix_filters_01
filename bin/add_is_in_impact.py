@@ -4,31 +4,15 @@ from cBioPortal_utils import parse_header_comments
 
 def load_IMPACT_data(filename):
     """
-    load the regions from the IMPACT targets file into a dict of type
-    { chrom: [1, 2, ..., n], ... }
-    for each Chromosome and all covered positions in the file
+    load the IMPACT genes from a file
+    TODO: Gene,panel
+          TP53, Impact468
     """
-    d={}
-    with open(filename,'r') as f:
-        for line in f:
-            if not line.startswith('@'): # skip header lines in the file
-                line=line.rstrip().split()
-                chr=line[0]
-                spos=int(line[1])
-                epos=int(line[2])
-                range_l=range(spos,epos+1) # expand the start and stop positions into a list of ints for each position
-                if chr not in d:
-                    d[chr]=[] # each chrom starts with a list to hold values
-                d[chr]+=range_l # append new range values to the chrom position entries list
-    return d
 
-def is_in_IMPACT(chr,pos,IMPACT_d):
-    position_present = False # start False by default
-    try:
-        position_present = str(pos in IMPACT_d[chr])
-    except KeyError: # chrom not in the IMPACT list
-        pass # do nothing because False is the default value
-    return(position_present)
+    return ['TP53','SUFU']
+
+def is_in_IMPACT(gene,IMPACT_genes_l):
+    return(gene in IMPACT_genes_l)
 
 
 def parse_CLI_args():
@@ -39,7 +23,7 @@ def parse_CLI_args():
     parser = argparse.ArgumentParser(description = 'Script for adding if mutation is in IMPACT panel')
     parser.add_argument('--input_file',    dest = 'input_file',          required = True,                     help='Input maf filename')
     parser.add_argument('--output_file',   dest = 'output_file',         required = False, default='default', help='Output maf filename')
-    parser.add_argument('--IMPACT_file',   dest = 'IMPACT_target_files', required = True,                     help='IMPACT file to use')
+    parser.add_argument('--IMPACT_file',   dest = 'IMPACT_genes_files', required = True,                     help='IMPACT file to use')
 
     args = parser.parse_args()
 
@@ -52,7 +36,7 @@ def parse_CLI_args():
 def main():
     args=parse_CLI_args()
 
-    IMPACT_d=load_IMPACT_data(args.IMPACT_target_files)
+    IMPACT_genes_l=load_IMPACT_data(args.IMPACT_genes_files)
 
     # get the comments from the file and find the beginning of the table header
     comments, start_line = parse_header_comments(args.input_file)
@@ -69,7 +53,7 @@ def main():
         fieldnames = reader.fieldnames
         fieldnames.append('is_in_impact')
         for row in reader:
-            row['is_in_impact']=is_in_IMPACT(row['Chromosome'],int(row['Start_Position']),IMPACT_d)
+            row['is_in_impact']=is_in_IMPACT(row['Hugo_Symbol'],IMPACT_genes_l)
             is_in_impact_added_output.append(row)
 
     # write analysis files

@@ -24,7 +24,7 @@ class TestInImpactScript(unittest.TestCase):
         This test case handles the usage of an IMPACT list that lacks some chroms in the maf file
         """
         maf_lines = [
-            #['Gene', 'Start_Position'],
+            ['Hugo_Symbol'],
             ['SUFU'],
             ['GOT1']
         ]
@@ -47,9 +47,7 @@ class TestInImpactScript(unittest.TestCase):
             comments, mutations = load_mutations(output_file)
             expected_mutations = [
                 {'Hugo_Symbol': 'SUFU', 'is_in_impact': 'True'},
-                {'Hugo_Symbol': 'TP53', 'is_in_impact': 'True'},
-                {'Hugo_Symbol': 'GOT1', 'is_in_impact': 'False'},
-                {'Hugo_Symbol': 'HPSE2', 'is_in_impact': 'False'},
+                {'Hugo_Symbol': 'GOT1', 'is_in_impact': 'False'}
                 ]
 
             self.assertEqual(mutations, expected_mutations)
@@ -59,7 +57,7 @@ class TestInImpactScript(unittest.TestCase):
         Test case with a larger IMPACT list that includes all chrom in the maf file
         """
         maf_lines = [
-            #['Gene', 'Start_Position'],
+            ['Hugo_Symbol'],
             ['SUFU'],
             ['GOT1']
         ]
@@ -79,9 +77,7 @@ class TestInImpactScript(unittest.TestCase):
             comments, mutations = load_mutations(output_file)
             expected_mutations = [
                 {'Hugo_Symbol': 'SUFU', 'is_in_impact': 'True'},
-                {'Hugo_Symbol': 'TP53', 'is_in_impact': 'True'},
-                {'Hugo_Symbol': 'GOT1', 'is_in_impact': 'False'},
-                {'Hugo_Symbol': 'HPSE2', 'is_in_impact': 'False'},
+                {'Hugo_Symbol': 'GOT1', 'is_in_impact': 'False'}
                 ]
 
             self.assertEqual(mutations, expected_mutations)
