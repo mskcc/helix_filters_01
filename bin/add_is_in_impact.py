@@ -8,8 +8,9 @@ def load_IMPACT_data(filename):
     TODO: Gene,panel
           TP53, Impact468
     """
-
-    return ['TP53','SUFU']
+    with open(filename) as f:
+        genes = set([ line.strip() for line in f ])
+    return(genes)
 
 def is_in_IMPACT(gene,IMPACT_genes_l):
     return(gene in IMPACT_genes_l)
