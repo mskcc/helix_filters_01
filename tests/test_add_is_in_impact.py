@@ -59,15 +59,13 @@ class TestInImpactScript(unittest.TestCase):
         Test case with a larger IMPACT list that includes all chrom in the maf file
         """
         maf_lines = [
-            ['Chromosome', 'Start_Position'],
-            ['1', '100'],
-            ['2', '200'],
-            ['3', '300']
+            #['Gene', 'Start_Position'],
+            ['SUFU'],
+            ['GOT1']
         ]
         impact_lines = [
-            ['1', '50', '150'], # chrom, start, stop
-            ['2', '50', '150'],
-            ['3', '50', '150'],
+            ['SUFU'],
+            ['TP53']
         ]
         with TemporaryDirectory() as tmpdir:
             input_maf_file = write_table(tmpdir = tmpdir, filename = 'input.maf', lines = maf_lines)
