@@ -54,7 +54,7 @@ class TestInImpactScript(unittest.TestCase):
 
     def test_is_in_impact_1(self):
         """
-        Test case with a larger IMPACT list that includes all chrom in the maf file
+        Test case with a larger IMPACT list that includes all chrom in the maf file.
         """
         maf_lines = [
             ['Hugo_Symbol'],
