@@ -21,17 +21,16 @@ class TestInImpactScript(unittest.TestCase):
     def test_is_in_impact_0(self):
         """
         Test that maf entries are flagged if they are in the IMPACT set
-        This test case handles the usage of an IMPACT list that lacks some chroms in the maf file
+        Use tiny dummy maf and IMPACT gene list files
         """
         maf_lines = [
-            ['Chromosome', 'Start_Position'],
-            ['1', '100'],
-            ['2', '200'],
-            ['3', '300'],
-            ['4', '400']
+            ['Hugo_Symbol'],
+            ['SUFU'],
+            ['GOT1']
         ]
         impact_lines = [
-            ['1', '50', '150'] # chrom, start, stop
+            ['SUFU'],
+            ['TP53']
         ]
 
         # run the script in a temporary directory
@@ -47,28 +46,98 @@ class TestInImpactScript(unittest.TestCase):
             # TODO: get this test case to work and validate output
             comments, mutations = load_mutations(output_file)
             expected_mutations = [
-                {'Chromosome': '1', 'Start_Position': '100', 'is_in_impact': 'True'},
-                {'Chromosome': '2', 'Start_Position': '200', 'is_in_impact': 'False'},
-                {'Chromosome': '3', 'Start_Position': '300', 'is_in_impact': 'False'},
-                {'Chromosome': '4', 'Start_Position': '400', 'is_in_impact': 'False'}
+                {'Hugo_Symbol': 'SUFU', 'is_in_impact': 'True'},
+                {'Hugo_Symbol': 'GOT1', 'is_in_impact': 'False'}
                 ]
 
             self.assertEqual(mutations, expected_mutations)
 
+
     def test_is_in_impact_1(self):
         """
-        Test case with a larger IMPACT list that includes all chrom in the maf file
+        Test that maf entries are flagged if they are in the IMPACT set
+        Use tiny dummy maf and IMPACT gene list files
         """
         maf_lines = [
-            ['Chromosome', 'Start_Position'],
-            ['1', '100'],
-            ['2', '200'],
-            ['3', '300']
+            ['Hugo_Symbol'],
+            ['SUFU'],
+            ['GOT1'],
+            ['EGFR'],
+            ['SOX9'],
         ]
         impact_lines = [
-            ['1', '50', '150'], # chrom, start, stop
-            ['2', '50', '150'],
-            ['3', '50', '150'],
+            ['SUFU'],
+            ['SOX9']
+        ]
+
+        # run the script in a temporary directory
+        with TemporaryDirectory() as tmpdir:
+            input_maf_file = write_table(tmpdir = tmpdir, filename = 'input.maf', lines = maf_lines)
+            impact_file = write_table(tmpdir = tmpdir, filename = 'IMPACT.txt', lines = impact_lines)
+            output_file = os.path.join(tmpdir, "output.txt")
+
+            # command line arguments to run script
+            command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file ]
+            returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
+
+            # TODO: get this test case to work and validate output
+            comments, mutations = load_mutations(output_file)
+            expected_mutations = [
+                {'Hugo_Symbol': 'SUFU', 'is_in_impact': 'True'},
+                {'Hugo_Symbol': 'GOT1', 'is_in_impact': 'False'},
+                {'Hugo_Symbol': 'EGFR', 'is_in_impact': 'False'},
+                {'Hugo_Symbol': 'SOX9', 'is_in_impact': 'True'}
+                ]
+
+            self.assertEqual(mutations, expected_mutations)
+
+    def test_is_in_impact_full_maf(self):
+       """
+       Test IMPACT script with full size maf file
+       """
+       input_maf_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'Sample1.Sample2.muts.maf')
+       impact_lines = [
+           ['SUFU'],
+           ['TP53']
+       ]
+       with TemporaryDirectory() as tmpdir:
+           output_file = os.path.join(tmpdir, "output.txt")
+           impact_file = write_table(tmpdir = tmpdir, filename = 'IMPACT.txt', lines = impact_lines)
+           command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file ]
+           returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
+
+           # validate output mutations
+           comments, mutations = load_mutations(output_file)
+           self.assertEqual(len(mutations), 12514)
+           num_True = 0
+           num_False = 0
+           for mut in mutations:
+               if mut['is_in_impact'] == 'True':
+                   num_True += 1
+               elif mut['is_in_impact'] == 'False':
+                   num_False += 1
+           self.assertEqual(num_True, 56)
+           self.assertEqual(num_False, 12458)
+
+    def test_is_in_impact_assay_labels(self):
+        """
+        Test case for including assay labels in the IMPACT gene list file
+        """
+        self.maxDiff = None
+        impact_lines = [
+            ['SUFU', 'IMPACT468'], # same gene, multiple assays
+            ['SUFU', 'IMPACT505'],
+            ['TP53', 'IMPACT505'],
+            ['TP53', 'IMPACT468'],
+            ['SOX9', 'IMPACT468'], # only one assay
+        ]
+        maf_lines = [
+            ['Hugo_Symbol'],
+            ['SUFU'],
+            ['GOT1'], # not in the IMPACT list
+            ['EGFR'],  # not in the IMPACT list
+            ['TP53'],
+            ['SOX9'],
         ]
         with TemporaryDirectory() as tmpdir:
             input_maf_file = write_table(tmpdir = tmpdir, filename = 'input.maf', lines = maf_lines)
@@ -79,66 +148,84 @@ class TestInImpactScript(unittest.TestCase):
             command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file ]
             returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
 
+            # TODO: get this test case to work and validate output
             comments, mutations = load_mutations(output_file)
             expected_mutations = [
-                {'Chromosome': '1', 'Start_Position': '100', 'is_in_impact': 'True'},
-                {'Chromosome': '2', 'Start_Position': '200', 'is_in_impact': 'False'},
-                {'Chromosome': '3', 'Start_Position': '300', 'is_in_impact': 'False'}]
+                {'Hugo_Symbol': 'SUFU', 'is_in_impact': 'True'},
+                {'Hugo_Symbol': 'GOT1', 'is_in_impact': 'False'},
+                {'Hugo_Symbol': 'EGFR', 'is_in_impact': 'False'},
+                {'Hugo_Symbol': 'TP53', 'is_in_impact': 'True'},
+                {'Hugo_Symbol': 'SOX9', 'is_in_impact': 'True'}
+                ]
 
             self.assertEqual(mutations, expected_mutations)
 
-    def test_is_in_impact_3(self):
+    def test_is_in_impact_assay_labels_in_output(self):
         """
-        Test IMPACT script with full size maf file
+        Test case for including assay labels in the IMPACT gene list file
+        Also include the assay labels in the output
         """
-        input_maf_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'Sample1.Sample2.muts.maf')
+        self.maxDiff = None
         impact_lines = [
-            ['10', '100945885', '100945888'], # chrom, start, stop
-            ['X', '9577377', '9577379'],
-            ['9', '87476723', '87476725'],
+            ['SUFU', 'IMPACT468'], # same gene, multiple assays
+            ['SUFU', 'IMPACT505'],
+            ['TP53', 'IMPACT505'],
+            ['TP53', 'IMPACT468'],
+            ['SOX9', 'IMPACT468'], # only one assay
+        ]
+        maf_lines = [
+            ['Hugo_Symbol'],
+            ['SUFU'],
+            ['GOT1'], # not in the IMPACT list
+            ['EGFR'],  # not in the IMPACT list
+            ['TP53'],
+            ['SOX9'],
         ]
         with TemporaryDirectory() as tmpdir:
-            output_file = os.path.join(tmpdir, "output.txt")
+            input_maf_file = write_table(tmpdir = tmpdir, filename = 'input.maf', lines = maf_lines)
             impact_file = write_table(tmpdir = tmpdir, filename = 'IMPACT.txt', lines = impact_lines)
-            command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file ]
-            returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
-
-            # validate output mutations
-            comments, mutations = load_mutations(output_file)
-            self.assertEqual(len(mutations), 12514)
-            num_True = 0
-            num_False = 0
-            for mut in mutations:
-                if mut['is_in_impact'] == 'True':
-                    num_True += 1
-                elif mut['is_in_impact'] == 'False':
-                    num_False += 1
-            self.assertEqual(num_True, 3)
-            self.assertEqual(num_False, 12511)
-
-    def test_is_in_impact_with_targets(self):
-        """
-        Test IMPACT script with full size maf file and real targets file
-        """
-        input_maf_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'Sample1.Sample2.muts.maf')
-        impact_file = TARGETS['IMPACT468_b37']['targets_list']
-        with TemporaryDirectory() as tmpdir:
             output_file = os.path.join(tmpdir, "output.txt")
-            command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file ]
+
+            # command line arguments to run script
+            command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file, '--include-assay' ]
             returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
 
-            # validate output mutations
+            # TODO: get this test case to work and validate output
             comments, mutations = load_mutations(output_file)
-            self.assertEqual(len(mutations), 12514)
-            num_True = 0
-            num_False = 0
-            for mut in mutations:
-                if mut['is_in_impact'] == 'True':
-                    num_True += 1
-                elif mut['is_in_impact'] == 'False':
-                    num_False += 1
-            self.assertEqual(num_True, 6160)
-            self.assertEqual(num_False, 6354)
+            expected_mutations = [
+                {'Hugo_Symbol': 'SUFU', 'is_in_impact': 'True', 'impact_assays': 'IMPACT468,IMPACT505'},
+                {'Hugo_Symbol': 'GOT1', 'is_in_impact': 'False', 'impact_assays': '.'},
+                {'Hugo_Symbol': 'EGFR', 'is_in_impact': 'False', 'impact_assays': '.'},
+                {'Hugo_Symbol': 'TP53', 'is_in_impact': 'True', 'impact_assays': 'IMPACT468,IMPACT505'},
+                {'Hugo_Symbol': 'SOX9', 'is_in_impact': 'True', 'impact_assays': 'IMPACT468'}
+                ]
+
+            self.assertEqual(mutations, expected_mutations)
+
+# TODO: restore this test case once we have the actual IMPACT gene list file
+#    def test_is_in_impact_with_targets(self):
+#        """
+#        Test IMPACT script with full size maf file and real targets file
+#        """
+#        input_maf_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'Sample1.Sample2.muts.maf')
+#        impact_file = TARGETS['IMPACT468_b37']['targets_list']
+#        with TemporaryDirectory() as tmpdir:
+#            output_file = os.path.join(tmpdir, "output.txt")
+#            command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file ]
+#            returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
+#
+#            # validate output mutations
+#            comments, mutations = load_mutations(output_file)
+#            self.assertEqual(len(mutations), 12514)
+#            num_True = 0
+#            num_False = 0
+#            for mut in mutations:
+#                if mut['is_in_impact'] == 'True':
+#                    num_True += 1
+#                elif mut['is_in_impact'] == 'False':
+#                    num_False += 1
+#            self.assertEqual(num_True, 6160)
+#            self.assertEqual(num_False, 6354)
 
 
 # run the test suite from the command line

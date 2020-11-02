@@ -2,33 +2,48 @@
 import argparse,csv
 from cBioPortal_utils import parse_header_comments
 
-def load_IMPACT_data(filename):
+def load_IMPACT_data(filename, delimiter = '\t'):
     """
-    load the regions from the IMPACT targets file into a dict of type
-    { chrom: [1, 2, ..., n], ... }
-    for each Chromosome and all covered positions in the file
+    load the IMPACT genes from a file
+    TODO: Gene,panel
+          TP53, Impact468
     """
-    d={}
-    with open(filename,'r') as f:
+    genes = {}
+    with open(filename) as f:
+        # read the gene from the value in the first column in the file
         for line in f:
-            if not line.startswith('@'): # skip header lines in the file
-                line=line.rstrip().split()
-                chr=line[0]
-                spos=int(line[1])
-                epos=int(line[2])
-                range_l=range(spos,epos+1) # expand the start and stop positions into a list of ints for each position
-                if chr not in d:
-                    d[chr]=[] # each chrom starts with a list to hold values
-                d[chr]+=range_l # append new range values to the chrom position entries list
-    return d
+            parts = line.split(delimiter)
+            gene_label = parts[0].strip()
 
-def is_in_IMPACT(chr,pos,IMPACT_d):
-    position_present = False # start False by default
-    try:
-        position_present = str(pos in IMPACT_d[chr])
-    except KeyError: # chrom not in the IMPACT list
-        pass # do nothing because False is the default value
-    return(position_present)
+            # initialize set of assays so we dont accumulate duplicates
+            if gene_label not in genes:
+                genes[gene_label] = set()
+
+            if len(parts) > 1: # line has gene and assay label
+                assay_label = parts[1].strip()
+                genes[gene_label].add(assay_label)
+            else:
+                genes[gene_label].add('')
+    return(genes)
+
+def is_in_IMPACT(gene, IMPACT_genes_l, NA_str = '.'):
+    """
+    Check if the gene is in the IMPACT gene set
+
+    IMPACT_genes_l is a dict of sets;
+
+    {
+    'TP53': set(['IMPACT505', 'Impact468']),
+    }
+    """
+    present_in_set = False # start false by default
+    assays = NA_str # default value for no assay's present
+
+    present_in_set = gene in IMPACT_genes_l
+
+    if present_in_set:
+        assays = ','.join(sorted(IMPACT_genes_l[gene])) # comma-delimited string of all the assays for the gene
+    return(present_in_set, assays)
 
 
 def parse_CLI_args():
@@ -39,7 +54,8 @@ def parse_CLI_args():
     parser = argparse.ArgumentParser(description = 'Script for adding if mutation is in IMPACT panel')
     parser.add_argument('--input_file',    dest = 'input_file',          required = True,                     help='Input maf filename')
     parser.add_argument('--output_file',   dest = 'output_file',         required = False, default='default', help='Output maf filename')
-    parser.add_argument('--IMPACT_file',   dest = 'IMPACT_target_files', required = True,                     help='IMPACT file to use')
+    parser.add_argument('--IMPACT_file',   dest = 'IMPACT_genes_files', required = True,                     help='IMPACT file to use')
+    parser.add_argument('--include-assay', dest = 'include_assay', action="store_true", help='Include the assay labels for matches (IMPACT file must have assay labels in second column)')
 
     args = parser.parse_args()
 
@@ -51,8 +67,9 @@ def parse_CLI_args():
 
 def main():
     args=parse_CLI_args()
+    include_assay = args.include_assay # store_true; False by default
 
-    IMPACT_d=load_IMPACT_data(args.IMPACT_target_files)
+    IMPACT_genes_l=load_IMPACT_data(args.IMPACT_genes_files)
 
     # get the comments from the file and find the beginning of the table header
     comments, start_line = parse_header_comments(args.input_file)
@@ -68,8 +85,13 @@ def main():
         reader = csv.DictReader(fin, delimiter = '\t')
         fieldnames = reader.fieldnames
         fieldnames.append('is_in_impact')
+        if include_assay:
+            fieldnames.append('impact_assays')
         for row in reader:
-            row['is_in_impact']=is_in_IMPACT(row['Chromosome'],int(row['Start_Position']),IMPACT_d)
+            present_in_set, assays = is_in_IMPACT(row['Hugo_Symbol'],IMPACT_genes_l)
+            row['is_in_impact'] = present_in_set
+            if include_assay:
+                row['impact_assays'] = assays
             is_in_impact_added_output.append(row)
 
     # write analysis files
