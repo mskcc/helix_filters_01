@@ -43,7 +43,6 @@ class TestInImpactScript(unittest.TestCase):
             command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file ]
             returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
 
-            # TODO: get this test case to work and validate output
             comments, mutations = load_mutations(output_file)
             expected_mutations = [
                 {'Hugo_Symbol': 'SUFU', 'is_in_impact': 'True'},
@@ -80,7 +79,6 @@ class TestInImpactScript(unittest.TestCase):
             command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file ]
             returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
 
-            # TODO: get this test case to work and validate output
             comments, mutations = load_mutations(output_file)
             expected_mutations = [
                 {'Hugo_Symbol': 'SUFU', 'is_in_impact': 'True'},
@@ -148,7 +146,6 @@ class TestInImpactScript(unittest.TestCase):
             command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file ]
             returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
 
-            # TODO: get this test case to work and validate output
             comments, mutations = load_mutations(output_file)
             expected_mutations = [
                 {'Hugo_Symbol': 'SUFU', 'is_in_impact': 'True'},
@@ -190,7 +187,6 @@ class TestInImpactScript(unittest.TestCase):
             command = [ impact_script, '--input_file', input_maf_file, '--output_file', output_file, '--IMPACT_file', impact_file, '--include-assay' ]
             returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
 
-            # TODO: get this test case to work and validate output
             comments, mutations = load_mutations(output_file)
             expected_mutations = [
                 {'Hugo_Symbol': 'SUFU', 'is_in_impact': 'True', 'impact_assays': 'IMPACT468,IMPACT505'},

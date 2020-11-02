@@ -18,6 +18,11 @@ def run_command(args, testcase = None, validate = False, print_stdout = False):
         whether to check that the exit code was 0; requires `testcase`
     testcase: unittest.TestCase
         a test case instance for making assertions
+
+    Usage
+    ------
+        command = [ "foo.py", "arg1", "arg2" ]
+        returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
     """
     process = sp.Popen(args, stdout = sp.PIPE, stderr = sp.PIPE, universal_newlines = True)
     proc_stdout, proc_stderr = process.communicate()
