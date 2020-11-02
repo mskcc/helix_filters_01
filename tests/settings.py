@@ -26,6 +26,7 @@ IS_IMPACT = os.environ.get('IS_IMPACT', "True") # TODO: deprecate this
 PORTAL_FILE = os.environ.get('PORTAL_FILE', 'data_mutations_extended.txt') # TODO: deprecate this
 PORTAL_CNA_FILE = os.environ.get('PORTAL_CNA_FILE', 'data_CNA.txt') # TODO: deprecate this
 
+IMPACT_GENE_LIST = '/juno/work/ci/helix_filters_01/reference_data/gene_lists/all_IMPACT_genes.tsv'
 
 DATA_SETS = {
     "Proj_08390_G": {
