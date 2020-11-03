@@ -391,3 +391,24 @@ def parse_header_comments(filename):
                 comments.append(line.strip())
                 start_line += 1
     return(comments, start_line)
+
+class MafReader(object):
+    """
+    Handler for reading a maf file to reduce duplicate code
+    """
+    def __init__(self, filename):
+        self.filename = filename
+        # get the comments from the file and find the beginning of the table header
+        self.comments, self.start_line = parse_header_comments(filename)
+        self.comment_lines = [ c + '\n' for c in self.comments ]
+
+    def read(self):
+        start_line = self.start_line
+        with open(self.filename,'r') as fin:
+            # skip comment lines
+            while start_line > 0:
+                next(fin)
+                start_line -= 1
+            reader = csv.DictReader(fin, delimiter = '\t')
+            for row in reader:
+                yield(row)

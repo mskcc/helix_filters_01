@@ -11,9 +11,11 @@ from tempfile import TemporaryDirectory
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
     from .settings import DATA_SETS
+    from .tools import write_table
 
 if __name__ == "__main__":
     from settings import DATA_SETS
+    from tools import write_table
 
 # need to import the module from the other dir
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -25,6 +27,7 @@ from bin.cBioPortal_utils import update_sample_data
 from bin.cBioPortal_utils import parse_facets_data
 from bin.cBioPortal_utils import parse_header_comments
 from bin.cBioPortal_utils import load_facets_data
+from bin.cBioPortal_utils import MafReader
 sys.path.pop(0)
 
 class TestCBioUtils(unittest.TestCase):
@@ -434,6 +437,32 @@ class TestCBioUtils(unittest.TestCase):
             }
         self.assertDictEqual(facets_data, expected_data)
 
+
+
+class TestMafReader(unittest.TestCase):
+    def test_maf_reader(self):
+        maf_lines = [
+            ['# comment 1'],
+            ['# comment 2'],
+            ['Hugo_Symbol'],
+            ['SUFU'],
+            ['GOT1']
+        ]
+        with TemporaryDirectory() as tmpdir:
+            input_maf_file = write_table(tmpdir = tmpdir, filename = 'input.maf', lines = maf_lines)
+            maf_reader = MafReader(input_maf_file)
+
+            comments = maf_reader.comments
+            expected_comments = ['# comment 1', '# comment 2']
+            self.assertEqual(comments, expected_comments)
+
+            comment_lines = maf_reader.comment_lines
+            expected_comment_lines = ['# comment 1\n', '# comment 2\n']
+            self.assertEqual(comment_lines, expected_comment_lines)
+
+            mutations = [ mut for mut in maf_reader.read() ]
+            expected_mutations = [{'Hugo_Symbol': 'SUFU'} , {'Hugo_Symbol': 'GOT1'}]
+            self.assertEqual(mutations, expected_mutations)
 
 
 
