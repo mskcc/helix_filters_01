@@ -60,7 +60,10 @@ cols_to_keep = set([
 "t_alt_count",
 "n_depth",
 "n_ref_count",
-"n_alt_count"
+"n_alt_count",
+"t_af", # added by the add_af.py script
+"is_in_impact", # added by the add_is_in_impact.py script
+"impact_assays"
 ])
 
 def main(input_file, output_file):
