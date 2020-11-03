@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import argparse,csv
-from cBioPortal_utils import MafReader# parse_header_comments,
+from cBioPortal_utils import MafReader
 
 def load_IMPACT_data(filename, delimiter = '\t'):
     """
