@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 import argparse,csv
-from cBioPortal_utils import parse_header_comments
+from cBioPortal_utils import MafReader
 
 def load_IMPACT_data(filename, delimiter = '\t'):
     """
     load the IMPACT genes from a file
-    TODO: Gene,panel
-          TP53, Impact468
+
+    file format;
+        <gene_label>\t<assay_label>
+        TP53\tImpact468
     """
     genes = {}
     with open(filename) as f:
@@ -71,38 +73,41 @@ def main():
 
     IMPACT_genes_l=load_IMPACT_data(args.IMPACT_genes_files)
 
-    # get the comments from the file and find the beginning of the table header
-    comments, start_line = parse_header_comments(args.input_file)
-    comments_lines = [ c + '\n' for c in comments ]
-
     is_in_impact_added_output=[]
-    with open(args.input_file,'r') as fin:
-        # skip comment lines
-        while start_line > 0:
-            next(fin)
-            start_line -= 1
 
-        reader = csv.DictReader(fin, delimiter = '\t')
-        fieldnames = reader.fieldnames
-        fieldnames.append('is_in_impact')
-        if include_assay:
-            fieldnames.append('impact_assays')
-        for row in reader:
-            present_in_set, assays = is_in_IMPACT(row['Hugo_Symbol'],IMPACT_genes_l)
-            row['is_in_impact'] = present_in_set
-            if include_assay:
-                row['impact_assays'] = assays
-            is_in_impact_added_output.append(row)
+    # parser for the input maf file
+    maf_reader = MafReader(args.input_file)
 
     # write analysis files
     with open(args.output_file,'w') as fout:
-        fout.writelines(comments_lines)
+
+        # load comments and columns labels from the input maf
+        comment_lines = maf_reader.comment_lines
+        fieldnames = maf_reader.get_fieldnames()
+
+        # add the new columns labels for output
+        fieldnames.append('is_in_impact')
+        if include_assay:
+            fieldnames.append('impact_assays')
+
+            # is_in_impact_added_output.append(row)
+
+        # write the comments back to the output
+        fout.writelines(comment_lines)
+
+        # start output csv parser
         # ignore fields not in fieldnames
         # NOTE: csv writer includes carriage returns that we dont want
         # https://stackoverflow.com/questions/3191528/csv-in-python-adding-an-extra-carriage-return-on-windows
         writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = fieldnames, extrasaction = 'ignore', lineterminator='\n')
         writer.writeheader()
-        for row in is_in_impact_added_output:
+
+        # update each input row and write it to output
+        for row in maf_reader.read():
+            present_in_set, assays = is_in_IMPACT(row['Hugo_Symbol'],IMPACT_genes_l)
+            row['is_in_impact'] = present_in_set
+            if include_assay:
+                row['impact_assays'] = assays
             writer.writerow(row)
 
 if __name__ == '__main__':

@@ -8,11 +8,10 @@ import csv
 
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
-    from .cBioPortal_utils import parse_header_comments
+    from .cBioPortal_utils import MafReader
 
 if __name__ == "__main__":
-    from cBioPortal_utils import parse_header_comments
-
+    from cBioPortal_utils import MafReader
 
 # list of column labels that we will preserve in the output; discard any columns not listed here
 # NOTE: set does not preserve order but is faster for lookups
@@ -61,34 +60,33 @@ cols_to_keep = set([
 "t_alt_count",
 "n_depth",
 "n_ref_count",
-"n_alt_count"
+"n_alt_count",
+"t_af", # added by the add_af.py script
+"is_in_impact", # added by the add_is_in_impact.py script
+"impact_assays"
 ])
 
 def main(input_file, output_file):
     """
     Main control function for the script
     """
-    # get the comments from the file and find the beginning of the table header
-    comments, start_line = parse_header_comments(input_file)
-    comments_lines = [ c + '\n' for c in comments ]
+    maf_reader = MafReader(input_file)
+    fieldnames = maf_reader.get_fieldnames()
+    comment_lines = maf_reader.comment_lines
 
-    with open(input_file,'r') as fin, open(output_file, "w") as fout:
-        # skip comment lines
-        while start_line > 0:
-            next(fin)
-            start_line -= 1
+    # only keep a subset of the fieldnames for the shareable output file
+    fieldnames = [ f for f in fieldnames if f in cols_to_keep ]
 
-        reader = csv.DictReader(fin, delimiter = '\t')
-        fieldnames = reader.fieldnames
+    with open(output_file, "w") as fout:
+        # write out the input comments
+        fout.writelines(comment_lines)
 
-        # only keep a subset of the fieldnames for the shareable output file
-        fieldnames = [ f for f in fieldnames if f in cols_to_keep ]
-
-        fout.writelines(comments_lines)
         # ignore fields not in fieldnames
         writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = fieldnames, extrasaction = 'ignore', lineterminator='\n')
         writer.writeheader()
-        for row in reader:
+
+        # write out the input rows
+        for row in maf_reader.read():
             writer.writerow(row)
 
 def parse():

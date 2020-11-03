@@ -391,3 +391,51 @@ def parse_header_comments(filename):
                 comments.append(line.strip())
                 start_line += 1
     return(comments, start_line)
+
+class MafReader(object):
+    """
+    Handler for reading a maf file to reduce duplicate code
+
+    Allows for parsing maf file attributes and rows without loading the whole file into memory
+
+    Usage
+    -----
+    maf_reader = MafReader(input_maf_file)
+    comment_lines = maf_reader.comment_lines
+    fieldnames = maf_reader.get_fieldnames()
+    mutations = [ mut for mut in maf_reader.read() ]
+    """
+    def __init__(self, filename):
+        self.filename = filename
+        # get the comments from the file and find the beginning of the table header
+        self.comments, self.start_line = parse_header_comments(filename)
+        self.comment_lines = [ c + '\n' for c in self.comments ]
+
+    def get_reader(self, fin):
+        """
+        returns the csv.DictReader for the maf variant rows
+        """
+        start_line = self.start_line
+        # skip comment lines
+        while start_line > 0:
+            next(fin)
+            start_line -= 1
+        reader = csv.DictReader(fin, delimiter = '\t')
+        return(reader)
+
+    def get_fieldnames(self):
+        """
+        returns the list of fieldnames for the maf variant rows
+        """
+        with open(self.filename,'r') as fin:
+            reader = self.get_reader(fin)
+            return(reader.fieldnames)
+
+    def read(self):
+        """
+        iterable to get the maf variant rows from the maf
+        """
+        with open(self.filename,'r') as fin:
+            reader = self.get_reader(fin)
+            for row in reader:
+                yield(row)

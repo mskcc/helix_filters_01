@@ -59,6 +59,42 @@ class TestMafColFilterScript(unittest.TestCase):
 
             self.assertEqual(mutations, expected_mutations)
 
+    def test_maf_col_filter_1(self):
+        """
+        Test maf col filter with extra columns that need to be kept
+        """
+        self.maxDiff = None
+        maf_lines = [
+            ['# comment 1'],
+            ['# comment 2'],
+            ['Hugo_Symbol', 't_depth', 't_alt_count', 't_af', 'is_in_impact', 'impact_assays', 'foo_value'],
+            ['SUFU', '100', '75', '0.75', 'True', '.', 'foo'],
+            ['GOT1', '100', '1', '0.01', 'False', '.', 'bar'],
+            ['SOX9', '100', '0', '0.0', 'True', '.', 'baz'],
+        ]
+
+        # run the script in a temporary directory
+        with TemporaryDirectory() as tmpdir:
+            input_maf_file = write_table(tmpdir = tmpdir, filename = 'input.maf', lines = maf_lines)
+            output_file = os.path.join(tmpdir, "output.txt")
+
+            # command line arguments to run script
+            command = [ test_script, input_maf_file, output_file ]
+            returncode, proc_stdout, proc_stderr = run_command(command, testcase = self, validate = True)
+
+            comments, mutations = load_mutations(output_file)
+
+            expected_comments = ['# comment 1', '# comment 2']
+            self.assertEqual(comments, expected_comments)
+
+            expected_mutations = [
+                {'Hugo_Symbol': 'SUFU', 't_depth': '100', 't_alt_count':'75', 't_af': '0.75', 'is_in_impact': 'True', 'impact_assays': '.'},
+                {'Hugo_Symbol': 'GOT1', 't_depth': '100', 't_alt_count':'1', 't_af': '0.01', 'is_in_impact': 'False', 'impact_assays': '.'},
+                {'Hugo_Symbol': 'SOX9', 't_depth': '100', 't_alt_count':'0', 't_af': '0.0', 'is_in_impact': 'True', 'impact_assays': '.'}
+                ]
+            self.assertEqual(mutations, expected_mutations)
+
+
     def test_maf_col_filter_full(self):
         """
         Test the col filter with a full sized dataset
