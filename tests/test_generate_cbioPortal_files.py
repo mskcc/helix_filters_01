@@ -5,8 +5,6 @@ unit tests for the generation of cBio Portal files
 """
 import sys
 import os
-import csv
-import json
 import unittest
 from tempfile import TemporaryDirectory
 
@@ -23,7 +21,6 @@ if __name__ == "__main__":
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(THIS_DIR)
 sys.path.insert(0, PARENT_DIR)
-from bin.generate_cbioPortal_files import load_clinical_data, load_sample_coverages, header_lines_map
 from bin.generate_cbioPortal_files import generate_portal_data_clinical_patient
 from bin.generate_cbioPortal_files import generate_portal_data_clinical_sample
 from bin.generate_cbioPortal_files import generate_study_meta
