@@ -11,11 +11,11 @@ from tempfile import TemporaryDirectory
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
     from .settings import DATA_SETS, BIN_DIR
-    from .tools import run_command
+    from .tools import run_command, write_table
 
 if __name__ == "__main__":
     from settings import DATA_SETS, BIN_DIR
-    from tools import run_command
+    from tools import run_command, write_table
 
 # need to import the module from the other dir
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -38,6 +38,7 @@ from bin.generate_cbioPortal_files import generate_case_list_sequenced_data
 from bin.generate_cbioPortal_files import get_sample_list
 from bin.generate_cbioPortal_files import generate_meta_segments_data
 from bin.generate_cbioPortal_files import generate_data_clinical_sample_file
+from bin.generate_cbioPortal_files import clean_facets_suite_cna_file
 sys.path.pop(0)
 
 
@@ -633,6 +634,87 @@ class TestGenerateCBioFiles(unittest.TestCase):
         'reference_genome_id': 'hg19'
         }
         self.assertDictEqual(data, expected_data)
+
+    def test_clean_facets_suite_cna_data(self):
+        """
+        Some files output by Facets Suite have '_hisens' appended to the sample IDs, need to test that this gets detected and removed
+
+        affected files;
+
+        portal/data_CNA.txt
+        portal/data_CNA.ascna.txt
+        """
+        # test case with clean headers
+        with TemporaryDirectory() as tmpdir:
+            cna_lines = [
+            ['Hugo_Symbol', 'sample1', 'sample2'],
+            ['ABL1', '3;1', '3;NA']
+            ]
+            input_file = write_table(tmpdir, "data_CNA.txt", cna_lines)
+            output_file = os.path.join(tmpdir, "output.txt")
+            clean_facets_suite_cna_file(input_file = input_file, output_file = output_file)
+            with open(output_file) as fin:
+                lines = [ l for l in fin ]
+            expected_lines = ['Hugo_Symbol\tsample1\tsample2\n', 'ABL1\t3;1\t3;NA\n']
+            self.assertEqual(lines, expected_lines)
+
+        # test case with bad headers
+        with TemporaryDirectory() as tmpdir:
+            cna_lines = [
+            ['Hugo_Symbol', 'sample1_hisens', 'sample2_hisens'],
+            ['ABL1', '3;1', '3;NA']
+            ]
+            input_file = write_table(tmpdir, "data_CNA.txt", cna_lines)
+            output_file = os.path.join(tmpdir, "output.txt")
+            clean_facets_suite_cna_file(input_file = input_file, output_file = output_file)
+            with open(output_file) as fin:
+                lines = [ l for l in fin ]
+            expected_lines = ['Hugo_Symbol\tsample1\tsample2\n', 'ABL1\t3;1\t3;NA\n']
+            self.assertEqual(lines, expected_lines)
+
+        # test case with mixed headers
+        with TemporaryDirectory() as tmpdir:
+            cna_lines = [
+            ['Hugo_Symbol', 'sample1', 'sample2_hisens'],
+            ['ABL1', '3;1', '3;NA']
+            ]
+            input_file = write_table(tmpdir, "data_CNA.txt", cna_lines)
+            output_file = os.path.join(tmpdir, "output.txt")
+            clean_facets_suite_cna_file(input_file = input_file, output_file = output_file)
+            with open(output_file) as fin:
+                lines = [ l for l in fin ]
+            expected_lines = ['Hugo_Symbol\tsample1\tsample2\n', 'ABL1\t3;1\t3;NA\n']
+            self.assertEqual(lines, expected_lines)
+
+        # run it from the command line
+        script = os.path.join(BIN_DIR, 'generate_cbioPortal_files.py')
+        with TemporaryDirectory() as tmpdir:
+            cna_lines = [
+            ['Hugo_Symbol', 'sample1', 'sample2_hisens'],
+            ['ABL1', '3;1', '3;NA']
+            ]
+            input_file = write_table(tmpdir, "data_CNA.txt", cna_lines)
+            output_file = os.path.join(tmpdir, "output.txt")
+
+            command = [
+            script,
+            'clean_cna',
+            '--output', output_file,
+            '--input', input_file
+            ]
+
+            returncode, proc_stdout, proc_stderr = run_command(command)
+
+            if returncode != 0:
+                print(proc_stderr)
+
+            self.assertEqual(returncode, 0)
+
+            with open(output_file) as fin:
+                lines = [ l for l in fin ]
+            expected_lines = ['Hugo_Symbol\tsample1\tsample2\n', 'ABL1\t3;1\t3;NA\n']
+            self.assertEqual(lines, expected_lines)
+
 
 
 

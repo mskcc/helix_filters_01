@@ -429,10 +429,31 @@ def generate_meta_segments_data(cancer_study_identifier, data_filename):
     }
     return(data)
 
+def clean_facets_suite_cna_header(col_labels):
+    """
+    Some files output by Facets Suite have '_hisens' appended to the sample IDs, need to test that this gets detected and removed
+
+    affected files;
+
+    portal/data_CNA.txt
+    portal/data_CNA.ascna.txt
+    """
+    new_labels = []
+    for label in col_labels:
+        if label.endswith('_hisens'):
+            new_label = label.rstrip('_hisens')
+            new_labels.append(new_label)
+        else:
+            new_labels.append(label)
+    return(new_labels)
 
 
 
+#
+#
 # File generation functions
+#
+#
 def generate_meta_segments_data_file(**kwargs):
     """
     """
@@ -711,8 +732,24 @@ def generate_data_clinical_patient_file(**kwargs):
     with open(output, "w") as fout:
         fout.writelines(lines)
 
+def clean_facets_suite_cna_file(**kwargs):
+    """
+    Some files output by Facets Suite have '_hisens' appended to the sample IDs, need to test that this gets detected and removed
 
+    affected files;
 
+    portal/data_CNA.txt
+    portal/data_CNA.ascna.txt
+    """
+    input_file = kwargs.pop('input_file')
+    output_file = kwargs.pop('output_file')
+    with open(input_file) as fin, open(output_file, "w") as fout:
+        header_labels = next(fin).split() # tab delimited
+        clean_header_labels = clean_facets_suite_cna_header(header_labels)
+        clean_header_line = '\t'.join(clean_header_labels) + '\n'
+        fout.write(clean_header_line)
+        for line in fin:
+            fout.write(line)
 
 def main():
     """
@@ -822,6 +859,10 @@ def main():
     meta_segments.add_argument('--segmented-data-file', dest = 'data_filename', required = True, default = '_data_cna_hg19.seg', help = 'Filename of the mutations file')
     meta_segments.set_defaults(func = generate_meta_segments_data_file)
 
+    clean_cna = subparsers.add_parser('clean_cna', help = 'Clean the Facets Suite CNA file')
+    clean_cna.add_argument('--output', dest = 'output_file', required = True, help = 'Name of the output file')
+    clean_cna.add_argument('--input', dest = 'input_file', required = True, help = 'Name of the input file')
+    clean_cna.set_defaults(func = clean_facets_suite_cna_file)
 
 
     args = parser.parse_args()
