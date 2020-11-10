@@ -96,6 +96,7 @@ if __name__ != "__main__":
     from .cBioPortal_utils import sample_data_remove_cols
     from .cBioPortal_utils import facets_data_keep_cols_map
     from .cBioPortal_utils import parse_facets_data
+    from .cBioPortal_utils import MafReader
 
 if __name__ == "__main__":
     from cBioPortal_utils import create_file_lines
@@ -103,6 +104,7 @@ if __name__ == "__main__":
     from cBioPortal_utils import sample_data_remove_cols
     from cBioPortal_utils import facets_data_keep_cols_map
     from cBioPortal_utils import parse_facets_data
+    from cBioPortal_utils import MafReader
 
 # # remove these columns from data_clinical_sample.txt data while updating it with Facets Suite data
 # sample_data_remove_cols = ["purity", "ploidy", "facets_version"]
@@ -292,6 +294,63 @@ def update_mutations_file(**kwargs):
             updated_row = update_mutation_data(mut_data = row, facets_data = parsed_facets_data)
             writer.writerow(updated_row)
 
+def merge_maf_files(**kwargs):
+    """
+    Merge in columns from Facets .maf file into the cBioPortal data_mutations_extended.txt
+    """
+    input_file = kwargs.pop('input_file')
+    output_file = kwargs.pop('output_file')
+    facets_maf_file = kwargs.pop('facets_maf_file')
+
+    # load the mutations from the Facets maf
+    facets_reader = MafReader(facets_maf_file)
+    facets_mutations = [ mut for mut in facets_reader.read() ]
+
+    # index all the facets mutations so they can be looked up directly
+    facets_index = {}
+    for mut in facets_mutations:
+        key = (
+            mut['Hugo_Symbol'],
+            mut['Entrez_Gene_Id'],
+            mut['Chromosome'],
+            mut['Start_Position'],
+            mut['End_Position'],
+            mut['Tumor_Sample_Barcode'],
+            mut['Matched_Norm_Sample_Barcode']
+        )
+        facets_index[key] = mut
+
+    with open(output_file, "w") as fout:
+        # load the mutations and attributes from the portal maf
+        portal_reader = MafReader(input_file)
+        portal_comment_lines = portal_reader.comment_lines
+        portal_fieldnames = portal_reader.get_fieldnames()
+
+        portal_fieldnames.append("ASCN.TOTAL_COPY_NUMBER")
+
+        fout.writelines(portal_comment_lines)
+
+        writer = csv.DictWriter(fout, fieldnames = portal_fieldnames, delimiter = '\t', extrasaction = 'ignore', lineterminator='\n')
+
+        writer.writeheader()
+
+        # add the column from the Facets row to the portal row
+        for mut in portal_reader.read() :
+            key = (
+                mut['Hugo_Symbol'],
+                mut['Entrez_Gene_Id'],
+                mut['Chromosome'],
+                mut['Start_Position'],
+                mut['End_Position'],
+                mut['Tumor_Sample_Barcode'],
+                mut['Matched_Norm_Sample_Barcode']
+            )
+            if key in facets_index:
+                mut["ASCN.TOTAL_COPY_NUMBER"] = facets_index[key]['ASCN.TOTAL_COPY_NUMBER']
+            else:
+                mut["ASCN.TOTAL_COPY_NUMBER"] = '.'
+            writer.writerow(mut)
+
 def main():
     """
     Parse command line arguments to run the script
@@ -314,6 +373,12 @@ def main():
     mutations.add_argument('--output', dest = 'output_file', required = True, help = 'Name of the output file')
     mutations.add_argument('--facets-txt', dest = 'facets_txt_file', required = True, help = 'The .txt output from Facets Suite')
     mutations.set_defaults(func = update_mutations_file)
+
+    merge_mafs = subparsers.add_parser('merge_mafs', help = 'Merge in data from the Facets Suite .maf output with the data_mutations_extended.txt maf file')
+    merge_mafs.add_argument('--input', dest = 'input_file', required = True, help = 'Name of the input file (data_mutations_extended.txt)')
+    merge_mafs.add_argument('--output', dest = 'output_file', required = True, help = 'Name of the output file')
+    merge_mafs.add_argument('--facets-maf', dest = 'facets_maf_file', required = True, help = 'The .maf output from Facets Suite')
+    merge_mafs.set_defaults(func = merge_maf_files)
 
     args = parser.parse_args()
     args.func(**vars(args))
