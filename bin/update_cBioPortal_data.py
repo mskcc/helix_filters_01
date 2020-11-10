@@ -296,7 +296,12 @@ def update_mutations_file(**kwargs):
 
 def merge_maf_files(**kwargs):
     """
-    Merge in columns from Facets .maf file into the cBioPortal data_mutations_extended.txt
+    Merge in columns from Facets .maf file into the cBioPortal data_mutations_extended.txt maf
+
+    Need to get the column ASCN.TOTAL_COPY_NUMBER from the Facets maf and add it
+    to the portal maf under the label ASCN.CLONAL
+
+    https://github.com/mskcc/pluto-cwl/issues/22
     """
     input_file = kwargs.pop('input_file')
     output_file = kwargs.pop('output_file')
@@ -326,7 +331,7 @@ def merge_maf_files(**kwargs):
         portal_comment_lines = portal_reader.comment_lines
         portal_fieldnames = portal_reader.get_fieldnames()
 
-        portal_fieldnames.append("ASCN.TOTAL_COPY_NUMBER")
+        portal_fieldnames.append("ASCN.CLONAL")
 
         fout.writelines(portal_comment_lines)
 
@@ -346,9 +351,9 @@ def merge_maf_files(**kwargs):
                 mut['Matched_Norm_Sample_Barcode']
             )
             if key in facets_index:
-                mut["ASCN.TOTAL_COPY_NUMBER"] = facets_index[key]['ASCN.TOTAL_COPY_NUMBER']
+                mut["ASCN.CLONAL"] = facets_index[key]['ASCN.TOTAL_COPY_NUMBER']
             else:
-                mut["ASCN.TOTAL_COPY_NUMBER"] = '.'
+                mut["ASCN.CLONAL"] = '.'
             writer.writerow(mut)
 
 def main():

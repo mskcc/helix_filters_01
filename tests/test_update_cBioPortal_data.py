@@ -353,7 +353,7 @@ class TestUpdateCBioMaf(unittest.TestCase):
                 "Tumor_Sample_Barcode": "Sample1-T",
                 "Matched_Norm_Sample_Barcode": "Sample1-N",
                 "portal_val": "foo",
-                "ASCN.TOTAL_COPY_NUMBER": "1"
+                "ASCN.CLONAL": "1"
                 },
                 {
                 "Hugo_Symbol" : "PNISR",
@@ -364,7 +364,7 @@ class TestUpdateCBioMaf(unittest.TestCase):
                 "Tumor_Sample_Barcode": "Sample1-T",
                 "Matched_Norm_Sample_Barcode": "Sample1-N",
                 "portal_val": "foo",
-                "ASCN.TOTAL_COPY_NUMBER": "2"
+                "ASCN.CLONAL": "2"
                 },
                 {
                 "Hugo_Symbol" : "PNISR",
@@ -375,7 +375,7 @@ class TestUpdateCBioMaf(unittest.TestCase):
                 "Tumor_Sample_Barcode": "Sample1-T",
                 "Matched_Norm_Sample_Barcode": "Sample1-N",
                 "portal_val": "foo",
-                "ASCN.TOTAL_COPY_NUMBER": "."
+                "ASCN.CLONAL": "."
                 }
             ]
             self.assertEqual(mutations, expected_mutations)
