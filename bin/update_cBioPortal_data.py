@@ -333,10 +333,10 @@ def merge_maf_files(**kwargs):
 
         portal_fieldnames.append("ASCN.CLONAL")
 
+        # write out the comments
         fout.writelines(portal_comment_lines)
-
+        # write the rest of the file as TSV
         writer = csv.DictWriter(fout, fieldnames = portal_fieldnames, delimiter = '\t', extrasaction = 'ignore', lineterminator='\n')
-
         writer.writeheader()
 
         # add the column from the Facets row to the portal row
@@ -350,10 +350,10 @@ def merge_maf_files(**kwargs):
                 mut['Tumor_Sample_Barcode'],
                 mut['Matched_Norm_Sample_Barcode']
             )
-            if key in facets_index:
+            try:
                 mut["ASCN.CLONAL"] = facets_index[key]['ASCN.TOTAL_COPY_NUMBER']
-            else:
-                mut["ASCN.CLONAL"] = '.'
+            except KeyError:
+                mut["ASCN.CLONAL"] = '.' # default value if there is no match
             writer.writerow(mut)
 
 def main():
