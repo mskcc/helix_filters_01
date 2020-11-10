@@ -214,7 +214,8 @@ maf_filter_portal_file_cols_to_keep = [
 "ASCN.CCF_EXPECTED_COPIES_LOWER",
 "ASCN.CCF_EXPECTED_COPIES_UPPER",
 "ASCN.ASCN_METHOD",
-"ASCN.ASCN_INTEGER_COPY_NUMBER"
+"ASCN.ASCN_INTEGER_COPY_NUMBER",
+"ASCN.CLONAL" #  comes from the same facets file as ASCN.TOTAL_COPY_NUMBER https://github.com/mskcc/pluto-cwl/issues/22
 ]
 
 def generate_header_lines(keys, delimiter = '\t', header_lines_map = header_lines_map):
