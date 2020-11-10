@@ -23,18 +23,17 @@ from tempfile import TemporaryDirectory
 
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
-    from .tools import run_command, load_mutations, write_table
+    from .tools import run_command, load_mutations, write_table, dicts2lines
     from .settings import DATA_SETS, BIN_DIR
 
 if __name__ == "__main__":
-    from tools import run_command, load_mutations, write_table
+    from tools import run_command, load_mutations, write_table, dicts2lines
     from settings import DATA_SETS, BIN_DIR
 
 # need to import the module from the other dir
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(THIS_DIR)
 sys.path.insert(0, PARENT_DIR)
-from bin.cBioPortal_utils import parse_header_comments
 from bin import maf_filter
 sys.path.pop(0)
 
@@ -234,20 +233,6 @@ demo_maf_rows = [
     bad_row_AF
 ]
 
-# create a list of line parts to pass for write_table;
-# [ ['col1', 'col2'], ['val1', 'val2'], ... ]
-fieldnames = OrderedDict() # use as an ordered set
-for row in demo_maf_rows:
-    for key in row.keys():
-        if key not in fieldnames:
-            fieldnames[key] = ''
-demo_maf_lines = [ line for line in demo_comments ]
-fieldnames = [f for f in fieldnames.keys()]
-demo_maf_lines.append(fieldnames)
-for row in demo_maf_rows:
-    demo_maf_lines.append([ v for v in row.values()])
-
-
 class TestMafFilterScript_Small(unittest.TestCase):
     """
     Integration Test cases for running the script from the command line
@@ -257,6 +242,9 @@ class TestMafFilterScript_Small(unittest.TestCase):
         """
         Make a small demo file and run it through the filter script
         """
+        # create a list of line parts to pass for write_table;
+        demo_maf_lines = dicts2lines(dict_list = demo_maf_rows, comment_list = demo_comments)
+
         with TemporaryDirectory() as tmpdir:
             input_maf_file = write_table(tmpdir, filename = "input.maf", lines = demo_maf_lines)
             analyst_file = os.path.join(tmpdir, "analyst_file.txt")
