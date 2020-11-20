@@ -1,4 +1,4 @@
-# Roslin Analysis Helix Filters and Post Processing Workflows
+# Roslin Analysis Helix Filters and Post Processing Workflows ([DockerHub](https://hub.docker.com/repository/docker/mskcc/helix_filters_01))
 
 This repo contains scripts and workflows for usage with the Roslin pipeline in order to filter variant calling results
 
