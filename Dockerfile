@@ -31,3 +31,5 @@ CMD [ "/bin/bash" ]
 RUN mkdir -p /usr/scripts
 ADD bin /usr/scripts
 ENV PATH=/usr/scripts:$PATH
+# install extra libraries
+RUN conda install -y anaconda::numpy=1.19.1
