@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script to filter variant .maf file to use with TMB calculation
+Script to filter variant .maf file to use with TMB tumor mutational burden calculation
 """
 import csv
 import sys

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Tests cases for updating portal mutations
+Tests cases for filtering variants for calculating TMB tumor mutational burden
 """
 import os
 import sys
