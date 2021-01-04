@@ -341,6 +341,7 @@ facets: facets-input.json $(FACETS_OUTPUT_DIR)
 # ~~~~~ Container ~~~~~ #
 # make the Docker container
 GIT_NAME:=helix_filters_01
+# this should default to 'latest'
 GIT_TAG:=$(shell git describe --tags --abbrev=0)
 DOCKER_TAG:=mskcc/$(GIT_NAME):$(GIT_TAG)
 docker-build:
