@@ -11,11 +11,11 @@ from tempfile import TemporaryDirectory
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
     from .settings import DATA_SETS
-    from .tools import write_table
+    from .tools import write_table, TmpDirTestCase
 
 if __name__ == "__main__":
     from settings import DATA_SETS
-    from tools import write_table
+    from tools import write_table, TmpDirTestCase
 
 # need to import the module from the other dir
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -439,7 +439,7 @@ class TestCBioUtils(unittest.TestCase):
 
 
 
-class TestMafReader(unittest.TestCase):
+class TestMafReader(TmpDirTestCase):
     def test_maf_reader1(self):
         """
         Test case for using MafReader to get the maf file attributes
@@ -451,21 +451,20 @@ class TestMafReader(unittest.TestCase):
             ['SUFU'],
             ['GOT1']
         ]
-        with TemporaryDirectory() as tmpdir:
-            input_maf_file = write_table(tmpdir = tmpdir, filename = 'input.maf', lines = maf_lines)
-            maf_reader = MafReader(input_maf_file)
+        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        maf_reader = MafReader(input_maf_file)
 
-            comments = maf_reader.comments
-            expected_comments = ['# comment 1', '# comment 2']
-            self.assertEqual(comments, expected_comments)
+        comments = maf_reader.comments
+        expected_comments = ['# comment 1', '# comment 2']
+        self.assertEqual(comments, expected_comments)
 
-            comment_lines = maf_reader.comment_lines
-            expected_comment_lines = ['# comment 1\n', '# comment 2\n']
-            self.assertEqual(comment_lines, expected_comment_lines)
+        comment_lines = maf_reader.comment_lines
+        expected_comment_lines = ['# comment 1\n', '# comment 2\n']
+        self.assertEqual(comment_lines, expected_comment_lines)
 
-            mutations = [ mut for mut in maf_reader.read() ]
-            expected_mutations = [{'Hugo_Symbol': 'SUFU'} , {'Hugo_Symbol': 'GOT1'}]
-            self.assertEqual(mutations, expected_mutations)
+        mutations = [ mut for mut in maf_reader.read() ]
+        expected_mutations = [{'Hugo_Symbol': 'SUFU'} , {'Hugo_Symbol': 'GOT1'}]
+        self.assertEqual(mutations, expected_mutations)
 
     def test_maf_reader2(self):
         """
@@ -479,25 +478,74 @@ class TestMafReader(unittest.TestCase):
             ['SUFU', '1'],
             ['GOT1', '2']
         ]
-        with TemporaryDirectory() as tmpdir:
-            input_maf_file = write_table(tmpdir = tmpdir, filename = 'input.maf', lines = maf_lines)
-            maf_reader = MafReader(input_maf_file)
+        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        maf_reader = MafReader(input_maf_file)
 
-            comments = maf_reader.comments
-            expected_comments = ['# comment 1', '# comment 2']
-            self.assertEqual(comments, expected_comments)
+        comments = maf_reader.comments
+        expected_comments = ['# comment 1', '# comment 2']
+        self.assertEqual(comments, expected_comments)
 
-            comment_lines = maf_reader.comment_lines
-            expected_comment_lines = ['# comment 1\n', '# comment 2\n']
-            self.assertEqual(comment_lines, expected_comment_lines)
+        comment_lines = maf_reader.comment_lines
+        expected_comment_lines = ['# comment 1\n', '# comment 2\n']
+        self.assertEqual(comment_lines, expected_comment_lines)
 
-            mutations = [ mut for mut in maf_reader.read() ]
-            expected_mutations = [{'Hugo_Symbol': 'SUFU', 'Chromosome': '1'} , {'Hugo_Symbol': 'GOT1', 'Chromosome': '2'}]
-            self.assertEqual(mutations, expected_mutations)
+        mutations = [ mut for mut in maf_reader.read() ]
+        expected_mutations = [{'Hugo_Symbol': 'SUFU', 'Chromosome': '1'} , {'Hugo_Symbol': 'GOT1', 'Chromosome': '2'}]
+        self.assertEqual(mutations, expected_mutations)
 
-            fieldnames = maf_reader.get_fieldnames()
-            expected_fieldnames = ['Hugo_Symbol', 'Chromosome']
-            self.assertEqual(fieldnames, expected_fieldnames)
+        fieldnames = maf_reader.get_fieldnames()
+        expected_fieldnames = ['Hugo_Symbol', 'Chromosome']
+        self.assertEqual(fieldnames, expected_fieldnames)
+
+    def test_maf_count1(self):
+        """
+        Test case for counting the number of records in a maf file
+        """
+        maf_lines = [
+            ['# comment 1'],
+            ['# comment 2'],
+            ['Hugo_Symbol', 'Chromosome'],
+            ['SUFU', '1'],
+            ['SUFU', '1'],
+            ['SUFU', '1'],
+            ['SUFU', '1'],
+            ['GOT1', '2']
+        ]
+        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        maf_reader = MafReader(input_maf_file)
+        num_variants = maf_reader.count()
+        expected_num_variants = 5
+        self.assertEqual(num_variants, expected_num_variants)
+
+
+    def test_maf_count0(self):
+        """
+        Test case for counting the number of records in a maf file
+        """
+        maf_lines = [
+            ['# comment 1'],
+            ['# comment 2'],
+            ['Hugo_Symbol', 'Chromosome']
+        ]
+        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        maf_reader = MafReader(input_maf_file)
+        num_variants = maf_reader.count()
+        expected_num_variants = 0
+        self.assertEqual(num_variants, expected_num_variants)
+
+    def test_maf_count0_no_comments(self):
+        """
+        Test case for counting the number of records in a maf file
+        """
+        maf_lines = [
+            ['# comment 1'],
+            ['# comment 2'],
+        ]
+        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        maf_reader = MafReader(input_maf_file)
+        num_variants = maf_reader.count()
+        expected_num_variants = 0
+        self.assertEqual(num_variants, expected_num_variants)
 
 
 

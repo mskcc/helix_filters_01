@@ -440,3 +440,12 @@ class MafReader(object):
             reader = self.get_reader(fin)
             for row in reader:
                 yield(row)
+
+    def count(self):
+        """
+        Return the total number of variants in the maf
+        """
+        num_variants = 0
+        for _ in self.read():
+            num_variants += 1
+        return(num_variants)
