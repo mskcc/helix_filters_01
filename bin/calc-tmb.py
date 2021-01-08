@@ -43,14 +43,24 @@ def calc_from_values(
         '0.000000001'
         >>> numpy.format_float_positional(0.25)
         '0.25'
+
+        NOTE: also need to handle this case where value is 0;
+        >>> numpy.format_float_positional(0)
+        '0.'
         """
         import numpy
-        print(numpy.format_float_positional(tmb))
+        if tmb == 0:
+            print(str(tmb))
+        else:
+            print(numpy.format_float_positional(tmb))
 
     if output_file:
         import numpy
         with open(output_file, "w") as f:
-            f.write(numpy.format_float_positional(tmb) + '\n')
+            if tmb == 0:
+                f.write(str(tmb) + '\n')
+            else:
+                f.write(numpy.format_float_positional(tmb) + '\n')
 
     return(tmb)
 
@@ -66,6 +76,14 @@ def calc_from_file(
     # use some default values
     megabases = True
     _print = False
+
+    # make sure the file has at least 1 line otherwise MafReader will not work
+    try:
+        with open(input_file) as fin:
+            _ = next(fin)
+    except StopIteration:
+        raise Exception("The input file has no lines")
+
     # reader for variants in the file
     maf_reader = MafReader(input_file)
     num_variants = maf_reader.count()
@@ -97,7 +115,7 @@ def parse():
     from_values.set_defaults(func = calc_from_values)
 
     # parser to calculate TMB from a variant file passed
-    from_file = subparsers.add_parser('from-file', help = 'Calculate the TMB in Megabases from a variant file')
+    from_file = subparsers.add_parser('from-file', help = 'Calculate the TMB in Megabases from a variant file. NOTE: File must have a header.')
     from_file.add_argument('input_file', help = 'File to read variants from')
     from_file.add_argument('output_file', help = 'File to write TMB value to')
     from_file.add_argument('--genome-coverage', dest = 'genome_coverage', required = True, help = 'Number of base pairs of the genome covered by the assay')

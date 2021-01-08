@@ -86,6 +86,48 @@ class TestCalcTMB(TmpDirTestCase):
         expected_result = '0.000000005'
         self.assertEqual(result, expected_result)
 
+    def test_calc_tmb_from_file2(self):
+        """
+        Test case for calculating TMB by reading the number of variants from a file
+
+        This test case is for some weird edge cases
+        """
+        # One variant in the file
+        maf_lines = [
+            ['Hugo_Symbol', 'Chromosome'],
+            ['SUFU', '1'],
+        ]
+        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        command = [script, 'from-file', input_maf_file, output_file, '--genome-coverage', "1000"]
+        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        with open(output_file) as fin:
+            result = next(fin).strip()
+        expected_result = '0.000000001'
+        self.assertEqual(result, expected_result)
+
+        # No variants in the file
+        maf_lines = [
+            ['Hugo_Symbol', 'Chromosome'],
+        ]
+        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        command = [script, 'from-file', input_maf_file, output_file, '--genome-coverage', "1000"]
+        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        with open(output_file) as fin:
+            result = next(fin).strip()
+        expected_result = '0.0'
+        self.assertEqual(result, expected_result)
+
+
+        # completely empty file; script will break
+        maf_lines = []
+        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        command = [script, 'from-file', input_maf_file, output_file, '--genome-coverage', "1000"]
+        returncode, proc_stdout, proc_stderr = run_command(command, validate = False, testcase = self)
+        self.assertEqual(returncode, 1)
+
 
 
 

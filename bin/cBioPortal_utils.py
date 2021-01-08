@@ -399,6 +399,8 @@ class MafReader(object):
 
     Allows for parsing maf file attributes and rows without loading the whole file into memory
 
+    NOTE: Input file must have column headers!
+
     Usage
     -----
     maf_reader = MafReader(input_maf_file)
