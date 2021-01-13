@@ -28,6 +28,7 @@ from bin.cBioPortal_utils import parse_facets_data
 from bin.cBioPortal_utils import parse_header_comments
 from bin.cBioPortal_utils import load_facets_data
 from bin.cBioPortal_utils import MafReader
+from bin.cBioPortal_utils import is_TERT_promoter
 sys.path.pop(0)
 
 class TestCBioUtils(unittest.TestCase):
@@ -546,6 +547,18 @@ class TestMafReader(TmpDirTestCase):
         num_variants = maf_reader.count()
         expected_num_variants = 0
         self.assertEqual(num_variants, expected_num_variants)
+
+    def test_is_TERT_promoter(self):
+        """
+        Test case for detecting if a variant is considered to be in the TERT promoter or not
+        """
+        # NOTE:
+        # These coordinates are only for B37 genome build
+        self.assertTrue(is_TERT_promoter({'Hugo_Symbol': 'TERT', 'Start_Position': 1295141}))
+        self.assertFalse(is_TERT_promoter({'Hugo_Symbol': 'EGFR', 'Start_Position': 1295141}))
+        self.assertFalse(is_TERT_promoter({'Hugo_Symbol': 'TERT', 'Start_Position': 1295140}))
+        self.assertTrue(is_TERT_promoter({'Hugo_Symbol': 'TERT', 'Start_Position': 1295340}))
+        self.assertFalse(is_TERT_promoter({'Hugo_Symbol': 'TERT', 'Start_Position': 1295341}))
 
 
 

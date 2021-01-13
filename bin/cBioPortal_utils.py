@@ -451,3 +451,28 @@ class MafReader(object):
         for _ in self.read():
             num_variants += 1
         return(num_variants)
+
+
+def is_TERT_promoter(mut,
+    gene_key = 'Hugo_Symbol',
+    start_key = 'Start_Position',
+    start_ge = 1295141, # start pos must be greater than or equal to this
+    start_le = 1295340 # start pos must be less than or equal to this
+    ):
+    """
+    Checks if a variant is in the TERT promoter;
+
+    is_TERT = row['Hugo_Symbol'] == 'TERT'
+    pass_TERT_start = int(row['Start_Position']) >= 1295141
+    pass_TERT_end = int(row['Start_Position']) <= 1295340
+    pass_consequence_or_is_TERT = (pass_consequence_match or (is_TERT and pass_TERT_start and pass_TERT_end))
+
+    NOTE:
+    These coordinates are only for B37 genome build
+
+    """
+    is_TERT = mut[gene_key] == 'TERT'
+    pass_TERT_start = int(mut[start_key]) >= start_ge
+    pass_TERT_end = int(mut[start_key]) <= start_le
+    mut_is_TERT_promoter = is_TERT and pass_TERT_start and pass_TERT_end
+    return(mut_is_TERT_promoter)
