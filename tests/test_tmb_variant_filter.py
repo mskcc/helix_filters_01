@@ -13,6 +13,19 @@ script = os.path.join(BIN_DIR, 'tmb_variant_filter.py')
 
 class TestTMBVariantFilter(TmpDirTestCase):
     def test_tmb_filter(self):
+        """
+        Test case for filtering variants for TMB calculation
+
+        af_colname = 't_af'
+        frequency_min = 0.05
+
+        dp_colname = 't_depth'
+        coverage_min = 500.0
+
+        Need to report mutations that are NOT synonymous_variant EXCEPT for TERT promoter
+        TERT promoter : gene == TERT, start_ge == 1295141, start_le == 1295340
+        """
+        self.maxDiff = None
         comments = [
         ['# comment 1'],
         ['# comment 2']
@@ -63,25 +76,32 @@ class TestTMBVariantFilter(TmpDirTestCase):
         't_af': '0.45',
         't_depth': '590',
         'Hugo_Symbol': 'TERT',
-        'Start_Position': '1295340', # good value
+        'Start_Position': '1295340', # good value; is_TERT_promoter = True
         'Consequence': 'splice_region_variant'
         }
         row8 = { # this should pass filter
         't_af': '0.45',
         't_depth': '590',
         'Hugo_Symbol': 'TERT',
-        'Start_Position': '1295339', # bad value but its not synonymous_variant
+        'Start_Position': '1295339', # good value; is_TERT_promoter = True
         'Consequence': 'splice_region_variant'
         }
-        row9 = { # this should not pass filter
+        row9 = { # this should pass filter
         't_af': '0.45',
         't_depth': '590',
         'Hugo_Symbol': 'TERT',
-        'Start_Position': '1295339', # bad value but is synonymous_variant
-        'Consequence': 'synonymous_variant'
+        'Start_Position': '1295341', # bad value; is_TERT_promoter = False
+        'Consequence': 'splice_region_variant' # include anyway because its not synonymous_variant
+        }
+        row10 ={ # this should pass filter
+        't_af': '0.45',
+        't_depth': '590',
+        'Hugo_Symbol': 'TERT',
+        'Start_Position': '1295339', # good value; is_TERT_promoter = True
+        'Consequence': 'synonymous_variant' # include even though its synonymous_variant
         }
 
-        maf_rows = [ row1, row2, row3, row4, row5, row6, row7, row8 ]
+        maf_rows = [ row1, row2, row3, row4, row5, row6, row7, row8, row9, row10 ]
         maf_lines = dicts2lines(dict_list = maf_rows, comment_list = comments)
         input_file = write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
@@ -95,7 +115,9 @@ class TestTMBVariantFilter(TmpDirTestCase):
         {'t_af': '0.50', 't_depth': '550', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1'},
         {'t_af': '0.45', 't_depth': '590', 'Consequence': 'splice_region_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1'},
         {'t_af': '0.45', 't_depth': '590', 'Consequence': 'splice_region_variant', 'Hugo_Symbol': 'TERT', 'Start_Position': '1295340'},
-        {'t_af': '0.45', 't_depth': '590', 'Consequence': 'splice_region_variant', 'Hugo_Symbol': 'TERT', 'Start_Position': '1295339'}
+        {'t_af': '0.45', 't_depth': '590', 'Consequence': 'splice_region_variant', 'Hugo_Symbol': 'TERT', 'Start_Position': '1295339'},
+        {'Consequence': 'splice_region_variant', 'Hugo_Symbol': 'TERT', 'Start_Position': '1295341', 't_af': '0.45', 't_depth': '590'},
+        {'Consequence': 'synonymous_variant', 'Hugo_Symbol': 'TERT', 'Start_Position': '1295339', 't_af': '0.45', 't_depth': '590'}
         ]
 
         self.assertEqual(comments, expected_comments)
