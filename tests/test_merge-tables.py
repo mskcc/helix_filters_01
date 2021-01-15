@@ -114,5 +114,44 @@ class TestTMBVariantFilter(TmpDirTestCase):
         self.assertEqual(comments, expected_comments)
         self.assertEqual(records, expected_records)
 
+    def test_merge_tables_tmb_data_clinical_with_normals(self):
+        """
+        Test case for merging a TMB file with only tumors against a data clinical file that containes tumors and normals
+        The output files leaves a blank for the missing values in table1
+        """
+        lines1 = [
+        ['SAMPLE_ID', 'PATIENT_ID', 'SAMPLE_COVERAGE'],
+        ['Sample1-T', 'Patient1', '108'],
+        ['Sample1-N', 'Patient2', '58'],
+        ['Sample2-T', 'Patient3', '502'],
+        ['Sample2-N', 'Patient4', '56'],
+        ]
+
+        lines2 = [
+        ['SampleID', 'TMB'],
+        ['Sample1-T', '100'],
+        ['Sample2-T', '200'],
+        ]
+
+        data_clinical_file = write_table(self.tmpdir, filename = "data_clinical_sample.txt", lines = lines1)
+        tmb_file = write_table(self.tmpdir, filename = "tmb.tsv", lines = lines2)
+        output_file = os.path.join(self.tmpdir, "data_clinical_sample.merged.txt")
+        command = [script, data_clinical_file, tmb_file, '--key1', 'SAMPLE_ID', '--key2', 'SampleID', '--output', output_file]
+        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+
+        reader = TableReader(output_file)
+        comments = reader.comment_lines
+        fieldnames = reader.get_fieldnames()
+        records = [ rec for rec in reader.read() ]
+        expected_comments = []
+        expected_records = [
+            {'SAMPLE_ID': 'Sample1-T', 'PATIENT_ID': 'Patient1', 'SAMPLE_COVERAGE': '108', 'TMB': '100'},
+            {'SAMPLE_ID': 'Sample1-N', 'PATIENT_ID': 'Patient2', 'SAMPLE_COVERAGE': '58', 'TMB': ''},
+            {'SAMPLE_ID': 'Sample2-T', 'PATIENT_ID': 'Patient3', 'SAMPLE_COVERAGE': '502', 'TMB': '200'},
+            {'SAMPLE_ID': 'Sample2-N', 'PATIENT_ID': 'Patient4', 'SAMPLE_COVERAGE': '56', 'TMB': ''}
+        ]
+        self.assertEqual(comments, expected_comments)
+        self.assertEqual(records, expected_records)
+
 if __name__ == "__main__":
     unittest.main()
