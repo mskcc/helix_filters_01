@@ -212,6 +212,7 @@ def update_sample_file(**kwargs):
     Update the data_clinical_sample.txt file with the new Facets Suite data
 
     NOTE: can prob deprecate some of the code here by using cBioPortal_utils.TableReader instead
+    NOTE: can prob refactor some of the code here to re-use code from merge-tables.py script
     """
     input_file = kwargs.pop('input_file')
     output_file = kwargs.pop('output_file')
@@ -263,6 +264,7 @@ def update_sample_file(**kwargs):
 def update_mutations_file(**kwargs):
     """
     Update the data_mutations_extended.txt file with the Facets data saved to the updated data_clinical_sample.txt file
+    NOTE: can prob refactor some of the code here to re-use code from merge-tables.py script
     """
     input_file = kwargs.pop('input_file')
     output_file = kwargs.pop('output_file')
@@ -305,6 +307,8 @@ def merge_maf_files(**kwargs):
     to the portal maf under the label ASCN.CLONAL
 
     https://github.com/mskcc/pluto-cwl/issues/22
+
+    NOTE: can prob refactor some of the code here to re-use code from merge-tables.py script
     """
     input_file = kwargs.pop('input_file')
     output_file = kwargs.pop('output_file')
