@@ -168,6 +168,7 @@ facets_call_states = {
 
 def update_mutation_data(mut_data, facets_data = None, sample_id = None):
     """
+    NOTE: can prob deprecate some of the code here by using cBioPortal_utils.TableReader instead
     """
     # try to get a sample ID from the mutation data if it was not passed
     if sample_id == None:
@@ -209,6 +210,8 @@ def update_mutation_data(mut_data, facets_data = None, sample_id = None):
 def update_sample_file(**kwargs):
     """
     Update the data_clinical_sample.txt file with the new Facets Suite data
+
+    NOTE: can prob deprecate some of the code here by using cBioPortal_utils.TableReader instead
     """
     input_file = kwargs.pop('input_file')
     output_file = kwargs.pop('output_file')

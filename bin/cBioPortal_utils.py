@@ -371,7 +371,7 @@ def load_facets_data(files):
         all_data = {**all_data, **parsed_facets_data}
     return(all_data)
 
-def parse_header_comments(filename):
+def parse_header_comments(filename, comment_char = '#'):
     """
     Parse a file with comments in its header to return the comments and the line number to start reader from
 
@@ -388,47 +388,49 @@ def parse_header_comments(filename):
     # find the first line without comments
     with open(filename) as fin:
         for i, line in enumerate(fin):
-            if line.startswith('#'):
+            if line.startswith(comment_char):
                 comments.append(line.strip())
                 start_line += 1
     return(comments, start_line)
 
-class MafReader(object):
+class TableReader(object):
     """
-    Handler for reading a maf file to reduce duplicate code
+    Handler for reading a table with comments
 
-    Allows for parsing maf file attributes and rows without loading the whole file into memory
+    Allows for parsing file attributes and rows without loading the whole file into memory
 
     NOTE: Input file must have column headers!
 
     Usage
     -----
-    maf_reader = MafReader(input_maf_file)
-    comment_lines = maf_reader.comment_lines
-    fieldnames = maf_reader.get_fieldnames()
-    mutations = [ mut for mut in maf_reader.read() ]
+    table_reader = TableReader(input_maf_file)
+    comment_lines = table_reader.comment_lines
+    fieldnames = table_reader.get_fieldnames()
+    records = [ rec for rec in table_reader.read() ]
     """
-    def __init__(self, filename):
+    def __init__(self, filename, comment_char = '#', delimiter = '\t'):
         self.filename = filename
+        self.comment_char = comment_char
+        self.delimiter = delimiter
         # get the comments from the file and find the beginning of the table header
-        self.comments, self.start_line = parse_header_comments(filename)
+        self.comments, self.start_line = parse_header_comments(filename, comment_char = self.comment_char)
         self.comment_lines = [ c + '\n' for c in self.comments ]
 
     def get_reader(self, fin):
         """
-        returns the csv.DictReader for the maf variant rows
+        returns the csv.DictReader for the table rows, skipping the comments
         """
         start_line = self.start_line
         # skip comment lines
         while start_line > 0:
             next(fin)
             start_line -= 1
-        reader = csv.DictReader(fin, delimiter = '\t')
+        reader = csv.DictReader(fin, delimiter = self.delimiter)
         return(reader)
 
     def get_fieldnames(self):
         """
-        returns the list of fieldnames for the maf variant rows
+        returns the list of fieldnames for the table
         """
         with open(self.filename,'r') as fin:
             reader = self.get_reader(fin)
@@ -436,7 +438,7 @@ class MafReader(object):
 
     def read(self):
         """
-        iterable to get the maf variant rows from the maf
+        iterable to get the record rows from the table, skipping the comments
         """
         with open(self.filename,'r') as fin:
             reader = self.get_reader(fin)
@@ -445,13 +447,19 @@ class MafReader(object):
 
     def count(self):
         """
-        Return the total number of variants in the maf
+        Return the total number of records in the table
         """
-        num_variants = 0
+        num_records = 0
         for _ in self.read():
-            num_variants += 1
-        return(num_variants)
+            num_records += 1
+        return(num_records)
 
+class MafReader(TableReader):
+    """
+    Rename this as a subclass for compatibility; a version of TableReader just for parsing the variants in a maf
+    """
+    def __init__(self, filename, comment_char = '#', delimiter = '\t'):
+        super().__init__(filename, comment_char, delimiter)
 
 def is_TERT_promoter(mut,
     gene_key = 'Hugo_Symbol',
