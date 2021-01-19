@@ -7,7 +7,7 @@ import csv
 import sys
 from cBioPortal_utils import MafReader, is_TERT_promoter
 
-# alt_dp_colname = 't_alt_count'
+alt_dp_colname = 't_alt_count'
 af_colname = 't_af'
 frequency_min = 0.05
 
@@ -52,6 +52,16 @@ gene_function_exclude = set(['synonymous_variant'])
 # inframe_deletion
 # splice_region_variant,5_prime_UTR_variant
 
+def get_af(row):
+    """
+    Get the allele frequency from the row or calculate it if missing
+    """
+    try:
+        af = float(row[af_colname])
+    except KeyError:
+        af = float(int(row[alt_dp_colname]) / int(row[dp_colname]))
+    return(af)
+
 def filter_row(row):
     """
     Evaluate values in the row to decide if it should be included (True) or excluded (False) from the output
@@ -59,7 +69,7 @@ def filter_row(row):
     Need to report mutations that are NOT synonymous_variant EXCEPT for TERT promoter
     """
     keep_row = True
-    af = float(row[af_colname])
+    af = get_af(row)
     dp = float(row[dp_colname])
     gene_function_str = row[gene_function_colname]
     gene_functions = set(gene_function_str.split(','))
