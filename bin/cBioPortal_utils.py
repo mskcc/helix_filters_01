@@ -158,6 +158,13 @@ header_lines_map = {
     '2': 'ASCN_WGD',
     '3': 'STRING',
     '4': '1'
+    },
+    # added these column headers for use with TMB reporting
+    'CMO_TMB_SCORE': {
+    '1': 'CMO_TMB_SCORE',
+    '2': 'CMO_TMB_SCORE',
+    '3': 'NUMBER',
+    '4': '1'
     }
 }
 
@@ -291,6 +298,8 @@ def create_file_lines(clinical_data, delimiter = '\t'):
 def update_sample_data(sample_data, facets_data):
     """
     Add entries to the sample data based on values from the facets data
+
+    NOTE: this functionality is partially deprecated by merge-tables.py script; see that script for future need to merge in new columns
 
     Parameters
     ----------

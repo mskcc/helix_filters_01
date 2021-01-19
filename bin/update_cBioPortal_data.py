@@ -168,7 +168,7 @@ facets_call_states = {
 
 def update_mutation_data(mut_data, facets_data = None, sample_id = None):
     """
-    NOTE: can prob deprecate some of the code here by using cBioPortal_utils.TableReader instead
+    NOTE: can prob deprecate some of the code here by using cBioPortal_utils.TableReader instead, and methods from merge-table.py
     """
     # try to get a sample ID from the mutation data if it was not passed
     if sample_id == None:

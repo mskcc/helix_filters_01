@@ -70,7 +70,7 @@ class TestTMBVariantFilter(TmpDirTestCase):
 
     def test_merge_tables_tmb_data_clinical(self):
         """
-        Test case for merging example data clinical file with TMB data file
+        Test case for merging example cBioPortal data clinical file with TMB data file
         """
         lines1 = [
         ['#SAMPLE_ID', 'PATIENT_ID', 'SAMPLE_COVERAGE'],
@@ -84,7 +84,7 @@ class TestTMBVariantFilter(TmpDirTestCase):
         ]
 
         lines2 = [
-        ['SampleID', 'TMB'],
+        ['SampleID', 'CMO_TMB_SCORE'],
         ['Sample1', '100'],
         ['Sample2', '200'],
         ['Sample3', '300'],
@@ -93,7 +93,7 @@ class TestTMBVariantFilter(TmpDirTestCase):
         data_clinical_file = write_table(self.tmpdir, filename = "data_clinical_sample.txt", lines = lines1)
         tmb_file = write_table(self.tmpdir, filename = "tmb.tsv", lines = lines2)
         output_file = os.path.join(self.tmpdir, "data_clinical_sample.merged.txt")
-        command = [script, data_clinical_file, tmb_file, '--key1', 'SAMPLE_ID', '--key2', 'SampleID', '--output', output_file]
+        command = [script, data_clinical_file, tmb_file, '--key1', 'SAMPLE_ID', '--key2', 'SampleID', '--output', output_file, '--cBioPortal']
         returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
 
         reader = TableReader(output_file)
@@ -101,15 +101,15 @@ class TestTMBVariantFilter(TmpDirTestCase):
         fieldnames = reader.get_fieldnames()
         records = [ rec for rec in reader.read() ]
         expected_comments = [
-            '#SAMPLE_ID\tPATIENT_ID\tSAMPLE_COVERAGE\n',
-            '#SAMPLE_ID\tPATIENT_ID\tSAMPLE_COVERAGE\n',
-            '#STRING\tSTRING\tNUMBER\n',
-            '#1\t1\t1\n'
+            '#SAMPLE_ID\tPATIENT_ID\tSAMPLE_COVERAGE\tCMO_TMB_SCORE\n',
+            '#SAMPLE_ID\tPATIENT_ID\tSAMPLE_COVERAGE\tCMO_TMB_SCORE\n',
+            '#STRING\tSTRING\tNUMBER\tNUMBER\n',
+            '#1\t1\t1\t1\n'
         ]
         expected_records = [
-            {'SAMPLE_ID': 'Sample1', 'PATIENT_ID': 'Patient1', 'SAMPLE_COVERAGE': '108', 'TMB': '100'},
-            {'SAMPLE_ID': 'Sample2', 'PATIENT_ID': 'Patient2', 'SAMPLE_COVERAGE': '502', 'TMB': '200'},
-            {'SAMPLE_ID': 'Sample3', 'PATIENT_ID': 'Patient3', 'SAMPLE_COVERAGE': '256', 'TMB': '300'}
+            {'SAMPLE_ID': 'Sample1', 'PATIENT_ID': 'Patient1', 'SAMPLE_COVERAGE': '108', 'CMO_TMB_SCORE': '100'},
+            {'SAMPLE_ID': 'Sample2', 'PATIENT_ID': 'Patient2', 'SAMPLE_COVERAGE': '502', 'CMO_TMB_SCORE': '200'},
+            {'SAMPLE_ID': 'Sample3', 'PATIENT_ID': 'Patient3', 'SAMPLE_COVERAGE': '256', 'CMO_TMB_SCORE': '300'}
         ]
         self.assertEqual(comments, expected_comments)
         self.assertEqual(records, expected_records)
