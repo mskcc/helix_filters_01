@@ -128,6 +128,41 @@ class TestCalcTMB(TmpDirTestCase):
         returncode, proc_stdout, proc_stderr = run_command(command, validate = False, testcase = self)
         self.assertEqual(returncode, 1)
 
+    def test_check_normal_id(self):
+        """
+        To facilitate pipeline usage, we should not calculate TMB on a tumor that was paired to a Pooled Normal sample
+        So add some extra options to the calc-tmb.py script to supply a normal sample id, check the id if it matches "poolednormal",
+        and if so, output NA instead of the TMB value
+        """
+        maf_lines = [
+            ['# comment 1'],
+            ['# comment 2'],
+            ['Hugo_Symbol', 'Chromosome'],
+            ['SUFU', '1'],
+            ['SUFU', '1'],
+            ['SUFU', '1'],
+            ['SUFU', '1'],
+            ['GOT1', '2']
+        ]
+        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        output_file = os.path.join(self.tmpdir, "output.txt")
+
+        # with a good normal ID; not a pooled normal
+        command = [script, 'from-file', input_maf_file, output_file, '--genome-coverage', "1000", "--normal-id", "foo"]
+        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        with open(output_file) as fin:
+            result = next(fin).strip()
+        expected_result = '0.000000005'
+        self.assertEqual(result, expected_result)
+
+        # with a bad normal id
+        command = [script, 'from-file', input_maf_file, output_file, '--genome-coverage', "1000", "--normal-id", "ABCPOOLEDNORMAL123"]
+        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        with open(output_file) as fin:
+            result = next(fin).strip()
+        expected_result = 'NA'
+        self.assertEqual(result, expected_result)
+
 
 
 

@@ -64,10 +64,33 @@ def calc_from_values(
 
     return(tmb)
 
+def normal_override(
+    normal_id, # str
+    na_str = 'NA',
+    output_file = None
+    ):
+    """
+    Override function in case a normal id was passed and we need to skip TMB calculation
+    """
+    normal_id = normal_id.lower()
+    is_bad = 'poolednormal' in normal_id
+
+    if is_bad:
+        if output_file:
+            fout = open(output_file, "w")
+        else:
+            fout = sys.stdout
+        fout.write(na_str + '\n')
+        fout.close()
+
+    return(is_bad)
+
 def calc_from_file(
     input_file,
     output_file,
     genome_coverage, # str | float | int
+    normal_id = None, # str or None
+    na_str = 'NA',
     func = None # dummy arg for parser
     ):
     """
@@ -76,6 +99,13 @@ def calc_from_file(
     # use some default values
     megabases = True
     _print = False
+
+    # check if a normal_id was passed in order to just output NA value instead
+    override = False
+    if normal_id:
+        override = normal_override(normal_id, na_str = na_str, output_file = output_file)
+    if override:
+        sys.exit(0)
 
     # make sure the file has at least 1 line otherwise MafReader will not work
     try:
@@ -94,6 +124,7 @@ def calc_from_file(
         megabases = megabases,
         _print = _print
         )
+
 
 def parse():
     """
@@ -119,6 +150,8 @@ def parse():
     from_file.add_argument('input_file', help = 'File to read variants from')
     from_file.add_argument('output_file', help = 'File to write TMB value to')
     from_file.add_argument('--genome-coverage', dest = 'genome_coverage', required = True, help = 'Number of base pairs of the genome covered by the assay')
+    from_file.add_argument('--normal-id', dest = 'normal_id', help = "The sample ID of the normal sample used with the tumor, in order to check if the tumor used a pooled normal and should not have a TMB calculated; if so, the NA string will be output instead")
+    from_file.add_argument('--na-str', dest = 'na_str', default = 'NA', help = 'Value to output if a pooled normal id was passed in with --normal-id')
     from_file.set_defaults(func = calc_from_file)
 
 
