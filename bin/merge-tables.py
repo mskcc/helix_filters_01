@@ -15,6 +15,7 @@ def write_table(
     fieldnames, # list of output fieldnames
     delimiter,
     rows, # list of dict rows to write
+    na_str,
     fout # file output handle
     ):
     # write the output table
@@ -22,7 +23,7 @@ def write_table(
         fout.write(line)
 
     # start csv writer
-    writer = csv.DictWriter(fout, delimiter = delimiter, fieldnames = fieldnames)
+    writer = csv.DictWriter(fout, delimiter = delimiter, fieldnames = fieldnames, restval = na_str)
     writer.writeheader()
 
     # write table rows;
@@ -112,6 +113,7 @@ def merge_standard_tables(
     fieldnames1,
     fieldnames2,
     delimiter,
+    na_str,
     fout
     ):
     """
@@ -127,9 +129,9 @@ def merge_standard_tables(
     output_fieldnames = generate_output_fieldnames(fieldnames1, fieldnames2, key2)
 
     # write the output table
-    write_table(all_comments, output_fieldnames, delimiter, merged_rows, fout)
+    write_table(all_comments, output_fieldnames, delimiter, merged_rows, na_str, fout)
 
-def merge_cBioPortal_tables(records1, records2, key1, key2, fieldnames1, fieldnames2, delimiter, fout):
+def merge_cBioPortal_tables(records1, records2, key1, key2, fieldnames1, fieldnames2, delimiter, na_str, fout):
     """
     Merges the records of two tables and outputs the result in a cBioPortal compatible format;
     The header comment lines from both tables are ignored and new comments are generated for use with cBioPortal
@@ -141,7 +143,8 @@ def merge_cBioPortal_tables(records1, records2, key1, key2, fieldnames1, fieldna
     output_fieldnames = generate_output_fieldnames(fieldnames1, fieldnames2, key2)
 
     # convert the rows into cBioPortal file lines
-    lines = create_file_lines(merged_rows, delimiter)
+    # NOTE: rows with missing values get filled in at this step
+    lines = create_file_lines(merged_rows, delimiter, na_str)
 
     # write the lines
     fout.writelines(lines)
@@ -154,6 +157,7 @@ def merge_tables(
     output_file = None,
     delimiter = '\t',
     cBioPortal = False,
+    na_str = 'NA',
     func = None):
     """
     Merge two tables on rows in a common column
@@ -184,6 +188,7 @@ def merge_tables(
             fieldnames1,
             fieldnames2,
             delimiter,
+            na_str,
             fout
         )
     else:
@@ -197,6 +202,7 @@ def merge_tables(
             fieldnames1,
             fieldnames2,
             delimiter,
+            na_str,
             fout
         )
 
@@ -213,6 +219,7 @@ def main():
     parser.add_argument('--key1', dest = 'key1', required = True, help = 'Column label to use for merge in first table')
     parser.add_argument('--key2', dest = 'key2', required = True, help = 'Column label to use for merge in second table')
     parser.add_argument('--output', dest = 'output_file', help = 'Name of the output file')
+    parser.add_argument('--na-str', dest = 'na_str', default = 'NA', help = 'Value to output for rows with missing values')
     parser.add_argument('--cBioPortal', dest = 'cBioPortal', action = "store_true", help = 'Ignore header comment lines and output table with cBioPortal headers. NOTE: all output header columns must be supported in cBioPortal_utils.header_lines_map')
     parser.set_defaults(func = merge_tables)
     args = parser.parse_args()

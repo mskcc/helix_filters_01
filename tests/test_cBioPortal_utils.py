@@ -65,6 +65,27 @@ class TestCBioUtils(unittest.TestCase):
         ]
         self.assertEqual(lines, expected_lines)
 
+    def test_create_file_lines2(self):
+        """
+        Test that file lines are created correctly when not all records have all keys
+        """
+        self.maxDiff = None
+        clinical_data = [
+        {'PATIENT_ID': 'Patient1', 'SEX': 'M', "SAMPLE_TYPE": "FOO"},
+        {'PATIENT_ID': 'Patient2', 'SEX': 'F', "SAMPLE_CLASS": "BAR"}
+        ]
+        lines = create_file_lines(clinical_data)
+        expected_lines = [
+        '#PATIENT_ID\tSEX\tSAMPLE_TYPE\tSAMPLE_CLASS\n',
+        '#PATIENT_ID\tSEX\tSAMPLE_TYPE\tSAMPLE_CLASS\n',
+        '#STRING\tSTRING\tSTRING\tSTRING\n',
+        '#1\t1\t1\t1\n',
+        'PATIENT_ID\tSEX\tSAMPLE_TYPE\tSAMPLE_CLASS\n',
+        'Patient1\tM\tFOO\tNA\n',
+        'Patient2\tF\tNA\tBAR\n'
+        ]
+        self.assertEqual(lines, expected_lines)
+
     def test_generate_header_lines(self):
         """
         Test that the header lines are generated as expected for the given column headers

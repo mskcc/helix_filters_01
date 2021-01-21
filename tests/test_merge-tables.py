@@ -68,9 +68,11 @@ class TestTMBVariantFilter(TmpDirTestCase):
         self.assertEqual(comments, expected_comments)
         self.assertEqual(records, expected_records)
 
-    def test_merge_tables_tmb_data_clinical(self):
+    def test_merge_tables_tmb_data_clinical1(self):
         """
         Test case for merging example cBioPortal data clinical file with TMB data file
+
+        NOTE: need to use header key 'CMO_TMB_SCORE' in table2 for cBioPortal mode to work !!
         """
         lines1 = [
         ['#SAMPLE_ID', 'PATIENT_ID', 'SAMPLE_COVERAGE'],
@@ -114,6 +116,52 @@ class TestTMBVariantFilter(TmpDirTestCase):
         self.assertEqual(comments, expected_comments)
         self.assertEqual(records, expected_records)
 
+    def test_merge_tables_tmb_data_clinical2(self):
+        """
+        Test case for merging a TMB table into a cBioPortal data clincial file when the former lacks some rows in the latter,
+        and the first row of data clinical file contains a sample not in the TMB table
+        """
+        lines1 = [
+        ['#SAMPLE_ID', 'PATIENT_ID', 'SAMPLE_COVERAGE'],
+        ['#SAMPLE_ID', 'PATIENT_ID', 'SAMPLE_COVERAGE'],
+        ['#STRING', 'STRING', 'NUMBER',],
+        ['#1', '1', '1'],
+        ['SAMPLE_ID', 'PATIENT_ID', 'SAMPLE_COVERAGE'],
+        ['Sample1', 'Patient1', '108'],
+        ['Sample2', 'Patient2', '502'],
+        ['Sample3', 'Patient3', '256'],
+        ]
+
+        lines2 = [
+        ['SampleID', 'CMO_TMB_SCORE'],
+        ['Sample2', '200'],
+        ['Sample3', '300'],
+        ]
+
+        data_clinical_file = write_table(self.tmpdir, filename = "data_clinical_sample.txt", lines = lines1)
+        tmb_file = write_table(self.tmpdir, filename = "tmb.tsv", lines = lines2)
+        output_file = os.path.join(self.tmpdir, "data_clinical_sample.merged.txt")
+        command = [script, data_clinical_file, tmb_file, '--key1', 'SAMPLE_ID', '--key2', 'SampleID', '--output', output_file, '--cBioPortal']
+        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+
+        reader = TableReader(output_file)
+        comments = reader.comment_lines
+        fieldnames = reader.get_fieldnames()
+        records = [ rec for rec in reader.read() ]
+        expected_comments = [
+            '#SAMPLE_ID\tPATIENT_ID\tSAMPLE_COVERAGE\tCMO_TMB_SCORE\n',
+            '#SAMPLE_ID\tPATIENT_ID\tSAMPLE_COVERAGE\tCMO_TMB_SCORE\n',
+            '#STRING\tSTRING\tNUMBER\tNUMBER\n',
+            '#1\t1\t1\t1\n'
+        ]
+        expected_records = [
+            {'SAMPLE_ID': 'Sample1', 'PATIENT_ID': 'Patient1', 'SAMPLE_COVERAGE': '108', 'CMO_TMB_SCORE': 'NA'},
+            {'SAMPLE_ID': 'Sample2', 'PATIENT_ID': 'Patient2', 'SAMPLE_COVERAGE': '502', 'CMO_TMB_SCORE': '200'},
+            {'SAMPLE_ID': 'Sample3', 'PATIENT_ID': 'Patient3', 'SAMPLE_COVERAGE': '256', 'CMO_TMB_SCORE': '300'}
+        ]
+        self.assertEqual(comments, expected_comments)
+        self.assertEqual(records, expected_records)
+
     def test_merge_tables_tmb_data_clinical_with_normals(self):
         """
         Test case for merging a TMB file with only tumors against a data clinical file that containes tumors and normals
@@ -146,9 +194,9 @@ class TestTMBVariantFilter(TmpDirTestCase):
         expected_comments = []
         expected_records = [
             {'SAMPLE_ID': 'Sample1-T', 'PATIENT_ID': 'Patient1', 'SAMPLE_COVERAGE': '108', 'TMB': '100'},
-            {'SAMPLE_ID': 'Sample1-N', 'PATIENT_ID': 'Patient2', 'SAMPLE_COVERAGE': '58', 'TMB': ''},
+            {'SAMPLE_ID': 'Sample1-N', 'PATIENT_ID': 'Patient2', 'SAMPLE_COVERAGE': '58', 'TMB': 'NA'},
             {'SAMPLE_ID': 'Sample2-T', 'PATIENT_ID': 'Patient3', 'SAMPLE_COVERAGE': '502', 'TMB': '200'},
-            {'SAMPLE_ID': 'Sample2-N', 'PATIENT_ID': 'Patient4', 'SAMPLE_COVERAGE': '56', 'TMB': ''}
+            {'SAMPLE_ID': 'Sample2-N', 'PATIENT_ID': 'Patient4', 'SAMPLE_COVERAGE': '56', 'TMB': 'NA'}
         ]
         self.assertEqual(comments, expected_comments)
         self.assertEqual(records, expected_records)

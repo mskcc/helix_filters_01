@@ -262,7 +262,7 @@ def generate_header_lines(keys, delimiter = '\t', header_lines_map = header_line
         lines.append(line.rstrip(delimiter) + '\n')
     return(lines)
 
-def create_file_lines(clinical_data, delimiter = '\t'):
+def create_file_lines(clinical_data, delimiter = '\t', na_str = 'NA'):
     """
     Create the lines in the file based on the provided clinical data
     First gets the header lines for the file, then generates each remaining line in the file
@@ -279,9 +279,15 @@ def create_file_lines(clinical_data, delimiter = '\t'):
     """
     lines = []
 
-    # get the cBio header lines from the clinical data keys
-    # assume the first entry has the same keys as the rest
-    clinical_keys = [ k for k in clinical_data[0].keys() ]
+    # get the cBio header lines from the clinical data keys;
+    # need to get set of all keys in all records
+    # clinical_keys = list(set().union(*(d.keys() for d in clinical_data))) # this way is better but loses ordering
+    # use an OrderedDict to preserve ordering
+    clinical_keys = OrderedDict()
+    for d in clinical_data:
+        for k in d.keys():
+            clinical_keys[k] = None # I think None is the smallest byte size value, 16bytes each
+    clinical_keys = clinical_keys.keys() # final list of keys in the desired order
     for header_line in generate_header_lines(clinical_keys, delimiter = delimiter):
         lines.append(header_line)
 
@@ -290,7 +296,12 @@ def create_file_lines(clinical_data, delimiter = '\t'):
 
     # concat the rest of the clinical data values based on the delimiter
     for row in clinical_data:
-        line = delimiter.join(row.values())
+        # need to make sure that output values match the order of the header keys
+        new_row = OrderedDict()
+        for key in clinical_keys:
+            new_row[key] = row.get(key, na_str) # fill in missing values with na_str
+        # concat the values into a single string for printing
+        line = delimiter.join(new_row.values())
         lines.append(line + '\n')
     return(lines)
 
