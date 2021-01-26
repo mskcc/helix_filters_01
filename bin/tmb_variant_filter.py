@@ -8,6 +8,7 @@ import sys
 from cBioPortal_utils import MafReader, is_TERT_promoter
 
 alt_dp_colname = 't_alt_count'
+ref_dp_colname = 't_ref_count'
 af_colname = 't_af'
 frequency_min = 0.05
 
@@ -57,10 +58,29 @@ def get_af(row):
     Get the allele frequency from the row or calculate it if missing
     """
     try:
+        # af col is present
         af = float(row[af_colname])
     except KeyError:
-        af = float(int(row[alt_dp_colname]) / int(row[dp_colname]))
+        # af col is not present
+        try:
+            af = float(int(row[alt_dp_colname]) / int(row[dp_colname]))
+        except ValueError:
+            # one of the col's ^^^ is blank or not a valid int; try a different col instead
+            dp = float( int(row[alt_dp_colname]) + int(row[ref_dp_colname]) )
+            af = float( int(row[alt_dp_colname]) / dp )
+            pass
     return(af)
+
+def get_dp(row):
+    """
+    Handling to try and get the depth value from the row
+    """
+    try:
+        dp = float(row[dp_colname])
+    except ValueError:
+        # the column is not a valid int; try a different col instead
+        dp = float( int(row[alt_dp_colname]) + int(row[ref_dp_colname]) )
+    return(dp)
 
 def filter_row(row):
     """
@@ -70,7 +90,7 @@ def filter_row(row):
     """
     keep_row = True
     af = get_af(row)
-    dp = float(row[dp_colname])
+    dp = get_dp(row)
     gene_function_str = row[gene_function_colname]
     gene_functions = set(gene_function_str.split(','))
 
@@ -117,7 +137,6 @@ def main(input_file, output_file):
     maf_reader = MafReader(input_file)
     fieldnames = maf_reader.get_fieldnames()
     comment_lines = maf_reader.comment_lines
-
 
     with open(output_file, "w") as fout:
         # write out the input comments

@@ -123,5 +123,98 @@ class TestTMBVariantFilter(TmpDirTestCase):
         self.assertEqual(comments, expected_comments)
         self.assertEqual(mutations, expected_mutations)
 
+    def test_tmb_filter2(self):
+        """
+        Test handling of messed up entries; t_af key missing
+        """
+        self.maxDiff = None
+        # no t_af key, but has t_ref_count and t_alt_count
+        row1 = { # this one should pass filter # 't_af': '0.50', # t_af not present
+        't_ref_count': '275',
+        't_alt_count': '275',
+        't_depth': '550',
+        'Hugo_Symbol': 'EGFR',
+        'Start_Position': '1',
+        'Consequence': 'missense_variant'
+        }
+        row2 = {
+        't_ref_count': '275',
+        't_alt_count': '275',
+        't_depth': '550',
+        'Hugo_Symbol': 'EGFR',
+        'Start_Position': '1',
+        'Consequence': 'missense_variant'
+        }
+        row3 = { # exclude due to low AF
+        't_ref_count': '545',
+        't_alt_count': '5',
+        't_depth': '550',
+        'Hugo_Symbol': 'EGFR',
+        'Start_Position': '1',
+        'Consequence': 'missense_variant'
+        }
+        maf_rows = [ row1, row2, row3 ]
+        maf_lines = dicts2lines(dict_list = maf_rows, comment_list = [])
+        input_file = write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        command = [script, input_file, output_file]
+        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+
+        comments, mutations = load_mutations(output_file)
+
+        expected_mutations = [
+        {'t_depth': '550', 't_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1'},
+        {'t_depth': '550', 't_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1'},
+        ]
+
+        self.assertEqual(mutations, expected_mutations)
+
+    def test_tmb_filter3(self):
+        """
+        Test handling of messed up entries; t_af key missing and some t_depth are blank
+        """
+        self.maxDiff = None
+        # no t_af key, but has t_ref_count and t_alt_count
+        row1 = { # this one should pass filter # 't_af': '0.50', # t_af not present
+        't_ref_count': '275',
+        't_alt_count': '275',
+        't_depth': '', # this one is blank
+        'Hugo_Symbol': 'EGFR',
+        'Start_Position': '1',
+        'Consequence': 'missense_variant'
+        }
+        row2 = {
+        't_ref_count': '275',
+        't_alt_count': '275',
+        't_depth': '550',
+        'Hugo_Symbol': 'EGFR',
+        'Start_Position': '2',
+        'Consequence': 'missense_variant'
+        }
+        row3 = { # exclude due to low AF
+        't_ref_count': '545',
+        't_alt_count': '5',
+        't_depth': '550',
+        'Hugo_Symbol': 'EGFR',
+        'Start_Position': '3',
+        'Consequence': 'missense_variant'
+        }
+        maf_rows = [ row1, row2, row3 ]
+        maf_lines = dicts2lines(dict_list = maf_rows, comment_list = [])
+        input_file = write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        command = [script, input_file, output_file]
+        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        print(proc_stdout)
+
+        comments, mutations = load_mutations(output_file)
+
+        expected_mutations = [
+        {'t_depth': '', 't_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1'},
+        {'t_depth': '550', 't_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '2'}
+        ]
+
+        self.assertEqual(mutations, expected_mutations)
+
 if __name__ == "__main__":
     unittest.main()
