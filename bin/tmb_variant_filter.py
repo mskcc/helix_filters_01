@@ -78,7 +78,11 @@ def get_af(row):
         except TypeError:
             dp = int(alt_dp) + int(ref_df)
 
-        af = float( int(alt_dp) / dp )
+        try:
+            af = float( int(alt_dp) / dp )
+        except ZeroDivisionError:
+            # depth value is 0;
+            af = 0.0
     return(af)
 
 def get_dp(row):
