@@ -205,13 +205,65 @@ class TestTMBVariantFilter(TmpDirTestCase):
         output_file = os.path.join(self.tmpdir, "output.txt")
         command = [script, input_file, output_file]
         returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
-        print(proc_stdout)
 
         comments, mutations = load_mutations(output_file)
 
         expected_mutations = [
         {'t_depth': '', 't_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1'},
         {'t_depth': '550', 't_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '2'}
+        ]
+
+        self.assertEqual(mutations, expected_mutations)
+
+    def test_tmb_filter4(self):
+        """
+        Test handling of mutation status in variants
+        """
+        self.maxDiff = None
+        row1 = { # this one should pass filter # 't_af': '0.50',
+        't_ref_count': '275',
+        't_alt_count': '275',
+        'Hugo_Symbol': 'EGFR',
+        'Start_Position': '1',
+        'Mutation_Status': "GERMLINE",
+        'Consequence': 'missense_variant'
+        }
+        row2 = {
+        't_ref_count': '275',
+        't_alt_count': '275',
+        'Hugo_Symbol': 'EGFR',
+        'Start_Position': '2',
+        'Mutation_Status': "SOMATIC",
+        'Consequence': 'missense_variant'
+        }
+        row3 = {
+        't_ref_count': '275',
+        't_alt_count': '275',
+        'Hugo_Symbol': 'EGFR',
+        'Start_Position': '3',
+        'Mutation_Status': "UNKNOWN",
+        'Consequence': 'missense_variant'
+        }
+        row4 = {
+        't_ref_count': '275',
+        't_alt_count': '275',
+        'Hugo_Symbol': 'EGFR',
+        'Start_Position': '4',
+        'Mutation_Status': "",
+        'Consequence': 'missense_variant'
+        }
+        maf_rows = [ row1, row2, row3, row4 ]
+        maf_lines = dicts2lines(dict_list = maf_rows, comment_list = [])
+        input_file = write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        command = [script, input_file, output_file]
+        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+
+        comments, mutations = load_mutations(output_file)
+
+        expected_mutations = [
+        {'t_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '2', 'Mutation_Status': "SOMATIC"},
+        {'t_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '4', 'Mutation_Status': ""},
         ]
 
         self.assertEqual(mutations, expected_mutations)

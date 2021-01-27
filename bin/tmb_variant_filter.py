@@ -19,6 +19,9 @@ gene_function_colname = 'Consequence'
 gene_function_exclude = set(['synonymous_variant'])
 # gene_function_allowed = # ['exonic'] # Func_refGene_allowed
 
+mutation_status_colname = 'Mutation_Status'
+mutation_status_exclude = set(['GERMLINE', 'UNKNOWN'])
+
 # Variant_Classification
 # ----------------------
 # Silent
@@ -58,17 +61,24 @@ def get_af(row):
     Get the allele frequency from the row or calculate it if missing
     """
     try:
-        # af col is present
+        # af col is present; t_af
         af = float(row[af_colname])
     except KeyError:
-        # af col is not present
+        # get the values needed to calculate Depth, so that we can calculate AF
+        dp = row.get(dp_colname) # 't_depth'
+        alt_dp = row.get(alt_dp_colname) # 't_alt_count'
+        ref_df = row.get(ref_dp_colname) # 't_ref_count'
+
+        # need to coerce to int
         try:
-            af = float(int(row[alt_dp_colname]) / int(row[dp_colname]))
+            dp = int(dp)
+        # it was not a valid value to coerce to int
         except ValueError:
-            # one of the col's ^^^ is blank or not a valid int; try a different col instead
-            dp = float( int(row[alt_dp_colname]) + int(row[ref_dp_colname]) )
-            af = float( int(row[alt_dp_colname]) / dp )
-            pass
+            dp = int(alt_dp) + int(ref_df)
+        except TypeError:
+            dp = int(alt_dp) + int(ref_df)
+
+        af = float( int(alt_dp) / dp )
     return(af)
 
 def get_dp(row):
@@ -76,10 +86,18 @@ def get_dp(row):
     Handling to try and get the depth value from the row
     """
     try:
-        dp = float(row[dp_colname])
+        dp = row.get(dp_colname) # 't_depth'
+        dp = float(dp) # 't_depth'
+    # it was not a valid value to coerce to int
     except ValueError:
         # the column is not a valid int; try a different col instead
-        dp = float( int(row[alt_dp_colname]) + int(row[ref_dp_colname]) )
+        alt_dp = row.get(alt_dp_colname) # 't_alt_count'
+        ref_df = row.get(ref_dp_colname) # 't_ref_count'
+        dp = int(alt_dp) + int(ref_df)
+    except TypeError:
+        alt_dp = row.get(alt_dp_colname) # 't_alt_count'
+        ref_df = row.get(ref_dp_colname) # 't_ref_count'
+        dp = int(alt_dp) + int(ref_df)
     return(dp)
 
 def filter_row(row):
@@ -91,6 +109,7 @@ def filter_row(row):
     keep_row = True
     af = get_af(row)
     dp = get_dp(row)
+    mutation_status = row.get(mutation_status_colname, None)
     gene_function_str = row[gene_function_colname]
     gene_functions = set(gene_function_str.split(','))
 
@@ -110,6 +129,10 @@ def filter_row(row):
 
     if dp < coverage_min:
         keep_row = False
+
+    if mutation_status is not None:
+        if mutation_status.upper() in mutation_status_exclude:
+            keep_row = False
 
     # if gene_functions are in the gene_function_exclude list;
     # report only if mut is NOT synonymous_variant...
