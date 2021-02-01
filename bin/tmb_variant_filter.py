@@ -11,6 +11,7 @@ alt_dp_colname = 't_alt_count'
 ref_dp_colname = 't_ref_count'
 af_colname = 't_af'
 frequency_min = 0.05
+# NOTE: frequency_min *must* be >0.0 or else invalid variant calls might get through!! Some discrepant variants have been seen with ref and alt allele counts of 0 and no 'depth' value recorded
 
 dp_colname = 't_depth'
 coverage_min = 500.0
@@ -22,7 +23,7 @@ gene_function_exclude = set(['synonymous_variant'])
 mutation_status_colname = 'Mutation_Status'
 mutation_status_exclude = set(['GERMLINE', 'UNKNOWN'])
 
-# Variant_Classification
+# Variant_Classification known values;
 # ----------------------
 # Silent
 # Missense_Mutation
@@ -36,7 +37,7 @@ mutation_status_exclude = set(['GERMLINE', 'UNKNOWN'])
 # Frame_Shift_Del
 # In_Frame_Del
 
-# Consequence
+# Consequence known values;
 # -----------
 # synonymous_variant
 # missense_variant
@@ -56,53 +57,52 @@ mutation_status_exclude = set(['GERMLINE', 'UNKNOWN'])
 # inframe_deletion
 # splice_region_variant,5_prime_UTR_variant
 
-def get_af(row):
+def get_ref_alt_depth(row):
     """
-    Get the allele frequency from the row or calculate it if missing
+    Handler to try and retrieve the tumor variant allele ref and alt depths, and the overall variant depth, from the row
+    Need to handle missing and messed up values
     """
-    try:
-        # af col is present; t_af
-        af = float(row[af_colname])
-    except KeyError:
-        # get the values needed to calculate Depth, so that we can calculate AF
-        dp = row.get(dp_colname) # 't_depth'
-        alt_dp = row.get(alt_dp_colname) # 't_alt_count'
-        ref_df = row.get(ref_dp_colname) # 't_ref_count'
-
-        # need to coerce to int
+    keys = [
+        alt_dp_colname, # 't_alt_count'
+        ref_dp_colname, # 't_ref_count'
+        dp_colname, # 't_depth'
+    ]
+    values = {}
+    for key in keys:
+        # get the value if its present
+        values[key] = row.get(key, None)
+        # try to convert it to an int
         try:
-            dp = int(dp)
-        # it was not a valid value to coerce to int
-        except ValueError:
-            dp = int(alt_dp) + int(ref_df)
+            values[key] = int(values[key])
+        # not a valid int
         except TypeError:
-            dp = int(alt_dp) + int(ref_df)
+            values[key] = None
+        except ValueError:
+            values[key] = None
 
-        try:
-            af = float( int(alt_dp) / dp )
-        except ZeroDivisionError:
-            # depth value is 0;
-            af = 0.0
+    ref_count = values[ref_dp_colname]
+    alt_count = values[alt_dp_colname]
+    depth = values[dp_colname]
+
+    if depth is None:
+        # try to calculate from the other two values
+        if ref_count is not None and alt_count is not None:
+            depth = ref_count + alt_count
+
+    return(ref_count, alt_count, depth)
+
+def calc_af(ref_count, alt_count, depth):
+    """
+    Calculate the af from value provided
+    """
+    af = 0.0 # default value in case some of the input values are bad
+    if depth and alt_count: # non-0 or not None
+        af = float( alt_count / depth )
+    elif ref_count and alt_count:
+        depth = int( ref_count + alt_count )
+        af = float( alt_count / depth )
     return(af)
 
-def get_dp(row):
-    """
-    Handling to try and get the depth value from the row
-    """
-    try:
-        dp = row.get(dp_colname) # 't_depth'
-        dp = float(dp) # 't_depth'
-    # it was not a valid value to coerce to int
-    except ValueError:
-        # the column is not a valid int; try a different col instead
-        alt_dp = row.get(alt_dp_colname) # 't_alt_count'
-        ref_df = row.get(ref_dp_colname) # 't_ref_count'
-        dp = int(alt_dp) + int(ref_df)
-    except TypeError:
-        alt_dp = row.get(alt_dp_colname) # 't_alt_count'
-        ref_df = row.get(ref_dp_colname) # 't_ref_count'
-        dp = int(alt_dp) + int(ref_df)
-    return(dp)
 
 def filter_row(row):
     """
@@ -111,8 +111,18 @@ def filter_row(row):
     Need to report mutations that are NOT synonymous_variant EXCEPT for TERT promoter
     """
     keep_row = True
-    af = get_af(row)
-    dp = get_dp(row)
+    ref_count, alt_count, depth = get_ref_alt_depth(row)
+
+    if af_colname in row:
+        try:
+            af = float(row[af_colname])
+        except TypeError:
+            af = calc_af(ref_count, alt_count, depth)
+        except ValueError:
+            af = calc_af(ref_count, alt_count, depth)
+    else:
+        af = calc_af(ref_count, alt_count, depth)
+
     mutation_status = row.get(mutation_status_colname, None)
     gene_function_str = row[gene_function_colname]
     gene_functions = set(gene_function_str.split(','))
@@ -128,12 +138,21 @@ def filter_row(row):
     For TMB you for sure only want to count _on_ target events as you are going to be measuring a density (#events / target area).
     """
 
+    # immediately quit on these conditions
+    if not depth:
+        return(False)
+
+    if depth < coverage_min:
+        return(False)
+
+    if not af:
+        return(False)
+
     if af < frequency_min:
-        keep_row = False
+        return(False)
 
-    if dp < coverage_min:
-        keep_row = False
 
+    # check multiple criteria for these conditions
     if mutation_status is not None:
         if mutation_status.upper() in mutation_status_exclude:
             keep_row = False
