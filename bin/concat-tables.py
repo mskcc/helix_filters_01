@@ -14,6 +14,7 @@ Example usage::
     ./concat-tables.py -o concat.tsv NC-HAPMAP.HaplotypeCaller.annotations.tsv NC-HAPMAP.LoFreq.annotations.tsv
 
 """
+import os
 import csv
 import sys
 from collections import OrderedDict
@@ -108,6 +109,16 @@ def update_dict(d, keys, default_val):
             d[key] = default_val
     return(d)
 
+def get_files_from_dir(input_dirs):
+    files = []
+    for input_dir in input_dirs:
+        for dirpath, dirnames, filenames in os.walk(input_dir):
+            for filename in filenames:
+                path = os.path.join(dirpath, filename)
+                files.append(path)
+    return(files)
+
+
 def main(**kwargs):
     """
     Main control function for the script
@@ -118,6 +129,10 @@ def main(**kwargs):
     na_str = kwargs.pop('na_str', '.')
     has_comments = kwargs.pop('has_comments', False)
     comment_char = kwargs.pop('comment_char', '#')
+    dir = kwargs.pop('dir', False)
+
+    if dir:
+        input_files = get_files_from_dir(input_dirs = input_files)
 
     comments = None
     if has_comments:
@@ -169,6 +184,7 @@ def parse():
     parser.add_argument("-n", default = '.', dest = 'na_str', help="NA string; character to insert for missing fields in table")
     parser.add_argument("--comments", action='store_true', dest = 'has_comments', help="Whether the input files have comment lines preceeding the header; they will be retained in the output")
     parser.add_argument("--comment-char", default = '#', dest = 'comment_char', help="Character for comment lines")
+    parser.add_argument("--dir", action = 'store_true', dest = 'dir', help="Input file is a directory")
     args = parser.parse_args()
 
     main(**vars(args))
