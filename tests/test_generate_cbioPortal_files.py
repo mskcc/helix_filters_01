@@ -6,21 +6,13 @@ unit tests for the generation of cBio Portal files
 import sys
 import os
 import unittest
-from tempfile import TemporaryDirectory
 
-# relative imports, from CLI and from parent project
-if __name__ != "__main__":
-    from .settings import DATA_SETS, BIN_DIR
-    from .tools import run_command, write_table
-
-if __name__ == "__main__":
-    from settings import DATA_SETS, BIN_DIR
-    from tools import run_command, write_table
-
-# need to import the module from the other dir
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(THIS_DIR)
 sys.path.insert(0, PARENT_DIR)
+from pluto.tools import PlutoTestCase
+from pluto.settings import DATA_SETS
+from settings import BIN_DIR
 from bin.generate_cbioPortal_files import generate_portal_data_clinical_patient
 from bin.generate_cbioPortal_files import generate_portal_data_clinical_sample
 from bin.generate_cbioPortal_files import generate_study_meta
@@ -41,9 +33,7 @@ from bin.generate_cbioPortal_files import generate_data_clinical_sample_file
 from bin.generate_cbioPortal_files import clean_facets_suite_cna_file
 sys.path.pop(0)
 
-
-
-class TestGenerateCBioFiles(unittest.TestCase):
+class TestGenerateCBioFiles(PlutoTestCase):
     def test_generate_portal_data_clinical_patient(self):
         """
         Test that clinical patient data is generated correctly
@@ -137,19 +127,19 @@ class TestGenerateCBioFiles(unittest.TestCase):
         data_clinical_file = os.path.join(DATA_SETS['Proj_08390_G']['INPUTS_DIR'], 'Proj_08390_G_sample_data_clinical.1.txt')
         sample_summary_file = os.path.join(DATA_SETS['Proj_08390_G']['QC_DIR'], 'Proj_08390_G_SampleSummary.txt')
         facets_txt_file = os.path.join(DATA_SETS['Proj_08390_G']['FACETS_SUITE_DIR'], 'Proj_08390_G.facets.txt')
-        with TemporaryDirectory() as tmpdir:
-            output_file = os.path.join(tmpdir, "output.txt")
-            args = {
-            'data_clinical_file': data_clinical_file,
-            'sample_summary_file': sample_summary_file,
-            'facets_txt_files': [facets_txt_file],
-            'output': output_file,
-            'project_pi': 'jonesd',
-            'request_pi': 'smithd'
-            }
-            generate_data_clinical_sample_file(**args)
-            with open(output_file) as fin:
-                lines = [ line.strip().split('\t') for line in fin ]
+
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        args = {
+        'data_clinical_file': data_clinical_file,
+        'sample_summary_file': sample_summary_file,
+        'facets_txt_files': [facets_txt_file],
+        'output': output_file,
+        'project_pi': 'jonesd',
+        'request_pi': 'smithd'
+        }
+        generate_data_clinical_sample_file(**args)
+        with open(output_file) as fin:
+            lines = [ line.strip().split('\t') for line in fin ]
 
         expected_lines = [
         ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'SAMPLE_COVERAGE', 'PROJECT_PI', 'REQUEST_PI', 'genome_doubled', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'ASCN_WGD'],
@@ -170,19 +160,18 @@ class TestGenerateCBioFiles(unittest.TestCase):
 
         data_clinical_file = os.path.join(DATA_SETS['Proj_08390_G']['INPUTS_DIR'], 'Proj_08390_G_sample_data_clinical.1.txt')
         facets_txt_file = os.path.join(DATA_SETS['Proj_08390_G']['FACETS_SUITE_DIR'], 'Proj_08390_G.facets.txt')
-        with TemporaryDirectory() as tmpdir:
-            output_file = os.path.join(tmpdir, "output.txt")
-            args = {
-            'data_clinical_file': data_clinical_file,
-            'sample_summary_file': None,
-            'facets_txt_files': [facets_txt_file],
-            'output': output_file,
-            'project_pi': 'jonesd',
-            'request_pi': 'smithd'
-            }
-            generate_data_clinical_sample_file(**args)
-            with open(output_file) as fin:
-                lines = [ line.strip().split('\t') for line in fin ]
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        args = {
+        'data_clinical_file': data_clinical_file,
+        'sample_summary_file': None,
+        'facets_txt_files': [facets_txt_file],
+        'output': output_file,
+        'project_pi': 'jonesd',
+        'request_pi': 'smithd'
+        }
+        generate_data_clinical_sample_file(**args)
+        with open(output_file) as fin:
+            lines = [ line.strip().split('\t') for line in fin ]
 
         expected_lines = [
         ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'genome_doubled', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'ASCN_WGD'],
@@ -204,19 +193,18 @@ class TestGenerateCBioFiles(unittest.TestCase):
         facets_txt_file1 = os.path.join(DATA_SETS['Proj_08390_G']['FACETS_SUITE_DIR'], 'Sample46.txt')
         facets_txt_file2 = os.path.join(DATA_SETS['Proj_08390_G']['FACETS_SUITE_DIR'], 'Sample44.txt')
 
-        with TemporaryDirectory() as tmpdir:
-            output_file = os.path.join(tmpdir, "output.txt")
-            args = {
-            'data_clinical_file': data_clinical_file,
-            'sample_summary_file': None,
-            'facets_txt_files': [facets_txt_file1, facets_txt_file2],
-            'output': output_file,
-            'project_pi': 'jonesd',
-            'request_pi': 'smithd'
-            }
-            generate_data_clinical_sample_file(**args)
-            with open(output_file) as fin:
-                lines = [ line.strip().split('\t') for line in fin ]
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        args = {
+        'data_clinical_file': data_clinical_file,
+        'sample_summary_file': None,
+        'facets_txt_files': [facets_txt_file1, facets_txt_file2],
+        'output': output_file,
+        'project_pi': 'jonesd',
+        'request_pi': 'smithd'
+        }
+        generate_data_clinical_sample_file(**args)
+        with open(output_file) as fin:
+            lines = [ line.strip().split('\t') for line in fin ]
 
         expected_lines = [
             ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'genome_doubled', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'ASCN_WGD'],
@@ -239,19 +227,18 @@ class TestGenerateCBioFiles(unittest.TestCase):
         facets_txt_file1 = os.path.join(DATA_SETS['Proj_08390_G']['FACETS_SUITE_DIR'], 'Sample46.txt')
         facets_txt_file2 = os.path.join(DATA_SETS['Proj_08390_G']['FACETS_SUITE_DIR'], 'Sample1.txt')
 
-        with TemporaryDirectory() as tmpdir:
-            output_file = os.path.join(tmpdir, "output.txt")
-            args = {
-            'data_clinical_file': data_clinical_file,
-            'sample_summary_file': None,
-            'facets_txt_files': [facets_txt_file1, facets_txt_file2],
-            'output': output_file,
-            'project_pi': 'jonesd',
-            'request_pi': 'smithd'
-            }
-            generate_data_clinical_sample_file(**args)
-            with open(output_file) as fin:
-                lines = [ line.strip().split('\t') for line in fin ]
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        args = {
+        'data_clinical_file': data_clinical_file,
+        'sample_summary_file': None,
+        'facets_txt_files': [facets_txt_file1, facets_txt_file2],
+        'output': output_file,
+        'project_pi': 'jonesd',
+        'request_pi': 'smithd'
+        }
+        generate_data_clinical_sample_file(**args)
+        with open(output_file) as fin:
+            lines = [ line.strip().split('\t') for line in fin ]
 
         expected_lines = [
             ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'genome_doubled', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'ASCN_WGD'],
@@ -278,38 +265,37 @@ class TestGenerateCBioFiles(unittest.TestCase):
 
         script = os.path.join(BIN_DIR, 'generate_cbioPortal_files.py')
 
-        with TemporaryDirectory() as tmpdir:
-            output_file = os.path.join(tmpdir, "output.txt")
+        output_file = os.path.join(self.tmpdir, "output.txt")
 
-            command = [
-            script,
-            'sample',
-            '--output', output_file,
-            '--data-clinical-file', data_clinical_file,
-            '--project-pi', 'jonesd',
-            '--request-pi', 'smithd',
-            '--facets-txt-files', facets_txt_file1, facets_txt_file2
+        command = [
+        script,
+        'sample',
+        '--output', output_file,
+        '--data-clinical-file', data_clinical_file,
+        '--project-pi', 'jonesd',
+        '--request-pi', 'smithd',
+        '--facets-txt-files', facets_txt_file1, facets_txt_file2
+        ]
+
+        returncode, proc_stdout, proc_stderr = self.run_command(command)
+
+        if returncode != 0:
+            print(proc_stderr)
+
+        self.assertEqual(returncode, 0)
+
+        with open(output_file) as fin:
+            lines = [ line.strip().split('\t') for line in fin ]
+
+        expected_lines = [
+            ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'genome_doubled', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'ASCN_WGD'],
+            ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'genome_doubled', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'ASCN_WGD'],
+            ['#STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'NUMBER', 'NUMBER', 'STRING', 'STRING'],
+            ['#1', '1', '1', '0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0', '1', '1', '0', '1'],
+            ['SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'genome_doubled', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'ASCN_WGD'],
+            ['Sample46', '08390_G_95', 'p_C_00001', 'COLLAB-01-T', 'Primary', 'Biopsy', 'IMPACT468+08390_Hg19', 'MEL', 'FFPE', '', '08390_G', '08390', 'roslin', '2.5.7', 'jonesd', 'smithd', 'FALSE', '0.36', '2.6', '0.5.14', 'no WGD'],
+            ['Sample44', '08390_G_93', 'p_C_00002', 'COLLAB-01-T', 'Primary', 'Biopsy', 'IMPACT468+08390_Hg19', 'MEL', 'FFPE', '', '08390_G', '08390', 'roslin', '2.5.7', 'jonesd', 'smithd', 'FALSE', '0.51', '1.6', '0.5.14', 'no WGD']
             ]
-
-            returncode, proc_stdout, proc_stderr = run_command(command)
-
-            if returncode != 0:
-                print(proc_stderr)
-
-            self.assertEqual(returncode, 0)
-
-            with open(output_file) as fin:
-                lines = [ line.strip().split('\t') for line in fin ]
-
-            expected_lines = [
-                ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'genome_doubled', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'ASCN_WGD'],
-                ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'genome_doubled', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'ASCN_WGD'],
-                ['#STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'NUMBER', 'NUMBER', 'STRING', 'STRING'],
-                ['#1', '1', '1', '0', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '0', '1', '1', '0', '1'],
-                ['SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'genome_doubled', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'ASCN_WGD'],
-                ['Sample46', '08390_G_95', 'p_C_00001', 'COLLAB-01-T', 'Primary', 'Biopsy', 'IMPACT468+08390_Hg19', 'MEL', 'FFPE', '', '08390_G', '08390', 'roslin', '2.5.7', 'jonesd', 'smithd', 'FALSE', '0.36', '2.6', '0.5.14', 'no WGD'],
-                ['Sample44', '08390_G_93', 'p_C_00002', 'COLLAB-01-T', 'Primary', 'Biopsy', 'IMPACT468+08390_Hg19', 'MEL', 'FFPE', '', '08390_G', '08390', 'roslin', '2.5.7', 'jonesd', 'smithd', 'FALSE', '0.51', '1.6', '0.5.14', 'no WGD']
-                ]
 
         self.assertEqual(lines, expected_lines)
 
@@ -321,18 +307,17 @@ class TestGenerateCBioFiles(unittest.TestCase):
 
         data_clinical_file = os.path.join(DATA_SETS['Proj_08390_G']['INPUTS_DIR'], 'Proj_08390_G_sample_data_clinical.1.txt')
         sample_summary_file = os.path.join(DATA_SETS['Proj_08390_G']['QC_DIR'], 'Proj_08390_G_SampleSummary.txt')
-        with TemporaryDirectory() as tmpdir:
-            output_file = os.path.join(tmpdir, "output.txt")
-            args = {
-            'data_clinical_file': data_clinical_file,
-            'sample_summary_file': sample_summary_file,
-            'output': output_file,
-            'project_pi': 'jonesd',
-            'request_pi': 'smithd'
-            }
-            generate_data_clinical_sample_file(**args)
-            with open(output_file) as fin:
-                lines = [ line.strip().split('\t') for line in fin ]
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        args = {
+        'data_clinical_file': data_clinical_file,
+        'sample_summary_file': sample_summary_file,
+        'output': output_file,
+        'project_pi': 'jonesd',
+        'request_pi': 'smithd'
+        }
+        generate_data_clinical_sample_file(**args)
+        with open(output_file) as fin:
+            lines = [ line.strip().split('\t') for line in fin ]
 
         expected_lines = [
         ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'SAMPLE_COVERAGE', 'PROJECT_PI', 'REQUEST_PI'],
@@ -352,18 +337,17 @@ class TestGenerateCBioFiles(unittest.TestCase):
         self.maxDiff = None
 
         data_clinical_file = os.path.join(DATA_SETS['Proj_08390_G']['INPUTS_DIR'], 'Proj_08390_G_sample_data_clinical.1.txt')
-        with TemporaryDirectory() as tmpdir:
-            output_file = os.path.join(tmpdir, "output.txt")
-            args = {
-            'data_clinical_file': data_clinical_file,
-            'sample_summary_file': None,
-            'output': output_file,
-            'project_pi': 'jonesd',
-            'request_pi': 'smithd'
-            }
-            generate_data_clinical_sample_file(**args)
-            with open(output_file) as fin:
-                lines = [ line.strip().split('\t') for line in fin ]
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        args = {
+        'data_clinical_file': data_clinical_file,
+        'sample_summary_file': None,
+        'output': output_file,
+        'project_pi': 'jonesd',
+        'request_pi': 'smithd'
+        }
+        generate_data_clinical_sample_file(**args)
+        with open(output_file) as fin:
+            lines = [ line.strip().split('\t') for line in fin ]
 
         expected_lines = [
         ['#SAMPLE_ID', 'IGO_ID', 'PATIENT_ID', 'COLLAB_ID', 'SAMPLE_TYPE', 'SAMPLE_CLASS', 'GENE_PANEL', 'ONCOTREE_CODE', 'SPECIMEN_PRESERVATION_TYPE', 'TISSUE_SITE', 'REQUEST_ID', 'PROJECT_ID', 'PIPELINE', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI'],
@@ -645,75 +629,71 @@ class TestGenerateCBioFiles(unittest.TestCase):
         portal/data_CNA.ascna.txt
         """
         # test case with clean headers
-        with TemporaryDirectory() as tmpdir:
-            cna_lines = [
-            ['Hugo_Symbol', 'sample1', 'sample2'],
-            ['ABL1', '3;1', '3;NA']
-            ]
-            input_file = write_table(tmpdir, "data_CNA.txt", cna_lines)
-            output_file = os.path.join(tmpdir, "output.txt")
-            clean_facets_suite_cna_file(input_file = input_file, output_file = output_file)
-            with open(output_file) as fin:
-                lines = [ l for l in fin ]
-            expected_lines = ['Hugo_Symbol\tsample1\tsample2\n', 'ABL1\t3;1\t3;NA\n']
-            self.assertEqual(lines, expected_lines)
+        cna_lines = [
+        ['Hugo_Symbol', 'sample1', 'sample2'],
+        ['ABL1', '3;1', '3;NA']
+        ]
+        input_file = self.write_table(self.tmpdir, "data_CNA.txt", cna_lines)
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        clean_facets_suite_cna_file(input_file = input_file, output_file = output_file)
+        with open(output_file) as fin:
+            lines = [ l for l in fin ]
+        expected_lines = ['Hugo_Symbol\tsample1\tsample2\n', 'ABL1\t3;1\t3;NA\n']
+        self.assertEqual(lines, expected_lines)
 
         # test case with bad headers
-        with TemporaryDirectory() as tmpdir:
-            cna_lines = [
-            ['Hugo_Symbol', 'sample1_hisens', 'sample2_hisens'],
-            ['ABL1', '3;1', '3;NA']
-            ]
-            input_file = write_table(tmpdir, "data_CNA.txt", cna_lines)
-            output_file = os.path.join(tmpdir, "output.txt")
-            clean_facets_suite_cna_file(input_file = input_file, output_file = output_file)
-            with open(output_file) as fin:
-                lines = [ l for l in fin ]
-            expected_lines = ['Hugo_Symbol\tsample1\tsample2\n', 'ABL1\t3;1\t3;NA\n']
-            self.assertEqual(lines, expected_lines)
+        cna_lines = [
+        ['Hugo_Symbol', 'sample1_hisens', 'sample2_hisens'],
+        ['ABL1', '3;1', '3;NA']
+        ]
+        input_file = self.write_table(self.tmpdir, "data_CNA.txt", cna_lines)
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        clean_facets_suite_cna_file(input_file = input_file, output_file = output_file)
+        with open(output_file) as fin:
+            lines = [ l for l in fin ]
+        expected_lines = ['Hugo_Symbol\tsample1\tsample2\n', 'ABL1\t3;1\t3;NA\n']
+        self.assertEqual(lines, expected_lines)
 
         # test case with mixed headers
-        with TemporaryDirectory() as tmpdir:
-            cna_lines = [
-            ['Hugo_Symbol', 'sample1', 'sample2_hisens'],
-            ['ABL1', '3;1', '3;NA']
-            ]
-            input_file = write_table(tmpdir, "data_CNA.txt", cna_lines)
-            output_file = os.path.join(tmpdir, "output.txt")
-            clean_facets_suite_cna_file(input_file = input_file, output_file = output_file)
-            with open(output_file) as fin:
-                lines = [ l for l in fin ]
-            expected_lines = ['Hugo_Symbol\tsample1\tsample2\n', 'ABL1\t3;1\t3;NA\n']
-            self.assertEqual(lines, expected_lines)
+        cna_lines = [
+        ['Hugo_Symbol', 'sample1', 'sample2_hisens'],
+        ['ABL1', '3;1', '3;NA']
+        ]
+        input_file = self.write_table(self.tmpdir, "data_CNA.txt", cna_lines)
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        clean_facets_suite_cna_file(input_file = input_file, output_file = output_file)
+        with open(output_file) as fin:
+            lines = [ l for l in fin ]
+        expected_lines = ['Hugo_Symbol\tsample1\tsample2\n', 'ABL1\t3;1\t3;NA\n']
+        self.assertEqual(lines, expected_lines)
 
         # run it from the command line
         script = os.path.join(BIN_DIR, 'generate_cbioPortal_files.py')
-        with TemporaryDirectory() as tmpdir:
-            cna_lines = [
-            ['Hugo_Symbol', 'sample1', 'sample2_hisens'],
-            ['ABL1', '3;1', '3;NA']
-            ]
-            input_file = write_table(tmpdir, "data_CNA.txt", cna_lines)
-            output_file = os.path.join(tmpdir, "output.txt")
+        cna_lines = [
+        ['Hugo_Symbol', 'sample1', 'sample2_hisens'],
+        ['ABL1', '3;1', '3;NA']
+        ]
+        input_file = self.write_table(self.tmpdir, "data_CNA.txt", cna_lines)
+        output_file = os.path.join(self.tmpdir, "output.txt")
 
-            command = [
-            script,
-            'clean_cna',
-            '--output', output_file,
-            '--input', input_file
-            ]
+        command = [
+        script,
+        'clean_cna',
+        '--output', output_file,
+        '--input', input_file
+        ]
 
-            returncode, proc_stdout, proc_stderr = run_command(command)
+        returncode, proc_stdout, proc_stderr = self.run_command(command)
 
-            if returncode != 0:
-                print(proc_stderr)
+        if returncode != 0:
+            print(proc_stderr)
 
-            self.assertEqual(returncode, 0)
+        self.assertEqual(returncode, 0)
 
-            with open(output_file) as fin:
-                lines = [ l for l in fin ]
-            expected_lines = ['Hugo_Symbol\tsample1\tsample2\n', 'ABL1\t3;1\t3;NA\n']
-            self.assertEqual(lines, expected_lines)
+        with open(output_file) as fin:
+            lines = [ l for l in fin ]
+        expected_lines = ['Hugo_Symbol\tsample1\tsample2\n', 'ABL1\t3;1\t3;NA\n']
+        self.assertEqual(lines, expected_lines)
 
 
 

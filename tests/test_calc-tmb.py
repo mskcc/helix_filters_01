@@ -6,12 +6,18 @@ Tests cases for calculating TMB tumor mutational burden values
 import os
 import sys
 import unittest
-from tools import TmpDirTestCase, run_command, write_table
+
+THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+PARENT_DIR = os.path.dirname(THIS_DIR)
+sys.path.insert(0, PARENT_DIR)
+from pluto.tools import PlutoTestCase
 from settings import BIN_DIR
+sys.path.pop(0)
+
 
 script = os.path.join(BIN_DIR, 'calc-tmb.py')
 
-class TestCalcTMB(TmpDirTestCase):
+class TestCalcTMB(PlutoTestCase):
     """
     Assays
     ------
@@ -31,7 +37,7 @@ class TestCalcTMB(TmpDirTestCase):
         """
         # get result as TMB in bases
         command = [script, 'from-values', '--num-variants', "1", '--genome-coverage', "896637", '--raw']
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         # print(proc_stdout, proc_stderr)
         result = proc_stdout
         expected_result = '0.000001115278535237783'
@@ -39,13 +45,13 @@ class TestCalcTMB(TmpDirTestCase):
 
         # get result as TMB in Megabases
         command = [script, 'from-values', '--num-variants', "1", '--genome-coverage', "896637"]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         result = proc_stdout
         expected_result = '0.000000000001115278535237783'
         self.assertEqual(result, expected_result)
 
         command = [script, 'from-values', '--num-variants', "10001", '--genome-coverage', "1213770"]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         result = proc_stdout
         expected_result = '0.00000000823961706089292'
         self.assertEqual(result, expected_result)
@@ -53,7 +59,7 @@ class TestCalcTMB(TmpDirTestCase):
         # save output to file
         output_file = os.path.join(self.tmpdir, "output.txt")
         command = [script, 'from-values', '--num-variants', "10001", '--genome-coverage', "1213770", '--output-file', output_file, '--no-print']
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         # stdout should be empty
         expected_stdout = ''
         self.assertEqual(proc_stdout, expected_stdout)
@@ -77,10 +83,10 @@ class TestCalcTMB(TmpDirTestCase):
             ['SUFU', '1'],
             ['GOT1', '2']
         ]
-        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        input_maf_file = self.write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
         command = [script, 'from-file', input_maf_file, output_file, '--genome-coverage', "1000"]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         with open(output_file) as fin:
             result = next(fin).strip()
         expected_result = '0.000000005'
@@ -97,10 +103,10 @@ class TestCalcTMB(TmpDirTestCase):
             ['Hugo_Symbol', 'Chromosome'],
             ['SUFU', '1'],
         ]
-        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        input_maf_file = self.write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
         command = [script, 'from-file', input_maf_file, output_file, '--genome-coverage', "1000"]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         with open(output_file) as fin:
             result = next(fin).strip()
         expected_result = '0.000000001'
@@ -110,10 +116,10 @@ class TestCalcTMB(TmpDirTestCase):
         maf_lines = [
             ['Hugo_Symbol', 'Chromosome'],
         ]
-        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        input_maf_file = self.write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
         command = [script, 'from-file', input_maf_file, output_file, '--genome-coverage', "1000"]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         with open(output_file) as fin:
             result = next(fin).strip()
         expected_result = '0.0'
@@ -122,10 +128,10 @@ class TestCalcTMB(TmpDirTestCase):
 
         # completely empty file; script will break
         maf_lines = []
-        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        input_maf_file = self.write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
         command = [script, 'from-file', input_maf_file, output_file, '--genome-coverage', "1000"]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = False, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = False, testcase = self)
         self.assertEqual(returncode, 1)
 
     def test_check_normal_id(self):
@@ -144,12 +150,12 @@ class TestCalcTMB(TmpDirTestCase):
             ['SUFU', '1'],
             ['GOT1', '2']
         ]
-        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        input_maf_file = self.write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
 
         # with a good normal ID; not a pooled normal
         command = [script, 'from-file', input_maf_file, output_file, '--genome-coverage', "1000", "--normal-id", "foo"]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         with open(output_file) as fin:
             result = next(fin).strip()
         expected_result = '0.000000005'
@@ -157,7 +163,7 @@ class TestCalcTMB(TmpDirTestCase):
 
         # with a bad normal id
         command = [script, 'from-file', input_maf_file, output_file, '--genome-coverage', "1000", "--normal-id", "ABCPOOLEDNORMAL123"]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         with open(output_file) as fin:
             result = next(fin).strip()
         expected_result = 'NA'

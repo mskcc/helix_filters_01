@@ -6,12 +6,17 @@ Tests cases for filtering variants for calculating TMB tumor mutational burden
 import os
 import sys
 import unittest
-from tools import TmpDirTestCase, run_command, write_table, load_mutations, dicts2lines
+
+THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+PARENT_DIR = os.path.dirname(THIS_DIR)
+sys.path.insert(0, PARENT_DIR)
+from pluto.tools import PlutoTestCase
 from settings import BIN_DIR
+sys.path.pop(0)
 
 script = os.path.join(BIN_DIR, 'tmb_variant_filter.py')
 
-class TestTMBVariantFilter(TmpDirTestCase):
+class TestTMBVariantFilter(PlutoTestCase):
     def test_tmb_filter(self):
         """
         Test case for filtering variants for TMB calculation
@@ -102,13 +107,13 @@ class TestTMBVariantFilter(TmpDirTestCase):
         }
 
         maf_rows = [ row1, row2, row3, row4, row5, row6, row7, row8, row9, row10 ]
-        maf_lines = dicts2lines(dict_list = maf_rows, comment_list = comments)
-        input_file = write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
+        maf_lines = self.dicts2lines(dict_list = maf_rows, comment_list = comments)
+        input_file = self.write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
         command = [script, input_file, output_file]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
-        comments, mutations = load_mutations(output_file)
+        comments, mutations = self.load_mutations(output_file)
 
         expected_comments = ['# comment 1', '# comment 2']
         expected_mutations = [
@@ -154,13 +159,13 @@ class TestTMBVariantFilter(TmpDirTestCase):
         'Consequence': 'missense_variant'
         }
         maf_rows = [ row1, row2, row3 ]
-        maf_lines = dicts2lines(dict_list = maf_rows, comment_list = [])
-        input_file = write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
+        maf_lines = self.dicts2lines(dict_list = maf_rows, comment_list = [])
+        input_file = self.write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
         command = [script, input_file, output_file]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
-        comments, mutations = load_mutations(output_file)
+        comments, mutations = self.load_mutations(output_file)
 
         expected_mutations = [
         {'t_depth': '550', 't_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1'},
@@ -200,13 +205,13 @@ class TestTMBVariantFilter(TmpDirTestCase):
         'Consequence': 'missense_variant'
         }
         maf_rows = [ row1, row2, row3 ]
-        maf_lines = dicts2lines(dict_list = maf_rows, comment_list = [])
-        input_file = write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
+        maf_lines = self.dicts2lines(dict_list = maf_rows, comment_list = [])
+        input_file = self.write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
         command = [script, input_file, output_file]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
-        comments, mutations = load_mutations(output_file)
+        comments, mutations = self.load_mutations(output_file)
 
         expected_mutations = [
         {'t_depth': '', 't_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1'},
@@ -253,13 +258,13 @@ class TestTMBVariantFilter(TmpDirTestCase):
         'Consequence': 'missense_variant'
         }
         maf_rows = [ row1, row2, row3, row4 ]
-        maf_lines = dicts2lines(dict_list = maf_rows, comment_list = [])
-        input_file = write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
+        maf_lines = self.dicts2lines(dict_list = maf_rows, comment_list = [])
+        input_file = self.write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
         command = [script, input_file, output_file]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
-        comments, mutations = load_mutations(output_file)
+        comments, mutations = self.load_mutations(output_file)
 
         expected_mutations = [
         {'t_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '2', 'Mutation_Status': "SOMATIC"},
@@ -290,13 +295,13 @@ class TestTMBVariantFilter(TmpDirTestCase):
         'Consequence': 'missense_variant'
         }
         maf_rows = [ row1, row2 ]
-        maf_lines = dicts2lines(dict_list = maf_rows, comment_list = [])
-        input_file = write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
+        maf_lines = self.dicts2lines(dict_list = maf_rows, comment_list = [])
+        input_file = self.write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
         command = [script, input_file, output_file]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
-        comments, mutations = load_mutations(output_file)
+        comments, mutations = self.load_mutations(output_file)
 
         expected_mutations = [
         {'t_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '2', 'Mutation_Status': "SOMATIC"}
@@ -370,13 +375,13 @@ class TestTMBVariantFilter(TmpDirTestCase):
         'Consequence': 'missense_variant'
         }
         maf_rows = [ row1, row2, row3, row4, row5, row6 ]
-        maf_lines = dicts2lines(dict_list = maf_rows, comment_list = [])
-        input_file = write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
+        maf_lines = self.dicts2lines(dict_list = maf_rows, comment_list = [])
+        input_file = self.write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
         command = [script, input_file, output_file]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
-        comments, mutations = load_mutations(output_file)
+        comments, mutations = self.load_mutations(output_file)
 
         expected_mutations = [
         {'t_ref_count': '275', 't_alt_count': '275', 't_af': '', 't_depth': '', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '2', 'Mutation_Status': "SOMATIC"},

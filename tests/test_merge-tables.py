@@ -6,28 +6,17 @@ Tests cases for merging tables
 import os
 import sys
 import unittest
-from tools import TmpDirTestCase, run_command, write_table, load_mutations, dicts2lines
-from settings import BIN_DIR
 
-if __name__ != "__main__":
-    from .tools import run_command, load_mutations, write_table, dicts2lines
-    from .settings import BIN_DIR
-
-if __name__ == "__main__":
-    from tools import run_command, load_mutations, write_table, dicts2lines
-    from settings import BIN_DIR
-
-# need to import the module from the other dir
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(THIS_DIR)
 sys.path.insert(0, PARENT_DIR)
-from bin.cBioPortal_utils import TableReader
+from pluto.tools import PlutoTestCase, TableReader
+from settings import BIN_DIR
 sys.path.pop(0)
-
 
 script = os.path.join(BIN_DIR, 'merge-tables.py')
 
-class TestTMBVariantFilter(TmpDirTestCase):
+class TestTMBVariantFilter(PlutoTestCase):
     def test_merge_tables1(self):
         """
         Test case for example of simple table merge
@@ -48,11 +37,11 @@ class TestTMBVariantFilter(TmpDirTestCase):
             ['Sample2', '200'],
             ['Sample3', '300']
         ]
-        table1 = write_table(self.tmpdir, filename = "table1.tsv", lines = lines1)
-        table2 = write_table(self.tmpdir, filename = "table2.tsv", lines = lines2)
+        table1 = self.write_table(self.tmpdir, filename = "table1.tsv", lines = lines1)
+        table2 = self.write_table(self.tmpdir, filename = "table2.tsv", lines = lines2)
         output_file = os.path.join(self.tmpdir, "output.txt")
         command = [script, table1, table2, '--key1', 'Sample', '--key2', 'Sample', '--output', output_file]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
         # check the output file contents
         reader = TableReader(output_file)
@@ -92,11 +81,11 @@ class TestTMBVariantFilter(TmpDirTestCase):
         ['Sample3', '300'],
         ]
 
-        data_clinical_file = write_table(self.tmpdir, filename = "data_clinical_sample.txt", lines = lines1)
-        tmb_file = write_table(self.tmpdir, filename = "tmb.tsv", lines = lines2)
+        data_clinical_file = self.write_table(self.tmpdir, filename = "data_clinical_sample.txt", lines = lines1)
+        tmb_file = self.write_table(self.tmpdir, filename = "tmb.tsv", lines = lines2)
         output_file = os.path.join(self.tmpdir, "data_clinical_sample.merged.txt")
         command = [script, data_clinical_file, tmb_file, '--key1', 'SAMPLE_ID', '--key2', 'SampleID', '--output', output_file, '--cBioPortal']
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
         reader = TableReader(output_file)
         comments = reader.comment_lines
@@ -138,11 +127,11 @@ class TestTMBVariantFilter(TmpDirTestCase):
         ['Sample3', '300'],
         ]
 
-        data_clinical_file = write_table(self.tmpdir, filename = "data_clinical_sample.txt", lines = lines1)
-        tmb_file = write_table(self.tmpdir, filename = "tmb.tsv", lines = lines2)
+        data_clinical_file = self.write_table(self.tmpdir, filename = "data_clinical_sample.txt", lines = lines1)
+        tmb_file = self.write_table(self.tmpdir, filename = "tmb.tsv", lines = lines2)
         output_file = os.path.join(self.tmpdir, "data_clinical_sample.merged.txt")
         command = [script, data_clinical_file, tmb_file, '--key1', 'SAMPLE_ID', '--key2', 'SampleID', '--output', output_file, '--cBioPortal']
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
         reader = TableReader(output_file)
         comments = reader.comment_lines
@@ -181,11 +170,11 @@ class TestTMBVariantFilter(TmpDirTestCase):
         ['Sample2-T', '200'],
         ]
 
-        data_clinical_file = write_table(self.tmpdir, filename = "data_clinical_sample.txt", lines = lines1)
-        tmb_file = write_table(self.tmpdir, filename = "tmb.tsv", lines = lines2)
+        data_clinical_file = self.write_table(self.tmpdir, filename = "data_clinical_sample.txt", lines = lines1)
+        tmb_file = self.write_table(self.tmpdir, filename = "tmb.tsv", lines = lines2)
         output_file = os.path.join(self.tmpdir, "data_clinical_sample.merged.txt")
         command = [script, data_clinical_file, tmb_file, '--key1', 'SAMPLE_ID', '--key2', 'SampleID', '--output', output_file]
-        returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
         reader = TableReader(output_file)
         comments = reader.comment_lines

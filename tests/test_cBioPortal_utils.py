@@ -6,21 +6,13 @@ unit tests for cBioPortal utility functions
 import sys
 import os
 import unittest
-from tempfile import TemporaryDirectory
 
-# relative imports, from CLI and from parent project
-if __name__ != "__main__":
-    from .settings import DATA_SETS
-    from .tools import write_table, TmpDirTestCase
-
-if __name__ == "__main__":
-    from settings import DATA_SETS
-    from tools import write_table, TmpDirTestCase
-
-# need to import the module from the other dir
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(THIS_DIR)
 sys.path.insert(0, PARENT_DIR)
+from pluto.tools import PlutoTestCase
+from pluto.settings import DATA_SETS
+from settings import BIN_DIR
 from bin.cBioPortal_utils import create_file_lines
 from bin.cBioPortal_utils import generate_header_lines
 from bin.cBioPortal_utils import update_sample_data
@@ -31,19 +23,18 @@ from bin.cBioPortal_utils import MafReader
 from bin.cBioPortal_utils import is_TERT_promoter
 sys.path.pop(0)
 
-class TestCBioUtils(unittest.TestCase):
+class TestCBioUtils(PlutoTestCase):
     def test_parse_header_comments(self):
-        with TemporaryDirectory() as tmpdir:
-            filename = os.path.join(tmpdir, "file.txt")
-            lines = ['# comment1', '# comment2', 'header1\theader2', 'foo1\tfoo2']
-            with open(filename, "w") as fout:
-                for line in lines:
-                    fout.write(line + '\n')
+        filename = os.path.join(self.tmpdir, "file.txt")
+        lines = ['# comment1', '# comment2', 'header1\theader2', 'foo1\tfoo2']
+        with open(filename, "w") as fout:
+            for line in lines:
+                fout.write(line + '\n')
 
-            comments, start_line = parse_header_comments(filename)
+        comments, start_line = parse_header_comments(filename)
 
-            self.assertEqual(comments, ['# comment1', '# comment2'])
-            self.assertEqual(start_line, 2)
+        self.assertEqual(comments, ['# comment1', '# comment2'])
+        self.assertEqual(start_line, 2)
 
     def test_create_file_lines(self):
         """
@@ -461,7 +452,7 @@ class TestCBioUtils(unittest.TestCase):
 
 
 
-class TestMafReader(TmpDirTestCase):
+class TestMafReader(PlutoTestCase):
     def test_maf_reader1(self):
         """
         Test case for using MafReader to get the maf file attributes
@@ -473,7 +464,7 @@ class TestMafReader(TmpDirTestCase):
             ['SUFU'],
             ['GOT1']
         ]
-        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        input_maf_file = self.write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
         maf_reader = MafReader(input_maf_file)
 
         comments = maf_reader.comments
@@ -500,7 +491,7 @@ class TestMafReader(TmpDirTestCase):
             ['SUFU', '1'],
             ['GOT1', '2']
         ]
-        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        input_maf_file = self.write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
         maf_reader = MafReader(input_maf_file)
 
         comments = maf_reader.comments
@@ -533,7 +524,7 @@ class TestMafReader(TmpDirTestCase):
             ['SUFU', '1'],
             ['GOT1', '2']
         ]
-        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        input_maf_file = self.write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
         maf_reader = MafReader(input_maf_file)
         num_variants = maf_reader.count()
         expected_num_variants = 5
@@ -549,7 +540,7 @@ class TestMafReader(TmpDirTestCase):
             ['# comment 2'],
             ['Hugo_Symbol', 'Chromosome']
         ]
-        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        input_maf_file = self.write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
         maf_reader = MafReader(input_maf_file)
         num_variants = maf_reader.count()
         expected_num_variants = 0
@@ -563,7 +554,7 @@ class TestMafReader(TmpDirTestCase):
             ['# comment 1'],
             ['# comment 2'],
         ]
-        input_maf_file = write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
+        input_maf_file = self.write_table(tmpdir = self.tmpdir, filename = 'input.maf', lines = maf_lines)
         maf_reader = MafReader(input_maf_file)
         num_variants = maf_reader.count()
         expected_num_variants = 0

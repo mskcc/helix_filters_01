@@ -18,22 +18,13 @@ import sys
 import os
 import unittest
 import csv
-from collections import OrderedDict
-from tempfile import TemporaryDirectory
 
-# relative imports, from CLI and from parent project
-if __name__ != "__main__":
-    from .tools import run_command, load_mutations, write_table, dicts2lines
-    from .settings import DATA_SETS, BIN_DIR
-
-if __name__ == "__main__":
-    from tools import run_command, load_mutations, write_table, dicts2lines
-    from settings import DATA_SETS, BIN_DIR
-
-# need to import the module from the other dir
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(THIS_DIR)
 sys.path.insert(0, PARENT_DIR)
+from pluto.tools import PlutoTestCase
+from pluto.settings import DATA_SETS
+from settings import BIN_DIR
 from bin import maf_filter
 sys.path.pop(0)
 
@@ -233,7 +224,7 @@ demo_maf_rows = [
     bad_row_AF
 ]
 
-class TestMafFilterScript_Small(unittest.TestCase):
+class TestMafFilterScript_Small(PlutoTestCase):
     """
     Integration Test cases for running the script from the command line
     These tests use large, full-sized files that may take a while to process
@@ -242,43 +233,42 @@ class TestMafFilterScript_Small(unittest.TestCase):
         """
         Make a small demo file and run it through the filter script
         """
-        # create a list of line parts to pass for write_table;
-        demo_maf_lines = dicts2lines(dict_list = demo_maf_rows, comment_list = demo_comments)
+        # create a list of line parts to pass for self.write_table;
+        demo_maf_lines = self.dicts2lines(dict_list = demo_maf_rows, comment_list = demo_comments)
 
-        with TemporaryDirectory() as tmpdir:
-            input_maf_file = write_table(tmpdir, filename = "input.maf", lines = demo_maf_lines)
-            analyst_file = os.path.join(tmpdir, "analyst_file.txt")
-            portal_file = os.path.join(tmpdir, "portal_file.txt")
-            rejected_file = os.path.join(tmpdir, "rejected.muts.maf")
+        input_maf_file = self.write_table(self.tmpdir, filename = "input.maf", lines = demo_maf_lines)
+        analyst_file = os.path.join(self.tmpdir, "analyst_file.txt")
+        portal_file = os.path.join(self.tmpdir, "portal_file.txt")
+        rejected_file = os.path.join(self.tmpdir, "rejected.muts.maf")
 
-            # command line arguments to run script
-            command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
+        # command line arguments to run script
+        command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
 
-            # run the script in a subprocess
-            returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        # run the script in a subprocess
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
-            # validate output mutation file contents
-            comments, mutations = load_mutations(analyst_file)
-            expected_comments = ['# comment 1', '# comment 2', '# Versions: 2.x']
-            self.assertEqual(comments, expected_comments)
-            expected_mutations = [
-                {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'HGVSp_Short': 'p.E116K', 't_depth': '109', 't_alt_count': '16', 'Consequence': 'missense_variant', 'FILTER': 'PASS', 'ExAC_FILTER': 'PASS', 'set': 'MuTect', 'fillout_t_depth': '122', 'fillout_t_alt': '28', 'hotspot_whitelist': 'FALSE'},
-                {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': 'MT', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': 'skipped_by_portal', 'HGVSc': 'c.542-4G>T', 'HGVSp_Short': 'p.E116K', 't_depth': '109', 't_alt_count': '16', 'Consequence': 'missense_variant', 'FILTER': 'PASS', 'ExAC_FILTER': 'PASS', 'set': 'MuTect', 'fillout_t_depth': '122', 'fillout_t_alt': '28', 'hotspot_whitelist': 'FALSE'},
-                {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'HGVSp_Short': 'p.E116K', 't_depth': '0', 't_alt_count': '0', 'Consequence': 'frameshift_variant', 'FILTER': 'dmp_filter', 'ExAC_FILTER': 'PASS', 'set': 'MuTect', 'fillout_t_depth': '919', 'fillout_t_alt': '37', 'hotspot_whitelist': 'FALSE'}
-            ]
-            self.assertEqual(mutations, expected_mutations)
+        # validate output mutation file contents
+        comments, mutations = self.load_mutations(analyst_file)
+        expected_comments = ['# comment 1', '# comment 2', '# Versions: 2.x']
+        self.assertEqual(comments, expected_comments)
+        expected_mutations = [
+            {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'HGVSp_Short': 'p.E116K', 't_depth': '109', 't_alt_count': '16', 'Consequence': 'missense_variant', 'FILTER': 'PASS', 'ExAC_FILTER': 'PASS', 'set': 'MuTect', 'fillout_t_depth': '122', 'fillout_t_alt': '28', 'hotspot_whitelist': 'FALSE'},
+            {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': 'MT', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': 'skipped_by_portal', 'HGVSc': 'c.542-4G>T', 'HGVSp_Short': 'p.E116K', 't_depth': '109', 't_alt_count': '16', 'Consequence': 'missense_variant', 'FILTER': 'PASS', 'ExAC_FILTER': 'PASS', 'set': 'MuTect', 'fillout_t_depth': '122', 'fillout_t_alt': '28', 'hotspot_whitelist': 'FALSE'},
+            {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'HGVSp_Short': 'p.E116K', 't_depth': '0', 't_alt_count': '0', 'Consequence': 'frameshift_variant', 'FILTER': 'dmp_filter', 'ExAC_FILTER': 'PASS', 'set': 'MuTect', 'fillout_t_depth': '919', 'fillout_t_alt': '37', 'hotspot_whitelist': 'FALSE'}
+        ]
+        self.assertEqual(mutations, expected_mutations)
 
-            comments, mutations = load_mutations(portal_file)
-            expected_comments = ['# comment 1', '# comment 2', '# Versions: 2.x']
-            self.assertEqual(comments, expected_comments)
-            expected_mutations = [
-            {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'Amino_Acid_Change': 'p.E116K', 't_depth': '109', 't_alt_count': '16'},
-            {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'Amino_Acid_Change': 'p.E116K', 't_depth': '0', 't_alt_count': '0'}
-            ]
-            self.assertEqual(mutations, expected_mutations)
+        comments, mutations = self.load_mutations(portal_file)
+        expected_comments = ['# comment 1', '# comment 2', '# Versions: 2.x']
+        self.assertEqual(comments, expected_comments)
+        expected_mutations = [
+        {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'Amino_Acid_Change': 'p.E116K', 't_depth': '109', 't_alt_count': '16'},
+        {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'Amino_Acid_Change': 'p.E116K', 't_depth': '0', 't_alt_count': '0'}
+        ]
+        self.assertEqual(mutations, expected_mutations)
 
-            comments, mutations = load_mutations(rejected_file)
-            self.assertEqual(len(mutations), 5)
+        comments, mutations = self.load_mutations(rejected_file)
+        self.assertEqual(len(mutations), 5)
 
     def test_filter_maf_file_impact_false(self):
         """
@@ -286,31 +276,30 @@ class TestMafFilterScript_Small(unittest.TestCase):
         """
         input_maf_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'Sample1.Sample2.muts.maf')
 
-        with TemporaryDirectory() as tmpdir:
-            # files to output
-            analyst_file = os.path.join(tmpdir, "analyst_file.txt")
-            portal_file = os.path.join(tmpdir, "portal_file.txt")
-            rejected_file = os.path.join(tmpdir, "rejected.muts.maf")
+        # files to output
+        analyst_file = os.path.join(self.tmpdir, "analyst_file.txt")
+        portal_file = os.path.join(self.tmpdir, "portal_file.txt")
+        rejected_file = os.path.join(self.tmpdir, "rejected.muts.maf")
 
-            # command line arguments to run script
-            command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
+        # command line arguments to run script
+        command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
 
-            # run the script in a subprocess
-            returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        # run the script in a subprocess
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
-            # check the number of lines output
-            with open(analyst_file) as fin:
-                num_lines_analyst_file = len(fin.readlines())
+        # check the number of lines output
+        with open(analyst_file) as fin:
+            num_lines_analyst_file = len(fin.readlines())
 
-            with open(portal_file) as fin:
-                num_lines_portal_file = len(fin.readlines())
+        with open(portal_file) as fin:
+            num_lines_portal_file = len(fin.readlines())
 
-            with open(rejected_file) as fin:
-                num_lines_rejected_file = len(fin.readlines())
+        with open(rejected_file) as fin:
+            num_lines_rejected_file = len(fin.readlines())
 
-            self.assertEqual(num_lines_analyst_file, 23)
-            self.assertEqual(num_lines_portal_file, 19)
-            self.assertEqual(num_lines_rejected_file, 12497)
+        self.assertEqual(num_lines_analyst_file, 23)
+        self.assertEqual(num_lines_portal_file, 19)
+        self.assertEqual(num_lines_rejected_file, 12497)
 
     def test_maf_filter2_script(self):
         """
@@ -323,40 +312,39 @@ class TestMafFilterScript_Small(unittest.TestCase):
         row2 = { k:v for k,v in good_row_FGF3.items()}
         row_list = [row1, row2]
 
-        with TemporaryDirectory() as tmpdir:
-            input_maf_file = os.path.join(tmpdir, "input.txt")
-            analyst_file = os.path.join(tmpdir, "analyst_file.txt")
-            portal_file = os.path.join(tmpdir, "portal_file.txt")
-            rejected_file = os.path.join(tmpdir, "rejected.muts.maf")
+        input_maf_file = os.path.join(self.tmpdir, "input.txt")
+        analyst_file = os.path.join(self.tmpdir, "analyst_file.txt")
+        portal_file = os.path.join(self.tmpdir, "portal_file.txt")
+        rejected_file = os.path.join(self.tmpdir, "rejected.muts.maf")
 
-            # write out the intput maf
-            with open(input_maf_file, "w") as fout:
-                fout.writelines(comments)
-                writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = row1.keys())
-                writer.writeheader()
-                for row in row_list:
-                    writer.writerow(row)
+        # write out the intput maf
+        with open(input_maf_file, "w") as fout:
+            fout.writelines(comments)
+            writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = row1.keys())
+            writer.writeheader()
+            for row in row_list:
+                writer.writerow(row)
 
-            command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", "--is-impact", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
+        command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", "--is-impact", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
 
-            returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
-            comments, mutations = load_mutations(analyst_file)
-            expected_comments = ['# some comment goes here', '# Versions: 2.x']
-            expected_mutations = [
-                {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'HGVSp_Short': 'p.E116K', 't_depth': '109', 't_alt_count': '16', 'Consequence': 'missense_variant', 'FILTER': 'PASS', 'ExAC_FILTER': 'PASS', 'set': 'MuTect', 'fillout_t_depth': '122', 'fillout_t_alt': '28', 'hotspot_whitelist': 'FALSE'}
-            ]
-            self.assertEqual(comments, expected_comments)
+        comments, mutations = self.load_mutations(analyst_file)
+        expected_comments = ['# some comment goes here', '# Versions: 2.x']
+        expected_mutations = [
+            {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'HGVSp_Short': 'p.E116K', 't_depth': '109', 't_alt_count': '16', 'Consequence': 'missense_variant', 'FILTER': 'PASS', 'ExAC_FILTER': 'PASS', 'set': 'MuTect', 'fillout_t_depth': '122', 'fillout_t_alt': '28', 'hotspot_whitelist': 'FALSE'}
+        ]
+        self.assertEqual(comments, expected_comments)
 
-            comments, mutations = load_mutations(portal_file)
-            expected_comments = ['# some comment goes here', '# Versions: 2.x']
-            expected_mutations = [
-                {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'Amino_Acid_Change': 'p.E116K', 't_depth': '109', 't_alt_count': '16'}
-            ]
-            self.assertEqual(comments, expected_comments)
+        comments, mutations = self.load_mutations(portal_file)
+        expected_comments = ['# some comment goes here', '# Versions: 2.x']
+        expected_mutations = [
+            {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'Amino_Acid_Change': 'p.E116K', 't_depth': '109', 't_alt_count': '16'}
+        ]
+        self.assertEqual(comments, expected_comments)
 
 
-class TestMafFilterScript_Large(unittest.TestCase):
+class TestMafFilterScript_Large(PlutoTestCase):
     """
     Integration Test cases for running the script from the command line
     These tests use large, full-sized files that may take a while to process
@@ -370,99 +358,97 @@ class TestMafFilterScript_Large(unittest.TestCase):
         expected_analyst_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'analyst_file.txt') # 24
         expected_portal_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], 'Sample1', 'portal_file.txt') # 19
 
-        # run the maf_filter.py script in a temporary directory
-        with TemporaryDirectory() as tmpdir:
-            # files to output
-            analyst_file = os.path.join(tmpdir, "analyst_file.txt")
-            portal_file = os.path.join(tmpdir, "portal_file.txt")
-            rejected_file = os.path.join(tmpdir, "rejected.muts.maf")
+        # files to output
+        analyst_file = os.path.join(self.tmpdir, "analyst_file.txt")
+        portal_file = os.path.join(self.tmpdir, "portal_file.txt")
+        rejected_file = os.path.join(self.tmpdir, "rejected.muts.maf")
 
-            # command line arguments to run script
-            command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", "--is-impact", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
+        # command line arguments to run script
+        command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", "--is-impact", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
 
-            # run the script in a subprocess
-            returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        # run the script in a subprocess
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
-            # validate the output contents
-            # analysis maf file output
-            comments, mutations = load_mutations(analyst_file)
-            expected_comments = [
+        # validate the output contents
+        # analysis maf file output
+        comments, mutations = self.load_mutations(analyst_file)
+        expected_comments = [
+        '#version 2.4',
+        '#ngs-filters/applyFilter.sh VERSION=v1.2.1 FILTER=filter_blacklist_regions.R',
+        '#ngs-filters/applyFilter.sh VERSION=v1.2.1 FILTER=filter_normal_panel.R',
+        '# Versions: 2.x'
+        ]
+        self.assertEqual(comments, expected_comments)
+        expected_mutations = [
+            ('11', '69625447', '69625447'),
+            ('8', '69136857', '69136857'),
+            ('8', '141566089', '141566089'),
+            ('X', '76938716', '76938716'),
+            ('12', '49419992', '49419992'),
+            ('X', '123220555', '123220555'),
+            ('5', '176721774', '176721774'),
+            ('19', '11018780', '11018782'),
+            ('5', '176522632', '176522632'),
+            ('8', '56912099', '56912099'),
+            ('17', '78938112', '78938113'),
+            ('12', '57864555', '57864555'),
+            ('6', '117687313', '117687313'),
+            ('10', '70406514', '70406514'),
+            ('3', '142281434', '142281434'),
+            ('5', '1295250', '1295250'),
+            ('6', '117609901', '117609901'),
+            ('12', '102796343', '102796343'),
+            ('6', '117622265', '117622265'),
+            ('12', '121438953', '121438953'),
+            ('7', '2953083', '2953083'),
+            ('2', '212989483', '212989483')
+        ]
+        analysis_mutations = []
+        for mut in mutations:
+            analysis_mutations.append((mut['Chromosome'], mut['Start_Position'], mut['End_Position']))
+        # make sure all the expected values are present
+        self.assertEqual(set(analysis_mutations), set(expected_mutations))
+        self.assertEqual(len(mutations), 22)
+
+        # cBioPortal file output
+        comments, mutations = self.load_mutations(portal_file)
+        expected_comments = [
             '#version 2.4',
             '#ngs-filters/applyFilter.sh VERSION=v1.2.1 FILTER=filter_blacklist_regions.R',
             '#ngs-filters/applyFilter.sh VERSION=v1.2.1 FILTER=filter_normal_panel.R',
             '# Versions: 2.x'
-            ]
-            self.assertEqual(comments, expected_comments)
-            expected_mutations = [
-                ('11', '69625447', '69625447'),
-                ('8', '69136857', '69136857'),
-                ('8', '141566089', '141566089'),
-                ('X', '76938716', '76938716'),
-                ('12', '49419992', '49419992'),
-                ('X', '123220555', '123220555'),
-                ('5', '176721774', '176721774'),
-                ('19', '11018780', '11018782'),
-                ('5', '176522632', '176522632'),
-                ('8', '56912099', '56912099'),
-                ('17', '78938112', '78938113'),
-                ('12', '57864555', '57864555'),
-                ('6', '117687313', '117687313'),
-                ('10', '70406514', '70406514'),
-                ('3', '142281434', '142281434'),
-                ('5', '1295250', '1295250'),
-                ('6', '117609901', '117609901'),
-                ('12', '102796343', '102796343'),
-                ('6', '117622265', '117622265'),
-                ('12', '121438953', '121438953'),
-                ('7', '2953083', '2953083'),
-                ('2', '212989483', '212989483')
-            ]
-            analysis_mutations = []
-            for mut in mutations:
-                analysis_mutations.append((mut['Chromosome'], mut['Start_Position'], mut['End_Position']))
-            # make sure all the expected values are present
-            self.assertEqual(set(analysis_mutations), set(expected_mutations))
-            self.assertEqual(len(mutations), 22)
+        ]
+        self.assertEqual(comments, expected_comments)
+        # make a truncated set of mutations cause the full rows are huge
+        expected_mutations = [
+            ('8', '56912099', '56912099'),
+            ('X', '123220555', '123220555'),
+            ('11', '69625447', '69625447'),
+            ('17', '78938112', '78938113'),
+            ('12', '102796343', '102796343'),
+            ('6', '117687313', '117687313'),
+            ('8', '141566089', '141566089'),
+            ('10', '70406514', '70406514'),
+            ('X', '76938716', '76938716'),
+            ('6', '117622265', '117622265'),
+            ('5', '1295250', '1295250'),
+            ('5', '176721774', '176721774'),
+            ('12', '57864555', '57864555'),
+            ('19', '11018780', '11018782'),
+            ('5', '176522632', '176522632'),
+            ('8', '69136857', '69136857'),
+            ('7', '2953083', '2953083')
+        ]
+        portal_mutations = []
+        for mut in mutations:
+            portal_mutations.append((mut['Chromosome'], mut['Start_Position'], mut['End_Position']))
+        # make sure all the expected values are present
+        self.assertEqual(set(portal_mutations), set(expected_mutations))
+        self.assertEqual(len(mutations), 17)
 
-            # cBioPortal file output
-            comments, mutations = load_mutations(portal_file)
-            expected_comments = [
-                '#version 2.4',
-                '#ngs-filters/applyFilter.sh VERSION=v1.2.1 FILTER=filter_blacklist_regions.R',
-                '#ngs-filters/applyFilter.sh VERSION=v1.2.1 FILTER=filter_normal_panel.R',
-                '# Versions: 2.x'
-            ]
-            self.assertEqual(comments, expected_comments)
-            # make a truncated set of mutations cause the full rows are huge
-            expected_mutations = [
-                ('8', '56912099', '56912099'),
-                ('X', '123220555', '123220555'),
-                ('11', '69625447', '69625447'),
-                ('17', '78938112', '78938113'),
-                ('12', '102796343', '102796343'),
-                ('6', '117687313', '117687313'),
-                ('8', '141566089', '141566089'),
-                ('10', '70406514', '70406514'),
-                ('X', '76938716', '76938716'),
-                ('6', '117622265', '117622265'),
-                ('5', '1295250', '1295250'),
-                ('5', '176721774', '176721774'),
-                ('12', '57864555', '57864555'),
-                ('19', '11018780', '11018782'),
-                ('5', '176522632', '176522632'),
-                ('8', '69136857', '69136857'),
-                ('7', '2953083', '2953083')
-            ]
-            portal_mutations = []
-            for mut in mutations:
-                portal_mutations.append((mut['Chromosome'], mut['Start_Position'], mut['End_Position']))
-            # make sure all the expected values are present
-            self.assertEqual(set(portal_mutations), set(expected_mutations))
-            self.assertEqual(len(mutations), 17)
-
-            # rejected variants file
-            comments, mutations = load_mutations(rejected_file)
-            self.assertEqual(len(mutations), 12492)
+        # rejected variants file
+        comments, mutations = self.load_mutations(rejected_file)
+        self.assertEqual(len(mutations), 12492)
 
     def test_filter_test_large_maf_file(self):
         """
@@ -472,46 +458,44 @@ class TestMafFilterScript_Large(unittest.TestCase):
 
         # NOTE: skip this it takes too long
         # make sure input file has expected number of lines
-        # comments, mutations = load_mutations(input_maf_file, delete_cols = True) # try to reduce memory usage by deleting columns
+        # comments, mutations = self.load_mutations(input_maf_file, delete_cols = True) # try to reduce memory usage by deleting columns
         # self.assertEqual(len(mutations), 710324)
 
-        # run the filter script
-        with TemporaryDirectory() as tmpdir:
-            # output files
-            analyst_file = os.path.join(tmpdir, "analyst_file.txt")
-            portal_file = os.path.join(tmpdir, "portal_file.txt")
-            rejected_file = os.path.join(tmpdir, "rejected.muts.maf")
+        # output files
+        analyst_file = os.path.join(self.tmpdir, "analyst_file.txt")
+        portal_file = os.path.join(self.tmpdir, "portal_file.txt")
+        rejected_file = os.path.join(self.tmpdir, "rejected.muts.maf")
 
-            # run the command
-            command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", "--is-impact", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
+        # run the command
+        command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", "--is-impact", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
 
-            returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
-            # validate output mutation file contents
-            comments, mutations = load_mutations(analyst_file)
-            expected_comments, expected_mutations = load_mutations(os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], "Proj_08390_G", "analyst_file.txt"))
-            self.assertEqual(len(mutations), 1662)
-            self.assertEqual(len(mutations), len(expected_mutations))
+        # validate output mutation file contents
+        comments, mutations = self.load_mutations(analyst_file)
+        expected_comments, expected_mutations = self.load_mutations(os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], "Proj_08390_G", "analyst_file.txt"))
+        self.assertEqual(len(mutations), 1662)
+        self.assertEqual(len(mutations), len(expected_mutations))
 
-            # make a set of mutations for faster comparisons
-            mutations_set = set([ (mut['Chromosome'], mut['Start_Position'], mut['End_Position']) for mut in mutations ])
-            expected_mutations_set = set([ (mut['Chromosome'], mut['Start_Position'], mut['End_Position']) for mut in expected_mutations ])
-            self.assertEqual(len(expected_mutations_set - expected_mutations_set), 0)
+        # make a set of mutations for faster comparisons
+        mutations_set = set([ (mut['Chromosome'], mut['Start_Position'], mut['End_Position']) for mut in mutations ])
+        expected_mutations_set = set([ (mut['Chromosome'], mut['Start_Position'], mut['End_Position']) for mut in expected_mutations ])
+        self.assertEqual(len(expected_mutations_set - expected_mutations_set), 0)
 
-            comments, mutations = load_mutations(portal_file)
-            expected_comments, expected_mutations = load_mutations(os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], "Proj_08390_G", "portal_file.txt"))
-            self.assertEqual(len(mutations), 1139)
-            self.assertEqual(len(mutations), len(expected_mutations))
-            mutations_set = set([ (mut['Chromosome'], mut['Start_Position'], mut['End_Position']) for mut in mutations ])
-            expected_mutations_set = set([ (mut['Chromosome'], mut['Start_Position'], mut['End_Position']) for mut in expected_mutations ])
-            self.assertEqual(len(expected_mutations_set - expected_mutations_set), 0)
+        comments, mutations = self.load_mutations(portal_file)
+        expected_comments, expected_mutations = self.load_mutations(os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], "Proj_08390_G", "portal_file.txt"))
+        self.assertEqual(len(mutations), 1139)
+        self.assertEqual(len(mutations), len(expected_mutations))
+        mutations_set = set([ (mut['Chromosome'], mut['Start_Position'], mut['End_Position']) for mut in mutations ])
+        expected_mutations_set = set([ (mut['Chromosome'], mut['Start_Position'], mut['End_Position']) for mut in expected_mutations ])
+        self.assertEqual(len(expected_mutations_set - expected_mutations_set), 0)
 
-            # comments, mutations = load_mutations(rejected_file)
-            # self.assertEqual(len(mutations), 708662)
-            with open(rejected_file) as f:
-                for i, _ in enumerate(f):
-                    pass
-            self.assertEqual(i, 708662)
+        # comments, mutations = self.load_mutations(rejected_file)
+        # self.assertEqual(len(mutations), 708662)
+        with open(rejected_file) as f:
+            for i, _ in enumerate(f):
+                pass
+        self.assertEqual(i, 708662)
 
     def test_filter_test_large_maf_file_impact_false(self):
         """
@@ -519,31 +503,30 @@ class TestMafFilterScript_Large(unittest.TestCase):
         """
         input_maf_file = os.path.join(DATA_SETS['Proj_08390_G']['MAF_FILTER_DIR'], "Proj_08390_G", "Proj_08390_G.muts.maf")
 
-        with TemporaryDirectory() as tmpdir:
-            # output files
-            analyst_file = os.path.join(tmpdir, "analyst_file.txt")
-            portal_file = os.path.join(tmpdir, "portal_file.txt")
-            rejected_file = os.path.join(tmpdir, "rejected.muts.maf")
+        # output files
+        analyst_file = os.path.join(self.tmpdir, "analyst_file.txt")
+        portal_file = os.path.join(self.tmpdir, "portal_file.txt")
+        rejected_file = os.path.join(self.tmpdir, "rejected.muts.maf")
 
-            # run the command
-            command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
+        # run the command
+        command = [ maf_filter_script, input_maf_file, '--version-string', "2.x", '--analyst-file', analyst_file, '--portal-file', portal_file, '--keep-rejects', '--rejected-file', rejected_file ]
 
-            returncode, proc_stdout, proc_stderr = run_command(command, validate = True, testcase = self)
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
 
-            # check number of output lines and mutations
-            with open(rejected_file) as fin:
-                num_lines_rejected_file = len(fin.readlines())
+        # check number of output lines and mutations
+        with open(rejected_file) as fin:
+            num_lines_rejected_file = len(fin.readlines())
 
-            self.assertEqual(num_lines_rejected_file, 708331)
+        self.assertEqual(num_lines_rejected_file, 708331)
 
-            comments, mutations = load_mutations(analyst_file)
-            self.assertEqual(len(mutations), 1994)
+        comments, mutations = self.load_mutations(analyst_file)
+        self.assertEqual(len(mutations), 1994)
 
-            comments, mutations = load_mutations(portal_file)
-            self.assertEqual(len(mutations), 1408)
+        comments, mutations = self.load_mutations(portal_file)
+        self.assertEqual(len(mutations), 1408)
 
 
-class TestMafFilter2Script(unittest.TestCase):
+class TestMafFilter2Script(PlutoTestCase):
     """
     Unit test cases for checking individual mutation rows against filtering functions
 
