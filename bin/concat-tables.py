@@ -104,12 +104,18 @@ def update_dict(d, keys, default_val):
     dict
         a dictionary with the updated keys
     """
+    # NOTE: I think Python defaults to pass by reference here; be careful with this,
+    # might need to use copy.deepcopy in the future to avoid issues with passing around modified dicts
     for key in keys:
         if not d.get(key, None):
             d[key] = default_val
     return(d)
 
 def get_files_from_dir(input_dirs):
+    """
+    Get the files from a directory
+    I think this should only search one level deep
+    """
     files = []
     for input_dir in input_dirs:
         for dirpath, dirnames, filenames in os.walk(input_dir):
@@ -122,6 +128,8 @@ def get_files_from_dir(input_dirs):
 def main(**kwargs):
     """
     Main control function for the script
+
+    TODO: wrap the main script logic in a generator function so that it could be imported and used directly in Python easier
     """
     input_files = kwargs.pop('input_files')
     output_file = kwargs.pop('output_file', None)
@@ -130,37 +138,57 @@ def main(**kwargs):
     has_comments = kwargs.pop('has_comments', False)
     comment_char = kwargs.pop('comment_char', '#')
     dir = kwargs.pop('dir', False)
+    filenames = kwargs.pop('filenames', False)
+    filename_header = kwargs.pop('filename_header', 'file') # NOTE: things will prob break if there's already a column with this header so watch out for that
 
     if dir:
         input_files = get_files_from_dir(input_dirs = input_files)
 
+    # get the comment lines from each input file, in order, if we are parsing comments
     comments = None
     if has_comments:
         comments = get_all_comments(files = input_files, comment_char = comment_char)
 
+    # get the output header column fieldnames, in order, from all the input files
     output_fieldnames = get_all_fieldnames(files = input_files, delimiter = delimiter, has_comments = has_comments, comment_char = comment_char)
 
+    # add an extra column if we are keeping filenames in the output
+    if filenames:
+        output_fieldnames = [ *output_fieldnames, filename_header ]
+
+    # initialize output file handle
     if output_file:
         fout = open(output_file, "w")
     else:
         fout = sys.stdout
 
+    # if we had comments we need to write them out to the file handle
     if comments:
         for comment in comments:
             fout.write(comment + '\n')
 
+    # initialize output parser
     writer = csv.DictWriter(fout, delimiter = delimiter, fieldnames = output_fieldnames)
     writer.writeheader()
+
+    # parse the rest of each input file
     for input_file in input_files:
         with open(input_file) as fin:
+            # skip comment lines to find the first header line, if we are parsing comments
             if has_comments:
                 start_line = find_start_line(input_file, comment_char = comment_char)
                 while start_line > 0:
                     next(fin)
                     start_line -= 1
+
+            # start parsing the file
             reader = csv.DictReader(fin, delimiter = delimiter)
             for row in reader:
+                # make sure all the desired output fields are present in each row
                 row = update_dict(d = row, keys = output_fieldnames, default_val = na_str)
+                # if we're keeping filenames then add that value here
+                if filenames:
+                    row[filename_header] = input_file
                 try:
                     writer.writerow(row)
                 except ValueError as err:
@@ -185,6 +213,8 @@ def parse():
     parser.add_argument("--comments", action='store_true', dest = 'has_comments', help="Whether the input files have comment lines preceeding the header; they will be retained in the output")
     parser.add_argument("--comment-char", default = '#', dest = 'comment_char', help="Character for comment lines")
     parser.add_argument("--dir", action = 'store_true', dest = 'dir', help="Input file is a directory")
+    parser.add_argument("--filenames", action = 'store_true', dest = 'filenames', help="Write out an extra column with the input filename from each row")
+    parser.add_argument("--filename-header", default = 'file', dest = 'filename_header', help="If outputting filenames, use this value as the header for the column")
     args = parser.parse_args()
 
     main(**vars(args))

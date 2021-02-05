@@ -481,6 +481,56 @@ class TestConcatTables(PlutoTestCase):
 
         self.assertEqual(lines, expected_lines)
 
+    def test_output_filenames(self):
+        """
+        Include the input filename in an extra column on each output row
+        """
+        lines1 = [
+        '# comment 1\n',
+        'HEADER1\tHEADER2\n',
+        'foo1\tbar1\n'
+        ]
+        lines2 = [
+        '# comment 2\n',
+        'HEADER1\tHEADER3\n',
+        'foo2\tbaz2\n'
+        ]
+        lines3 = [
+        '# comment 1\n',
+        '# comment 3\n',
+        'HEADER1\tHEADER3\n',
+        'foo3\tbaz3\n'
+        ]
+        input_file1 = os.path.join(self.tmpdir, "input1.txt")
+        input_file2 = os.path.join(self.tmpdir, "input2.txt")
+        input_file3 = os.path.join(self.tmpdir, "input3.txt")
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        with open(input_file1, "w") as fout:
+            fout.writelines(lines1)
+        with open(input_file2, "w") as fout:
+            fout.writelines(lines2)
+        with open(input_file3, "w") as fout:
+            fout.writelines(lines3)
+
+        command = [ concat_tables_script, '--filenames', '--comments', '-o', output_file, input_file1, input_file2, input_file3 ]
+
+        returncode, proc_stdout, proc_stderr = self.run_command(command, testcase = self, validate = True)
+
+        with open(output_file) as fin:
+            lines = fin.readlines()
+
+        expected_lines = [
+        '# comment 1\n',
+        '# comment 2\n',
+        '# comment 3\n',
+        'HEADER1\tHEADER2\tHEADER3\tfile\n',
+        'foo1\tbar1\t.\t' + input_file1 + '\n',
+        'foo2\t.\tbaz2\t' + input_file2 + '\n',
+        'foo3\t.\tbaz3\t' + input_file3 + '\n'
+        ]
+
+        self.assertEqual(lines, expected_lines)
+
 
 if __name__ == "__main__":
     unittest.main()
