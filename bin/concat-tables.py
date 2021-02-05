@@ -33,16 +33,24 @@ def find_start_line(filename, comment_char = '#'):
     start_line = 0
     with open(filename) as fin:
         for i, line in enumerate(fin):
-            if line.startswith('#'):
+            if line.startswith(comment_char):
                 start_line += 1
     return(start_line)
 
-def get_all_comments(files, comment_char = '#'):
+def get_all_comments(files, comment_char = '#', progress = False):
     """
     Retrives all the unique pre-header comment lines from all the files in the list
     """
+    num_files = len(files)
     comments = []
-    for f in files:
+    for i, f in enumerate(files):
+        if progress:
+            show_progress(
+                prefix = 'Parsing comments ',
+                num_done = i,
+                num_total = num_files,
+                current_item = f
+                )
         with open(f) as fin:
             for line in fin:
                 if line.startswith(comment_char):
@@ -51,9 +59,11 @@ def get_all_comments(files, comment_char = '#'):
                         comments.append(comment)
                 else:
                     break
+    if progress:
+        show_progress(clear = True)
     return(comments)
 
-def get_all_fieldnames(files, delimiter, has_comments = False, comment_char = '#'):
+def get_all_fieldnames(files, delimiter, has_comments = False, comment_char = '#', progress = False):
     """
     Retrieves all the column names from all files in the list
 
@@ -74,7 +84,15 @@ def get_all_fieldnames(files, delimiter, has_comments = False, comment_char = '#
     The column names will be returned in the following order: all columns from the first file, then each missing column from all subsequent files.
     """
     fieldnames = OrderedDict()
-    for f in files:
+    num_files = len(files)
+    for i, f in enumerate(files):
+        if progress:
+            show_progress(
+                prefix = 'Parsing fieldnames ',
+                num_done = i,
+                num_total = num_files,
+                current_item = f
+                )
         with open(f) as fin:
             if has_comments:
                 start_line = find_start_line(f, comment_char = comment_char)
@@ -84,6 +102,8 @@ def get_all_fieldnames(files, delimiter, has_comments = False, comment_char = '#
             reader = csv.DictReader(fin, delimiter = delimiter)
             for name in reader.fieldnames:
                 fieldnames[name] = ''
+    if progress:
+        show_progress(clear = True)
     return(fieldnames.keys())
 
 def update_dict(d, keys, default_val):
@@ -124,6 +144,30 @@ def get_files_from_dir(input_dirs):
                 files.append(path)
     return(files)
 
+def get_files_from_lists(input_files):
+    """
+    Read the file paths from the input files and return the list of all file paths
+    """
+    files = []
+    for input_file in input_files:
+        with open(input_file) as fin:
+            for line in fin:
+                files.append(line.strip())
+    return(files)
+
+def show_progress(num_done = 0, num_total = 1, current_item = None, prefix = '', fout = sys.stderr, clear = False):
+    """
+    Prints the progress to the console
+
+    NOTE: for some reason this always stops 1 short but still says 100%, not sure why
+    """
+    if clear:
+        fout.write('\n')
+        return()
+    pcnt = round(float(num_done / num_total) * 100, 1)
+    text = "{}{}% ({}/{})\r".format(prefix, pcnt, num_done, num_total)
+    fout.write(text)
+    fout.flush()
 
 def main(**kwargs):
     """
@@ -140,17 +184,37 @@ def main(**kwargs):
     dir = kwargs.pop('dir', False)
     filenames = kwargs.pop('filenames', False)
     filename_header = kwargs.pop('filename_header', 'file') # NOTE: things will prob break if there's already a column with this header so watch out for that
+    progress = kwargs.pop('progress', False)
+    from_list = kwargs.pop('from_list', False)
 
+    # treat the input files as directories of files for concat'ing
     if dir:
+        if progress:
+            sys.stderr.write('Finding input files in dir\n')
         input_files = get_files_from_dir(input_dirs = input_files)
+        if progress:
+            sys.stderr.write('Found {} files\n'.format(len(input_files)))
+
+    # treat the input files as lists of file paths to read for input
+    if from_list:
+        if progress:
+            sys.stderr.write('Finding input files from lists\n')
+        input_files = get_files_from_lists(input_files = input_files)
+        if progress:
+            sys.stderr.write('Found {} files\n'.format(len(input_files)))
 
     # get the comment lines from each input file, in order, if we are parsing comments
     comments = None
     if has_comments:
-        comments = get_all_comments(files = input_files, comment_char = comment_char)
+        comments = get_all_comments(files = input_files, comment_char = comment_char, progress = progress)
 
     # get the output header column fieldnames, in order, from all the input files
-    output_fieldnames = get_all_fieldnames(files = input_files, delimiter = delimiter, has_comments = has_comments, comment_char = comment_char)
+    output_fieldnames = get_all_fieldnames(
+        files = input_files,
+        delimiter = delimiter,
+        has_comments = has_comments,
+        comment_char = comment_char,
+        progress = progress)
 
     # add an extra column if we are keeping filenames in the output
     if filenames:
@@ -172,7 +236,18 @@ def main(**kwargs):
     writer.writeheader()
 
     # parse the rest of each input file
+    num_files = len(input_files)
+    num_files_done = 0
     for input_file in input_files:
+        # show the progress bar
+        if progress:
+            show_progress(
+                prefix = 'Parsing rows ',
+                num_done = num_files_done,
+                num_total = num_files,
+                current_item = input_file
+                )
+
         with open(input_file) as fin:
             # skip comment lines to find the first header line, if we are parsing comments
             if has_comments:
@@ -196,6 +271,7 @@ def main(**kwargs):
                     # see "extrasaction='raise'" here: https://docs.python.org/3/library/csv.html#csv.DictWriter
                     # >>> print([k for k in row.keys() if k not in output_fieldnames])
                     raise Exception('Could not write row, are there columns without headers or comment lines included?') from err
+        num_files_done += 1
 
     fout.close()
 
@@ -215,6 +291,8 @@ def parse():
     parser.add_argument("--dir", action = 'store_true', dest = 'dir', help="Input file is a directory")
     parser.add_argument("--filenames", action = 'store_true', dest = 'filenames', help="Write out an extra column with the input filename from each row")
     parser.add_argument("--filename-header", default = 'file', dest = 'filename_header', help="If outputting filenames, use this value as the header for the column")
+    parser.add_argument("--from-list", action = 'store_true', dest = 'from_list', help="Treat each input file as a file list containing the paths to all the files to be concatenated")
+    parser.add_argument("--progress", action = 'store_true', dest = 'progress', help="Show progress bar")
     args = parser.parse_args()
 
     main(**vars(args))
