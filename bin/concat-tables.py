@@ -106,7 +106,7 @@ def get_all_fieldnames(files, delimiter, has_comments = False, comment_char = '#
         show_progress(clear = True)
     return(fieldnames.keys())
 
-def update_dict(d, keys, default_val):
+def update_dict(d, keys, default_val, keep_keys = False, na_keys = False):
     """
     Checks that all provided fieldnames exist as keys in the dict, and if they are missing creates them with the default value
 
@@ -118,6 +118,10 @@ def update_dict(d, keys, default_val):
         a list of keys to check in the dict
     default_val: str
         a default value to initialize the missing keys to
+    keep_keys: bool | set
+        a set() of keys that should be retained, exclude all others
+    na_keys: bool | set
+        a set() of keys that should have their value changed to `default_val`
 
     Returns
     -------
@@ -128,6 +132,11 @@ def update_dict(d, keys, default_val):
     # might need to use copy.deepcopy in the future to avoid issues with passing around modified dicts
     for key in keys:
         if not d.get(key, None):
+            d[key] = default_val
+    if keep_keys:
+        d = { k:v for k,v in d.items() if k in keep_keys }
+    if na_keys:
+        for key in na_keys:
             d[key] = default_val
     return(d)
 
@@ -186,6 +195,18 @@ def main(**kwargs):
     filename_header = kwargs.pop('filename_header', 'file') # NOTE: things will prob break if there's already a column with this header so watch out for that
     progress = kwargs.pop('progress', False)
     from_list = kwargs.pop('from_list', False)
+    keep_cols = kwargs.pop('keep_cols', set())
+    na_cols = kwargs.pop('na_cols', set())
+
+    if keep_cols is None:
+        keep_cols = set()
+    else:
+        keep_cols = set(keep_cols)
+
+    if na_cols is None:
+        na_cols = set()
+    else:
+        na_cols = set(na_cols)
 
     # treat the input files as directories of files for concat'ing
     if dir:
@@ -215,6 +236,16 @@ def main(**kwargs):
         has_comments = has_comments,
         comment_char = comment_char,
         progress = progress)
+
+    # remove some colnames
+    if keep_cols:
+        output_fieldnames = [ f for f in output_fieldnames if f in keep_cols ]
+
+    # add cols that should have NA value if they are missing
+    if na_cols:
+        for colname in na_cols:
+            if colname not in output_fieldnames:
+                output_fieldnames.append(colname)
 
     # add an extra column if we are keeping filenames in the output
     if filenames:
@@ -260,7 +291,12 @@ def main(**kwargs):
             reader = csv.DictReader(fin, delimiter = delimiter)
             for row in reader:
                 # make sure all the desired output fields are present in each row
-                row = update_dict(d = row, keys = output_fieldnames, default_val = na_str)
+                row = update_dict(
+                    d = row,
+                    keys = output_fieldnames,
+                    default_val = na_str,
+                    keep_keys = keep_cols,
+                    na_keys = na_cols)
                 # if we're keeping filenames then add that value here
                 if filenames:
                     row[filename_header] = input_file
@@ -285,7 +321,7 @@ def parse():
     parser.add_argument('input_files', nargs='*', help="Input files")
     parser.add_argument("-o", default = None, dest = 'output_file', help="Output file")
     parser.add_argument("-d", default = '\t', dest = 'delimiter', help="Delimiter")
-    parser.add_argument("-n", default = '.', dest = 'na_str', help="NA string; character to insert for missing fields in table")
+    parser.add_argument("-n", '--na-str', default = '.', dest = 'na_str', help="NA string; character to insert for missing fields in table")
     parser.add_argument("--comments", action='store_true', dest = 'has_comments', help="Whether the input files have comment lines preceeding the header; they will be retained in the output")
     parser.add_argument("--comment-char", default = '#', dest = 'comment_char', help="Character for comment lines")
     parser.add_argument("--dir", action = 'store_true', dest = 'dir', help="Input file is a directory")
@@ -293,6 +329,9 @@ def parse():
     parser.add_argument("--filename-header", default = 'file', dest = 'filename_header', help="If outputting filenames, use this value as the header for the column")
     parser.add_argument("--from-list", action = 'store_true', dest = 'from_list', help="Treat each input file as a file list containing the paths to all the files to be concatenated")
     parser.add_argument("--progress", action = 'store_true', dest = 'progress', help="Show progress bar")
+    parser.add_argument("--keep-cols", nargs = '*', dest = 'keep_cols', help="List of columns to keep in the output file; all other columns will be removed, missing columns will be created with NA str")
+    parser.add_argument("--na-cols", nargs = '*', dest = 'na_cols', help="List of columns to keep in the output file but replace their values with the NA str")
+
     args = parser.parse_args()
 
     main(**vars(args))
