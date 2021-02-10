@@ -120,8 +120,8 @@ def update_dict(d, keys, default_val, keep_keys = False, na_keys = False):
         a default value to initialize the missing keys to
     keep_keys: bool | set
         a set() of keys that should be retained, exclude all others
-    na_keys: bool | set
-        a set() of keys that should have their value changed to `default_val`
+    na_keys: bool | list
+        a list of keys that should have their value changed to `default_val`
 
     Returns
     -------
@@ -196,7 +196,7 @@ def main(**kwargs):
     progress = kwargs.pop('progress', False)
     from_list = kwargs.pop('from_list', False)
     keep_cols = kwargs.pop('keep_cols', set())
-    na_cols = kwargs.pop('na_cols', set())
+    na_cols = kwargs.pop('na_cols', [])
 
     if keep_cols is None:
         keep_cols = set()
@@ -204,9 +204,7 @@ def main(**kwargs):
         keep_cols = set(keep_cols)
 
     if na_cols is None:
-        na_cols = set()
-    else:
-        na_cols = set(na_cols)
+        na_cols = []
 
     # treat the input files as directories of files for concat'ing
     if dir:
