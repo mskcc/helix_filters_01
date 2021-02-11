@@ -197,6 +197,7 @@ def main(**kwargs):
     from_list = kwargs.pop('from_list', False)
     keep_cols = kwargs.pop('keep_cols', set())
     na_cols = kwargs.pop('na_cols', [])
+    no_carriage_returns = kwargs.pop('no_carriage_returns', False)
 
     if keep_cols is None:
         keep_cols = set()
@@ -261,7 +262,10 @@ def main(**kwargs):
             fout.write(comment + '\n')
 
     # initialize output parser
-    writer = csv.DictWriter(fout, delimiter = delimiter, fieldnames = output_fieldnames)
+    if no_carriage_returns:
+        writer = csv.DictWriter(fout, delimiter = delimiter, fieldnames = output_fieldnames, lineterminator='\n')
+    else:
+        writer = csv.DictWriter(fout, delimiter = delimiter, fieldnames = output_fieldnames)
     writer.writeheader()
 
     # parse the rest of each input file
@@ -329,6 +333,7 @@ def parse():
     parser.add_argument("--progress", action = 'store_true', dest = 'progress', help="Show progress bar")
     parser.add_argument("--keep-cols", nargs = '*', dest = 'keep_cols', help="List of columns to keep in the output file; all other columns will be removed, missing columns will be created with NA str")
     parser.add_argument("--na-cols", nargs = '*', dest = 'na_cols', help="List of columns to keep in the output file but replace their values with the NA str")
+    parser.add_argument("--no-carriage-returns", action = 'store_true', dest = 'no_carriage_returns', help="Do not output carriage returns in the output file")
 
     args = parser.parse_args()
 
