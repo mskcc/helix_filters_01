@@ -25,10 +25,12 @@ help:
 
 # this should be the name of a subdir in this dir
 export VAR:=
-export DOCKERTAG:=$(VAR)
+export DOCKERTAG:=mskcc/helix_filters_01:$(VAR)
 docker-build:
 	cd "$(VAR)" && docker build -t "$(DOCKERTAG)" .
 
+docker-push:
+	docker push "$(DOCKERTAG)"
 
 # build the Docker container with Singularity in it
 export SINGULARITY_DOCKERTAG:=singularity-3.3.0
