@@ -27,9 +27,10 @@ RUN chmod +x /usr/bin/tini
 ENTRYPOINT [ "/usr/bin/tini", "--" ]
 CMD [ "/bin/bash" ]
 
-# add helix_filters files
-RUN mkdir -p /usr/scripts
-ADD bin /usr/scripts
-ENV PATH=/usr/scripts:$PATH
 # install extra libraries
 RUN conda install -y anaconda::numpy=1.19.1 bioconda::bedops=2.4.39 conda-forge::parallel=20201122
+
+# add helix_filters files
+RUN mkdir -p /usr/scripts
+ENV PATH=/usr/scripts:$PATH
+ADD bin /usr/scripts
