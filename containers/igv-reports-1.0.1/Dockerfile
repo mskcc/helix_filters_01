@@ -28,7 +28,10 @@ ENTRYPOINT [ "/usr/bin/tini", "--" ]
 CMD [ "/bin/bash" ]
 
 # install extra libraries
-RUN conda install bioconda::pysam==0.15.3 bioconda::vcf2maf==1.6.19 bioconda::tabix==0.2.6 bioconda::bcftools==1.9
+ADD environment.yml /environment.yml
+RUN conda env update -n base --file /environment.yml
+RUN conda list --explicit > /environment.txt
+
 # need to install igv-reports from Git because the pip version is out dated and lacks some critical bug fixes; https://github.com/igvteam/igv-reports/issues/47
 RUN git clone https://github.com/igvteam/igv-reports.git && \
     cd igv-reports && \

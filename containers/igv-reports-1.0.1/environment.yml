@@ -1,0 +1,9 @@
+# name: base
+channels:
+  - bioconda
+dependencies:
+  - python=3.6.5 # need to keep Python that came with the conda install from updating or conda will break itself; https://stackoverflow.com/questions/19825250/after-anaconda-installation-conda-command-fails-with-importerror-no-module-na
+  - pysam==0.15.3 # bioconda::pysam==0.15.3
+  - vcf2maf==1.6.19 # bioconda::vcf2maf==1.6.19
+  - tabix==0.2.6 # bioconda::tabix==0.2.6
+  - bcftools==1.9 # bioconda::bcftools==1.9
