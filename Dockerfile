@@ -28,7 +28,9 @@ ENTRYPOINT [ "/usr/bin/tini", "--" ]
 CMD [ "/bin/bash" ]
 
 # install extra libraries
-RUN conda install -y anaconda::numpy=1.19.1 bioconda::bedops=2.4.39 conda-forge::parallel=20201122
+ADD environment.yml /environment.yml
+RUN conda env update -n base --file /environment.yml
+RUN conda list --explicit > /environment.txt
 
 # add helix_filters files
 RUN mkdir -p /usr/scripts
