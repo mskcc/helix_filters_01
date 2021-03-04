@@ -165,7 +165,28 @@ header_lines_map = {
     '2': 'CMO_TMB_SCORE',
     '3': 'NUMBER',
     '4': '1'
+    },
+
+    # added these column headers for use with MSIsensor
+    'Total_Number_of_Sites': {
+    '1': 'CMO_MSI_SCORE',
+    '2': 'CMO_MSI_SCORE',
+    '3': 'NUMBER',
+    '4': '0'
+    },
+    'Number_of_Somatic_Sites': {
+    '1': 'CMO_MSI_SOMATIC_SITES',
+    '2': 'CMO_MSI_SOMATIC_SITES',
+    '3': 'NUMBER',
+    '4': '0'
+    },
+    '%': {
+    '1': 'CMO_MSI_PERCENT',
+    '2': 'CMO_MSI_PERCENT',
+    '3': 'NUMBER',
+    '4': '0'
     }
+
 }
 
 maf_filter_portal_file_cols_to_keep = [
