@@ -7,20 +7,29 @@ import csv
 import sys
 from cBioPortal_utils import MafReader, is_TERT_promoter
 
+# some maf column header labels that we will use to find values needed for filtering
 alt_dp_colname = 't_alt_count'
 ref_dp_colname = 't_ref_count'
 af_colname = 't_af'
+dp_colname = 't_depth'
+gene_function_colname = 'Consequence'
+mutation_status_colname = 'Mutation_Status'
+
+# Filter criteria for allele frequency (AF; af_colname)
 frequency_min = 0.05
 # NOTE: frequency_min *must* be >0.0 or else invalid variant calls might get through!! Some discrepant variants have been seen with ref and alt allele counts of 0 and no 'depth' value recorded
 
-dp_colname = 't_depth'
+# Filter criteria for alt depth at the region (alt_dp_colname)
+alt_dp_min = 8.0
+
+# Filter criteria for overall depth of coverage at the region (dp_colname)
 coverage_min = 500.0
 
-gene_function_colname = 'Consequence'
+# Filter criteria for gene function (gene_function_colname)
 gene_function_exclude = set(['synonymous_variant'])
 # gene_function_allowed = # ['exonic'] # Func_refGene_allowed
 
-mutation_status_colname = 'Mutation_Status'
+# Filter criteria for mutation status (mutation_status_colname)
 mutation_status_exclude = set(['GERMLINE', 'UNKNOWN'])
 
 # Variant_Classification known values;
@@ -109,6 +118,21 @@ def filter_row(row):
     Evaluate values in the row to decide if it should be included (True) or excluded (False) from the output
 
     Need to report mutations that are NOT synonymous_variant EXCEPT for TERT promoter
+
+    ----
+    NOTE: from Nick;
+
+    I would go with the Clinical settings which are believe are like
+
+    t_alt_count >= 8
+
+    AltAlleleFreq >= 0.05 for non hot spots.
+
+    The problem is the clinical lab sets
+
+    AltAlleleFreq >= 0.02 for hot spots
+
+    just try the non-hotspot levels for the first pass. So our TMB's are going to be a little lower since we will have reduced sensitive to call hot spots. But it should not be a big effect except for tumors with very low TMB's.
     """
     keep_row = True
     ref_count, alt_count, depth = get_ref_alt_depth(row)
@@ -142,8 +166,12 @@ def filter_row(row):
     if not depth:
         return(False)
 
-    if depth < coverage_min:
-        return(False)
+    # NOTE: disable this as per note from Nick
+    # if depth < coverage_min:
+    #     return(False)
+
+    # if alt_count < alt_dp_min:
+    #     return(False)
 
     if not af:
         return(False)

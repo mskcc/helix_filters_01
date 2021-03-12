@@ -40,70 +40,80 @@ class TestTMBVariantFilter(PlutoTestCase):
         't_depth': '550',
         'Hugo_Symbol': 'EGFR',
         'Start_Position': '1',
-        'Consequence': 'synonymous_variant' # exclude due to synonymous_variant
+        'Consequence': 'synonymous_variant', # exclude due to synonymous_variant
+        'row': '1' # need a label so I can tell which row is which in the output
         }
         row2 = {
         't_af': '0.50',
         't_depth': '550',
         'Hugo_Symbol': 'EGFR',
         'Start_Position': '1',
-        'Consequence': 'splice_region_variant,synonymous_variant' # exclude due to synonymous_variant
+        'Consequence': 'splice_region_variant,synonymous_variant', # exclude due to synonymous_variant
+        'row': '2'
         }
         row3 = { # this one should pass filter
         't_af': '0.50',
         't_depth': '550',
         'Hugo_Symbol': 'EGFR',
         'Start_Position': '1',
-        'Consequence': 'missense_variant'
+        'Consequence': 'missense_variant',
+        'row': '3'
         }
         row4 = {
         't_af': '0.01', # exclude due to low AF
         't_depth': '550',
         'Hugo_Symbol': 'EGFR',
         'Start_Position': '1',
-        'Consequence': 'missense_variant'
+        'Consequence': 'missense_variant',
+        'row': '4'
         }
         row5 = {
         't_af': '0.51',
-        't_depth': '90', # exclude due to low coverage
+        't_depth': '90', # exclude due to low coverage # NOTE: disabled DP filter so this shouldnt be excluded now
         'Hugo_Symbol': 'EGFR',
         'Start_Position': '1',
-        'Consequence': 'missense_variant'
+        'Consequence': 'missense_variant',
+        'row': '5'
         }
         row6 = { # this one should pass filter
         't_af': '0.45',
         't_depth': '590',
         'Hugo_Symbol': 'EGFR',
         'Start_Position': '1',
-        'Consequence': 'splice_region_variant'
+        'Consequence': 'splice_region_variant',
+        'row': '6'
         }
         row7 = { # this one should pass filter
         't_af': '0.45',
         't_depth': '590',
         'Hugo_Symbol': 'TERT',
         'Start_Position': '1295340', # good value; is_TERT_promoter = True
-        'Consequence': 'splice_region_variant'
+        'Consequence': 'splice_region_variant',
+        'row': '7'
         }
         row8 = { # this should pass filter
         't_af': '0.45',
         't_depth': '590',
         'Hugo_Symbol': 'TERT',
         'Start_Position': '1295339', # good value; is_TERT_promoter = True
-        'Consequence': 'splice_region_variant'
+        'Consequence': 'splice_region_variant',
+        'row': '8'
         }
         row9 = { # this should pass filter
         't_af': '0.45',
         't_depth': '590',
         'Hugo_Symbol': 'TERT',
         'Start_Position': '1295341', # bad value; is_TERT_promoter = False
-        'Consequence': 'splice_region_variant' # include anyway because its not synonymous_variant
+        'Consequence': 'splice_region_variant', # include anyway because its not synonymous_variant
+        'row': '9'
         }
         row10 ={ # this should pass filter
         't_af': '0.45',
         't_depth': '590',
         'Hugo_Symbol': 'TERT',
         'Start_Position': '1295339', # good value; is_TERT_promoter = True
-        'Consequence': 'synonymous_variant' # include even though its synonymous_variant
+        'Consequence': 'synonymous_variant', # include even though its synonymous_variant
+        'row': '10'
         }
 
         maf_rows = [ row1, row2, row3, row4, row5, row6, row7, row8, row9, row10 ]
@@ -117,12 +127,13 @@ class TestTMBVariantFilter(PlutoTestCase):
 
         expected_comments = ['# comment 1', '# comment 2']
         expected_mutations = [
-        {'t_af': '0.50', 't_depth': '550', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1'},
-        {'t_af': '0.45', 't_depth': '590', 'Consequence': 'splice_region_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1'},
-        {'t_af': '0.45', 't_depth': '590', 'Consequence': 'splice_region_variant', 'Hugo_Symbol': 'TERT', 'Start_Position': '1295340'},
-        {'t_af': '0.45', 't_depth': '590', 'Consequence': 'splice_region_variant', 'Hugo_Symbol': 'TERT', 'Start_Position': '1295339'},
-        {'Consequence': 'splice_region_variant', 'Hugo_Symbol': 'TERT', 'Start_Position': '1295341', 't_af': '0.45', 't_depth': '590'},
-        {'Consequence': 'synonymous_variant', 'Hugo_Symbol': 'TERT', 'Start_Position': '1295339', 't_af': '0.45', 't_depth': '590'}
+        {'t_af': '0.50', 't_depth': '550', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1', 'row': '3'},
+        {'t_af': '0.51', 't_depth': '90', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1', 'Consequence': 'missense_variant', 'row': '5'},
+        {'t_af': '0.45', 't_depth': '590', 'Consequence': 'splice_region_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1', 'row': '6'},
+        {'t_af': '0.45', 't_depth': '590', 'Consequence': 'splice_region_variant', 'Hugo_Symbol': 'TERT', 'Start_Position': '1295340', 'row': '7'},
+        {'t_af': '0.45', 't_depth': '590', 'Consequence': 'splice_region_variant', 'Hugo_Symbol': 'TERT', 'Start_Position': '1295339', 'row': '8'},
+        {'Consequence': 'splice_region_variant', 'Hugo_Symbol': 'TERT', 'Start_Position': '1295341', 't_af': '0.45', 't_depth': '590', 'row': '9'},
+        {'Consequence': 'synonymous_variant', 'Hugo_Symbol': 'TERT', 'Start_Position': '1295339', 't_af': '0.45', 't_depth': '590', 'row': '10'}
         ]
 
         self.assertEqual(comments, expected_comments)
