@@ -168,21 +168,21 @@ header_lines_map = {
     },
 
     # added these column headers for use with MSIsensor
-    'Total_Number_of_Sites': {
+    # 'Total_Number_of_Sites': {
+    # '1': 'CMO_MSI_SCORE',
+    # '2': 'CMO_MSI_SCORE',
+    # '3': 'NUMBER',
+    # '4': '0'
+    # },
+    # 'Number_of_Somatic_Sites': {
+    # '1': 'CMO_MSI_SOMATIC_SITES',
+    # '2': 'CMO_MSI_SOMATIC_SITES',
+    # '3': 'NUMBER',
+    # '4': '0'
+    # },
+    'MSI_SCORE': {
     '1': 'CMO_MSI_SCORE',
     '2': 'CMO_MSI_SCORE',
-    '3': 'NUMBER',
-    '4': '0'
-    },
-    'Number_of_Somatic_Sites': {
-    '1': 'CMO_MSI_SOMATIC_SITES',
-    '2': 'CMO_MSI_SOMATIC_SITES',
-    '3': 'NUMBER',
-    '4': '0'
-    },
-    '%': {
-    '1': 'CMO_MSI_PERCENT',
-    '2': 'CMO_MSI_PERCENT',
     '3': 'NUMBER',
     '4': '0'
     }
