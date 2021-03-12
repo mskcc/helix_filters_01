@@ -169,7 +169,23 @@ class TestTMBVariantFilter(PlutoTestCase):
         'Start_Position': '1',
         'Consequence': 'missense_variant'
         }
-        maf_rows = [ row1, row2, row3 ]
+        row4 = { # exclude due to low t_alt_count
+        't_ref_count': '5',
+        't_alt_count': '5',
+        't_depth': '10',
+        'Hugo_Symbol': 'EGFR',
+        'Start_Position': '1',
+        'Consequence': 'missense_variant'
+        }
+        row5 = {
+        't_ref_count': '5',
+        't_alt_count': '15',
+        't_depth': '20',
+        'Hugo_Symbol': 'EGFR',
+        'Start_Position': '1',
+        'Consequence': 'missense_variant'
+        }
+        maf_rows = [ row1, row2, row3, row4, row5 ]
         maf_lines = self.dicts2lines(dict_list = maf_rows, comment_list = [])
         input_file = self.write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
@@ -181,6 +197,7 @@ class TestTMBVariantFilter(PlutoTestCase):
         expected_mutations = [
         {'t_depth': '550', 't_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1'},
         {'t_depth': '550', 't_ref_count': '275', 't_alt_count': '275', 'Consequence': 'missense_variant', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1'},
+        {'t_ref_count': '5', 't_alt_count': '15', 't_depth': '20', 'Hugo_Symbol': 'EGFR', 'Start_Position': '1', 'Consequence': 'missense_variant'}
         ]
 
         self.assertEqual(mutations, expected_mutations)

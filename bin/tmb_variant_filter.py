@@ -170,8 +170,11 @@ def filter_row(row):
     # if depth < coverage_min:
     #     return(False)
 
-    # if alt_count < alt_dp_min:
-    #     return(False)
+    try:
+        if alt_count < alt_dp_min:
+            return(False)
+    except TypeError: # alt_count is None because column doesnt exist
+        pass
 
     if not af:
         return(False)
