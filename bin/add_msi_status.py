@@ -1,47 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Writes a single str as a new column in the file.
-
-Basic use case; write a column with a sample ID to a table
-
+Basic use case; write a column with msi status to a table
 Usage:
-
-$ printf "a\tb\tc\nd\te\tf\n" > text.txt
-
-$ cat text.txt
-a	b	c
-d	e	f
-
-$ cat text.txt | ./paste-col.py -v foo
-a	b	c	foo
-d	e	f	foo
-
-$ cat text.txt | ./paste-col.py -v foo --header bar
-a	b	c	bar
-d	e	f	foo
-
-$ ./paste-col.py -i text.txt -o text2.txt -v baz -d ,
-
-$ cat text2.txt
-a	b	c,baz
-d	e	f,baz
-
-$ cat text.txt | ./paste-col.py -v buz | head -1
-a	b	c	buz
-
-$ cat sample.hg19_multianno.txt | ./paste-col.py --header Sample -v foo2 | head
-
+python3 bin/add_msi_status.py -i input_file.tsv -o output_file.tsv --header my_header
 """
-import os
-import sys
-import argparse
+import os,sys,csv,argparse
+from cBioPortal_utils import MafReader
 
-from signal import signal, SIGPIPE, SIG_DFL
-signal(SIGPIPE,SIG_DFL)
-"""
-https://stackoverflow.com/questions/14207708/ioerror-errno-32-broken-pipe-python
-"""
+def calc_msi(msi_score):
+    msi_score = float(msi_score)
+    if msi_score < 3:
+        msi_type = 'Stable'
+    elif msi_score >= 3 and msi_score < 10:
+        msi_type = 'Indeterminate'
+    elif msi_score >= 10:
+        msi_type = 'Instable'
+    return msi_type
+
 
 def main(**kwargs):
     """
@@ -51,7 +27,6 @@ def main(**kwargs):
     output_file = kwargs.pop('output_file', None)
     delim = kwargs.pop('delim', '\t')
     header = kwargs.pop('header', None)
-    value = kwargs.pop('value')
 
     if input_file:
         fin = open(input_file)
@@ -68,23 +43,39 @@ def main(**kwargs):
         new_header = old_header + delim + header + '\n'
         fout.write(new_header)
 
-    for line in fin:
-        new_line = line.strip() + delim + value + '\n'
-        fout.write(new_line)
 
-    fout.close()
-    fin.close()
+    maf_reader = MafReader(input_file)
+
+    # write analysis files
+    with open(output_file,'w') as fout:
+        fieldnames = maf_reader.get_fieldnames()
+
+        # add the new columns labels for output
+        fieldnames.append(header)
+
+        # start output csv parser
+        # ignore fields not in fieldnames
+        # NOTE: csv writer includes carriage returns that we dont want
+        # https://stackoverflow.com/questions/3191528/csv-in-python-adding-an-extra-carriage-return-on-windows
+        writer = csv.DictWriter(fout, delimiter = '\t', fieldnames = fieldnames, extrasaction = 'ignore', lineterminator='\n')
+        writer.writeheader()
+
+        # update each input row and write it to output
+        for row in maf_reader.read():
+            msi_status = calc_msi(row['MSI_SCORE'])
+            row[header] = msi_status
+            writer.writerow(row)
+
 
 def parse():
     """
     Parses script args
     """
-    parser = argparse.ArgumentParser(description='Append a column of text to a file')
+    parser = argparse.ArgumentParser(description='Append a column of text to a file with msi status based on the msi value')
     parser.add_argument("-i", default = None, dest = 'input_file', help="Input file")
     parser.add_argument("-o", default = None, dest = 'output_file', help="Output file")
     parser.add_argument("-d", default = '\t', dest = 'delim', help="Delimiter")
-    parser.add_argument("--header", default = None, dest = 'header', help="Header for the new column")
-    parser.add_argument("-v", "--value", required=True, dest = 'value', help="Value to write in the new column")
+    parser.add_argument("--header", default = None, dest = 'header', help="Header for the msi status column")
     args = parser.parse_args()
 
     main(**vars(args))
