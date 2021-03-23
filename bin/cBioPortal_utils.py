@@ -185,6 +185,12 @@ header_lines_map = {
     '2': 'CMO_MSI_SCORE',
     '3': 'NUMBER',
     '4': '0'
+    },
+    'MSI_STATUS': {
+    '1': 'CMO_MSI_STATUS',
+    '2': 'CMO_MSI_STATUS',
+    '3': 'STRING',
+    '4': '0'
     }
 
 }
