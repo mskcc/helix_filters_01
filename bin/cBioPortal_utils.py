@@ -273,10 +273,16 @@ def generate_header_lines(keys, delimiter = '\t', header_lines_map = header_line
     ])
 
     for key in keys:
-        lines_map["1"] += header_lines_map[key]["1"] + delimiter
-        lines_map["2"] += header_lines_map[key]["2"] + delimiter
-        lines_map["3"] += header_lines_map[key]["3"] + delimiter
-        lines_map["4"] += header_lines_map[key]["4"] + delimiter
+        try:
+            lines_map["1"] += header_lines_map[key]["1"] + delimiter
+            lines_map["2"] += header_lines_map[key]["2"] + delimiter
+            lines_map["3"] += header_lines_map[key]["3"] + delimiter
+            lines_map["4"] += header_lines_map[key]["4"] + delimiter
+        except KeyError: # the column header key is not in the mapping; use a dummy value
+            lines_map["1"] += key + delimiter
+            lines_map["2"] += key + delimiter
+            lines_map["3"] += key + delimiter
+            lines_map["4"] += "0" + delimiter
     lines = []
     for line in lines_map.values():
         # remove trailing delimiters, add trailing newline

@@ -190,5 +190,54 @@ class TestTMBVariantFilter(PlutoTestCase):
         self.assertEqual(comments, expected_comments)
         self.assertEqual(records, expected_records)
 
+    def test_merge_data_clinical_unrecognized_cBio_columns(self):
+        """
+        Test case for handling of input table column headers that do not match any recognized cBioPortal mapping (cBioPortal_utils.header_lines_map) entries
+        Need to create a dummy value to output so that the script doesnt break every time a new column is included
+        """
+        self.maxDiff = None
+        lines1 = [
+        ['SAMPLE_ID', 'SAMPLE_COVERAGE'],
+        ['Sample1-T', '108'],
+        ['Sample1-N', '58'],
+        ['Sample2-T', '502'],
+        ['Sample2-N', '56'],
+        ]
+
+        lines2 = [
+        ['SAMPLE_ID', 'PIPELINE_GITHUB_LINK'], # PIPELINE_GITHUB_LINK not in cBio mapping
+        ['Sample1-T', '.'],
+        ['Sample1-N', '.'],
+        ['Sample2-T', 'https://github.com/mskcc/argos-cwl'],
+        ['Sample2-N', 'https://github.com/mskcc/argos-cwl'],
+        ]
+
+        file1 = self.write_table(self.tmpdir, filename = "1.txt", lines = lines1)
+        file2 = self.write_table(self.tmpdir, filename = "2.txt", lines = lines2)
+        output_file = os.path.join(self.tmpdir, "output.txt")
+
+        command = [script, '--cBioPortal', '--key1', 'SAMPLE_ID', '--key2', 'SAMPLE_ID', '--output', output_file, file1, file2 ]
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
+
+        reader = TableReader(output_file)
+        comments = reader.comment_lines
+        fieldnames = reader.get_fieldnames()
+        records = [ rec for rec in reader.read() ]
+        expected_comments = [
+            '#SAMPLE_ID\tSAMPLE_COVERAGE\tPIPELINE_GITHUB_LINK\n',
+            '#SAMPLE_ID\tSAMPLE_COVERAGE\tPIPELINE_GITHUB_LINK\n',
+            '#STRING\tNUMBER\tPIPELINE_GITHUB_LINK\n',
+            '#1\t1\t0\n'
+        ]
+        expected_records = [
+            {'SAMPLE_ID': 'Sample1-T', 'SAMPLE_COVERAGE': '108', 'PIPELINE_GITHUB_LINK': '.'},
+            {'SAMPLE_ID': 'Sample1-N', 'SAMPLE_COVERAGE': '58', 'PIPELINE_GITHUB_LINK': '.'},
+            {'SAMPLE_ID': 'Sample2-T', 'SAMPLE_COVERAGE': '502', 'PIPELINE_GITHUB_LINK': 'https://github.com/mskcc/argos-cwl'},
+            {'SAMPLE_ID': 'Sample2-N', 'SAMPLE_COVERAGE': '56', 'PIPELINE_GITHUB_LINK': 'https://github.com/mskcc/argos-cwl'}
+            ]
+
+        self.assertEqual(comments, expected_comments)
+        self.assertEqual(records, expected_records)
+
 if __name__ == "__main__":
     unittest.main()
