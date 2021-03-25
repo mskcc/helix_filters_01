@@ -21,11 +21,11 @@ sample_data_remove_cols = ["purity", "ploidy", "facets_version"]
 # need to add the following lines to the file
 # preceeding the header line
 header_lines_map = {
-    'SAMPLE_ID' : {
-    '1': 'SAMPLE_ID',
-    '2': 'SAMPLE_ID',
-    '3': 'STRING',
-    '4': '1'
+    'SAMPLE_ID' : { # original column header label
+    '1': 'SAMPLE_ID', # pretty-printed column header label; shown as cBioPortal webpage table header
+    '2': 'SAMPLE_ID', # this should be the hover-text in cBioPortal table header (?)
+    '3': 'STRING', # data type for the column in cBioPortal
+    '4': '1' # show this column in cBioPortal or not (0 = hide, 1 = show)
     },
     'IGO_ID' : {
     '1': 'IGO_ID',
@@ -279,10 +279,16 @@ def generate_header_lines(keys, delimiter = '\t', header_lines_map = header_line
     ])
 
     for key in keys:
-        lines_map["1"] += header_lines_map[key]["1"] + delimiter
-        lines_map["2"] += header_lines_map[key]["2"] + delimiter
-        lines_map["3"] += header_lines_map[key]["3"] + delimiter
-        lines_map["4"] += header_lines_map[key]["4"] + delimiter
+        try:
+            lines_map["1"] += header_lines_map[key]["1"] + delimiter
+            lines_map["2"] += header_lines_map[key]["2"] + delimiter
+            lines_map["3"] += header_lines_map[key]["3"] + delimiter
+            lines_map["4"] += header_lines_map[key]["4"] + delimiter
+        except KeyError: # the column header key is not in the mapping; use a dummy value
+            lines_map["1"] += key + delimiter
+            lines_map["2"] += key + delimiter
+            lines_map["3"] += key + delimiter
+            lines_map["4"] += "0" + delimiter
     lines = []
     for line in lines_map.values():
         # remove trailing delimiters, add trailing newline
