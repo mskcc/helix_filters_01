@@ -29,38 +29,31 @@ def calc_from_values(
     genome_coverage = int(genome_coverage)
 
     if megabases:
-        genome_coverage = genome_coverage * 1000000
+        genome_coverage = genome_coverage / 1000000
 
     tmb = num_variants / genome_coverage
 
-    if _print:
-        """
-        Need to deal with Python's printing of extremely small numbers;
-        https://stackoverflow.com/questions/658763/how-to-suppress-scientific-notation-when-printing-float-values
+    """
+    Need to deal with Python's printing of extremely small numbers;
+    https://stackoverflow.com/questions/658763/how-to-suppress-scientific-notation-when-printing-float-values
 
-        >>> x = 1.0 / 1000000000.0
-        >>> numpy.format_float_positional(x)
-        '0.000000001'
-        >>> numpy.format_float_positional(0.25)
-        '0.25'
+    >>> x = 1.0 / 1000000000.0
+    >>> numpy.format_float_positional(x)
+    '0.000000001'
+    >>> numpy.format_float_positional(0.25)
+    '0.25'
 
-        NOTE: also need to handle this case where value is 0;
-        >>> numpy.format_float_positional(0)
-        '0.'
-        """
+    NOTE: also need to handle this case where value is 0;
+    >>> numpy.format_float_positional(0)
+    '0.'
+    """
+    if _print or output_file:
         import numpy
-        if tmb == 0:
-            print(str(tmb))
-        else:
-            print(numpy.format_float_positional(tmb))
-
-    if output_file:
-        import numpy
-        with open(output_file, "w") as f:
-            if tmb == 0:
-                f.write(str(tmb) + '\n')
-            else:
-                f.write(numpy.format_float_positional(tmb) + '\n')
+        if _print:
+            fout = sys.stdout
+        if output_file:
+            fout = open(output_file, "w")
+        fout.write(numpy.format_float_positional(tmb, trim = '0', precision = 4) + '\n')
 
     return(tmb)
 

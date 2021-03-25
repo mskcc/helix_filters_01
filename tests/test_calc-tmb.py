@@ -40,20 +40,20 @@ class TestCalcTMB(PlutoTestCase):
         returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         # print(proc_stdout, proc_stderr)
         result = proc_stdout
-        expected_result = '0.000001115278535237783'
+        expected_result = '0.0'
         self.assertEqual(result, expected_result)
 
         # get result as TMB in Megabases
         command = [script, 'from-values', '--num-variants', "1", '--genome-coverage', "896637"]
         returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         result = proc_stdout
-        expected_result = '0.000000000001115278535237783'
+        expected_result = '1.1153'
         self.assertEqual(result, expected_result)
 
         command = [script, 'from-values', '--num-variants', "10001", '--genome-coverage', "1213770"]
         returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         result = proc_stdout
-        expected_result = '0.00000000823961706089292'
+        expected_result = '8239.6171'
         self.assertEqual(result, expected_result)
 
         # save output to file
@@ -66,7 +66,7 @@ class TestCalcTMB(PlutoTestCase):
         # value should be in the file
         with open(output_file) as fin:
             result = next(fin).strip()
-        expected_result = '0.00000000823961706089292'
+        expected_result = '8239.6171'
         self.assertEqual(result, expected_result)
 
     def test_calc_tmb_from_file(self):
@@ -89,7 +89,7 @@ class TestCalcTMB(PlutoTestCase):
         returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         with open(output_file) as fin:
             result = next(fin).strip()
-        expected_result = '0.000000005'
+        expected_result = '5000.0'
         self.assertEqual(result, expected_result)
 
     def test_calc_tmb_from_file2(self):
@@ -109,7 +109,7 @@ class TestCalcTMB(PlutoTestCase):
         returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         with open(output_file) as fin:
             result = next(fin).strip()
-        expected_result = '0.000000001'
+        expected_result = '1000.0'
         self.assertEqual(result, expected_result)
 
         # No variants in the file
@@ -158,7 +158,7 @@ class TestCalcTMB(PlutoTestCase):
         returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
         with open(output_file) as fin:
             result = next(fin).strip()
-        expected_result = '0.000000005'
+        expected_result = '5000.0'
         self.assertEqual(result, expected_result)
 
         # with a bad normal id
