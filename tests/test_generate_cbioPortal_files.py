@@ -299,6 +299,54 @@ class TestGenerateCBioFiles(PlutoTestCase):
 
         self.assertEqual(lines, expected_lines)
 
+    def test_gen_sample_data_handle_missing_column_1(self):
+        """
+        Test that blank cells in the input data_clinical_sample.txt file get handled correctly
+        Python csv.DictReader converts their value to None, which breaks with '\t'.join() due to non-str type
+        """
+        data_clinical_file = os.path.join(self.tmpdir, "data_clinical_sample.txt")
+        with open(data_clinical_file, "w") as fout:
+            fout.write('SAMPLE_ID\tPIPELINE_VERSION\n')
+            fout.write('Sample1\n')
+
+        facets_lines = [
+        ['sample', 'run_type', 'purity', 'ploidy', 'facets_version', 'genome_doubled'],
+        ['Sample1', 'hisens', '0.96', '2', '0.5.14', 'FALSE']
+        ]
+        facets_file = self.write_table(self.tmpdir, "facets.txt", facets_lines)
+
+        output_file = os.path.join(self.tmpdir, "output.txt")
+        script = os.path.join(BIN_DIR, 'generate_cbioPortal_files.py')
+        command = [
+        script,
+        'sample',
+        '--output', output_file,
+        '--data-clinical-file', data_clinical_file,
+        '--project-pi', 'jonesd',
+        '--request-pi', 'smithd',
+        '--facets-txt-files', facets_file
+        ]
+
+        returncode, proc_stdout, proc_stderr = self.run_command(command)
+
+        if returncode != 0:
+            print(proc_stderr)
+
+        self.assertEqual(returncode, 0)
+
+        with open(output_file) as fin:
+            lines = [ line.strip().split('\t') for line in fin ]
+
+        expected_lines = [
+            ['#SAMPLE_ID', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'genome_doubled', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'ASCN_WGD'],
+            ['#SAMPLE_ID', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'genome_doubled', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'ASCN_WGD'],
+            ['#STRING', 'STRING', 'STRING', 'STRING', 'STRING', 'NUMBER', 'NUMBER', 'STRING', 'STRING'], ['#1', '1', '1', '1', '0', '1', '1', '0', '1'],
+            ['SAMPLE_ID', 'PIPELINE_VERSION', 'PROJECT_PI', 'REQUEST_PI', 'genome_doubled', 'ASCN_PURITY', 'ASCN_PLOIDY', 'ASCN_VERSION', 'ASCN_WGD'],
+            ['Sample1', 'NA', 'jonesd', 'smithd', 'FALSE', '0.96', '2', '0.5.14', 'no WGD']
+            ]
+
+        self.assertEqual(lines, expected_lines)
+
     def test_generate_data_clinical_sample_file_with_summary(self):
         """
         generate_data_clinical_sample_file

@@ -332,7 +332,12 @@ def create_file_lines(clinical_data, delimiter = '\t', na_str = 'NA'):
         # need to make sure that output values match the order of the header keys
         new_row = OrderedDict()
         for key in clinical_keys:
-            new_row[key] = row.get(key, na_str) # fill in missing values with na_str
+            value = row.get(key, na_str) # fill in missing values with na_str
+            # need to check if a None value was originally passed in the clincial data;
+            # this originates from blank empty cell in the data_clinical_sample.txt file
+            if value is None:
+                value = na_str
+            new_row[key] = value
         # concat the values into a single string for printing
         line = delimiter.join(new_row.values())
         lines.append(line + '\n')
