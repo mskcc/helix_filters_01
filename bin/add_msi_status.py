@@ -10,6 +10,7 @@ from cBioPortal_utils import MafReader
 
 def calc_msi(msi_score):
     msi_score = float(msi_score)
+    msi_type = 'NA' # default value ; also applies for nan values
     if msi_score < 3:
         msi_type = 'Stable'
     elif msi_score >= 3 and msi_score < 10:
