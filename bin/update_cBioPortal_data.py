@@ -309,6 +309,15 @@ def merge_maf_files(**kwargs):
     https://github.com/mskcc/pluto-cwl/issues/22
 
     NOTE: can prob refactor some of the code here to re-use code from merge-tables.py script
+
+    NOTE: This script was previously using huge amounts of memory (50GB+ for a 2.5GB Facets file (1.6mil rows), 180 row 49KB data_mutations_extended file)
+    its still using too much (down to ~1GB) but its low enough that it should be OK for now
+    If memory usage is an issue in the future see notes here https://github.com/mskcc/pluto-cwl/issues/56
+    - consider using pandas to merge the Facets data against the data_mutations_extended
+    - consider loading Facets data into in-memory SQLite and query against that ??
+    - consider switching to bash 'join' instead
+    Right now, it seems like Facets data is not actually using up the memory, since the facets_index here is reduced to ~80MB for the given Facets input file
+    So, really not actually sure what is using up the rest of the memory
     """
     input_file = kwargs.pop('input_file')
     output_file = kwargs.pop('output_file')
@@ -316,11 +325,11 @@ def merge_maf_files(**kwargs):
 
     # load the mutations from the Facets maf
     facets_reader = MafReader(facets_maf_file)
-    facets_mutations = [ mut for mut in facets_reader.read() ]
 
+    # only retain certain keys in each Facets record needed for lookups later
     # index all the facets mutations so they can be looked up directly
     facets_index = {}
-    for mut in facets_mutations:
+    for mut in facets_reader.read():
         key = (
             mut['Hugo_Symbol'],
             mut['Entrez_Gene_Id'],
@@ -330,7 +339,8 @@ def merge_maf_files(**kwargs):
             mut['Tumor_Sample_Barcode'],
             mut['Matched_Norm_Sample_Barcode']
         )
-        facets_index[key] = mut
+        facets_index[key] = mut['ASCN.TOTAL_COPY_NUMBER']
+    # print("facets_index\t{} entries\t{} B\t{} MB".format( len(facets_index), sys.getsizeof(facets_index),  sys.getsizeof(facets_index) / (1024 * 1024) ))
 
     with open(output_file, "w") as fout:
         # load the mutations and attributes from the portal maf
@@ -358,7 +368,7 @@ def merge_maf_files(**kwargs):
                 mut['Matched_Norm_Sample_Barcode']
             )
             if key in facets_index:
-                mut["ASCN.CLONAL"] = facets_index[key]['ASCN.TOTAL_COPY_NUMBER']
+                mut["ASCN.CLONAL"] = facets_index[key]
             else:
                 mut["ASCN.CLONAL"] = '.'
             writer.writerow(mut)

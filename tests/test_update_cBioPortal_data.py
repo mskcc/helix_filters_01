@@ -330,6 +330,7 @@ class TestUpdateCBioMaf(PlutoTestCase):
 
         # run the script in a subprocess
         returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
+        # print(proc_stdout)
 
         comments, mutations = self.load_mutations(output_file)
         expected_comments = [ '# comment 1', '# comment 2' ]
