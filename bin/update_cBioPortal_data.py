@@ -330,7 +330,7 @@ def merge_maf_files(**kwargs):
     # index all the facets mutations so they can be looked up directly
     facets_index = {}
     for mut in facets_reader.read():
-        key = (
+        key = '.'.join([
             mut['Hugo_Symbol'],
             mut['Entrez_Gene_Id'],
             mut['Chromosome'],
@@ -338,9 +338,8 @@ def merge_maf_files(**kwargs):
             mut['End_Position'],
             mut['Tumor_Sample_Barcode'],
             mut['Matched_Norm_Sample_Barcode']
-        )
+            ])
         facets_index[key] = mut['ASCN.TOTAL_COPY_NUMBER']
-    # print("facets_index\t{} entries\t{} B\t{} MB".format( len(facets_index), sys.getsizeof(facets_index),  sys.getsizeof(facets_index) / (1024 * 1024) ))
 
     with open(output_file, "w") as fout:
         # load the mutations and attributes from the portal maf
@@ -358,7 +357,7 @@ def merge_maf_files(**kwargs):
 
         # add the column from the Facets row to the portal row
         for mut in portal_reader.read() :
-            key = (
+            key = '.'.join([
                 mut['Hugo_Symbol'],
                 mut['Entrez_Gene_Id'],
                 mut['Chromosome'],
@@ -366,7 +365,7 @@ def merge_maf_files(**kwargs):
                 mut['End_Position'],
                 mut['Tumor_Sample_Barcode'],
                 mut['Matched_Norm_Sample_Barcode']
-            )
+                ])
             if key in facets_index:
                 mut["ASCN.CLONAL"] = facets_index[key]
             else:
