@@ -8,3 +8,6 @@ dependencies:
   - numpy=1.19.1 # anaconda::numpy=1.19.1
   - bedops=2.4.39 # bioconda::bedops=2.4.39
   - parallel=20201122 # conda-forge::parallel=20201122
+  - bcftools=1.9
+  - dos2unix=7.4.1
+  - vcf2maf=1.6.19
