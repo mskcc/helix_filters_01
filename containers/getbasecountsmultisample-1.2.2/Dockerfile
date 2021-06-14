@@ -40,3 +40,4 @@ RUN apk add --update \
             && chmod +x /usr/bin/runscript.sh \
             && chmod +x /run_test.sh \
             && exec /run_test.sh
+ENV LANG C.UTF-8
