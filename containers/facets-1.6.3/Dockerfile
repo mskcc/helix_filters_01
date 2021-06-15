@@ -77,3 +77,4 @@ RUN apk add --update \
 ENV PYTHONNOUSERSITE set
 ENV FACETS_OVERRIDE_EXITCODE set
 ENV LANG C.UTF-8
+RUN apk add bash
