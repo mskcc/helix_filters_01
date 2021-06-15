@@ -1,3 +1,12 @@
+# NOTE: This container build NO LONGER WORKS; silent errors are encountered when installing R packages, R is no longer able to locate some compatible packages versions and results in a container that lacks some required pacakges such as 'stringr'
+# This container will be un-reproducible until some method is developed to install the correct packages with version-labels (e.g. conda)
+# see included packages.txt for list of R library versions from working version of this container
+
+# To test if the container build works;
+# $ docker run --rm -ti "mskcc/helix_filters_01:facets-1.6.3" Rscript -e 'library("stringr")'
+# Error in library("stringr") : there is no package called ‘stringr’
+# Execution halted
+
 FROM alpine:3.8
 # copied from https://github.com/mskcc/roslin-variant/blob/2d0f7f7b78b89bb31f5bf8b8eb678fd41998213b/build/containers/facets/1.6.3/
 LABEL maintainer="Nikhil Kumar (kumarn1@mskcc.org)" \
