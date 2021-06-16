@@ -7,6 +7,8 @@
 # Error in library("stringr") : there is no package called ‘stringr’
 # Execution halted
 
+# NOTE: updated version of this container is here: https://github.com/mskcc/roslin-variant/blob/2.6.x/build/containers/facets/1.6.3/Dockerfile ; includes new library install scripts
+
 FROM alpine:3.8
 # copied from https://github.com/mskcc/roslin-variant/blob/2d0f7f7b78b89bb31f5bf8b8eb678fd41998213b/build/containers/facets/1.6.3/
 LABEL maintainer="Nikhil Kumar (kumarn1@mskcc.org)" \
