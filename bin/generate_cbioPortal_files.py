@@ -358,7 +358,8 @@ def generate_mutation_meta_data(cancer_study_identifier, data_filename):
     'stable_id': 'mutations',
     'show_profile_in_analysis_tab': "true",
     'profile_description': 'Mutation data',
-    'profile_name': 'Mutations'
+    'profile_name': 'Mutations',
+    'namespaces': 'ASCN'
     }
     return(data)
 
