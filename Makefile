@@ -135,6 +135,15 @@ $(TESTS):
 .PHONY: $(TESTS)
 test: $(TESTS)
 
+# run the test suite inside a Singularity container
+test-in-container:
+	module load singularity/3.3.0 && \
+	for i in tests/test_*.py; do \
+	echo $$i; \
+	singularity run -B "$$PWD" -B /juno -B "$(FIXTURES_DIR)" "$(SINGULARITY_SIF)" python3 $$i; \
+	done
+
+
 # for some reason the test recipe is not running all tests....
 test2:
 	module load singularity/3.3.0 && \
