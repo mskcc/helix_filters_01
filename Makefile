@@ -75,6 +75,7 @@ install: conda
 	conda install -y \
 	anaconda::numpy=1.19.1 \
 	anaconda::pandas=1.1.3
+	git submodule update --init --recursive
 
 
 
@@ -130,7 +131,7 @@ export FIXTURES_DIR:=/juno/work/ci/helix_filters_01/fixtures
 # $ make test -j 4
 TESTS:=$(shell ls tests/test_*.py)
 $(TESTS):
-	module load singularity/3.3.0 && module load python/3.7.1 && module load cwl/cwltool && echo $@; python $@
+	module load singularity/3.3.0 && module load python/3.7.1 && module load cwl/cwltool && echo $@; python3 $@
 .PHONY: $(TESTS)
 test: $(TESTS)
 
