@@ -581,7 +581,8 @@ class TestGenerateCBioFiles(PlutoTestCase):
         'stable_id': 'mutations',
         'show_profile_in_analysis_tab': "true",
         'profile_description': 'Mutation data',
-        'profile_name': 'Mutations'
+        'profile_name': 'Mutations',
+        'namespaces': 'ASCN',
         }
         self.assertDictEqual(data, expected_data)
 
