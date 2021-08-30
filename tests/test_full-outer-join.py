@@ -18,7 +18,7 @@ test_script = os.path.join(BIN_DIR, 'full-outer-join.R')
 
 
 class TestFullOuterJoinScript(PlutoTestCase):
-    def test_full_outer_join1(self):
+    def test_full_outer_join_two_files(self):
         lines1 = [
         ['Hugo_Symbol', 'Sample1', 'Sample2'],
         ["TAP1", "0", "0"],
@@ -37,7 +37,7 @@ class TestFullOuterJoinScript(PlutoTestCase):
         cna_file2 = self.write_table(self.tmpdir, filename = "cna2.txt", lines = lines2)
         output_file = os.path.join(self.tmpdir, "output.tsv")
 
-        command = [ test_script, cna_file1, cna_file2, 'Hugo_Symbol', output_file ]
+        command = [ test_script, cna_file1, '--t2', cna_file2, '--key', 'Hugo_Symbol', '-o', output_file ]
         returncode, proc_stdout, proc_stderr = self.run_command(command, testcase = self, validate = True)
 
         lines = self.read_table(output_file)
@@ -49,6 +49,32 @@ class TestFullOuterJoinScript(PlutoTestCase):
             ['TAP1', '0', '0', 'NA', 'NA'],
             ['STK11', 'NA', 'NA', '0', 'NA']
             ]
+        self.assertEqual(lines, expected_lines)
+
+    def test_full_outer_join_one_file(self):
+        """
+        Test case that if we do not pass in a second table, the script returns the first table as output
+        """
+        lines1 = [
+        ['Hugo_Symbol', 'Sample1', 'Sample2'],
+        ["TAP1", "0", "0"],
+        ["ERRFI1", "0", "0"],
+        ["STK19", "", "0"],
+        ]
+        cna_file1 = self.write_table(self.tmpdir, filename = "cna1.txt", lines = lines1)
+        output_file = os.path.join(self.tmpdir, "output.tsv")
+        command = [ test_script, cna_file1, '--key', 'Hugo_Symbol', '-o', output_file ]
+        returncode, proc_stdout, proc_stderr = self.run_command(command, testcase = self, validate = True)
+
+        lines = self.read_table(output_file)
+
+        expected_lines = [
+            ['Hugo_Symbol', 'Sample1', 'Sample2'],
+            ['TAP1', '0', '0'],
+            ['ERRFI1', '0', '0'],
+            ['STK19', 'NA', '0'] # NOTE: the '' empty value gets converted to NA; need this for cBioPortal compatibility
+        ]
+
         self.assertEqual(lines, expected_lines)
 
 

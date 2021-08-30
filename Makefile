@@ -125,9 +125,11 @@ update-container-tags:
 	done
 
 # ~~~~~ Debug & Development ~~~~~ #
-# Run the test suite
+# This dir has some static files needed for some tests:
 export FIXTURES_DIR:=/juno/work/ci/helix_filters_01/fixtures
-# run tests in parallel;
+
+# Run the test suite
+# run tests in parallel on juno/silo HPC;
 # $ make test -j 4
 TESTS:=$(shell ls tests/test_*.py)
 $(TESTS):
@@ -135,7 +137,7 @@ $(TESTS):
 .PHONY: $(TESTS)
 test: $(TESTS)
 
-# run the test suite inside a Singularity container
+# run the test suite inside a Singularity container on the HPC
 test-in-container:
 	module load singularity/3.3.0 && \
 	for i in tests/test_*.py; do \
@@ -143,31 +145,31 @@ test-in-container:
 	singularity run -B "$$PWD" -B /juno -B "$(FIXTURES_DIR)" "$(SINGULARITY_SIF)" python3 $$i; \
 	done
 
+# run the test suite inside a Docker container
+test-in-docker:
+	for i in tests/test_*.py; do \
+	echo $$i; \
+	docker run --rm --workdir "$$PWD" -v "$$PWD:$$PWD" "$(DOCKER_TAG)" python3 $$i; \
+	done
 
-# for some reason the test recipe is not running all tests....
-test2:
-	module load singularity/3.3.0 && \
-	module load python/3.7.1 && \
-	module load cwl/cwltool && \
-	if [ ! -e "$(SINGULARITY_SIF)" ]; then $(MAKE) singularity-pull; fi && \
-	for i in tests/test_*.py; do echo $$i; $$i; done
-
-# TODO: figure out why this is missing some tests
-test-old:
-	export PATH=/opt/local/singularity/3.3.0/bin:$(PATH) && \
-	module load python/3.7.1 && \
-	module load cwl/cwltool && \
-	if [ ! -e "$(SINGULARITY_SIF)" ]; then $(MAKE) singularity-pull; fi && \
-	python3 test.py
-
-# # run the pure-Makefile prototype reference version of the workflow
-# workflow:
-# 	$(MAKE) -f workflow.makefile run
+# # for some reason the test recipe is not running all tests....
+# test2:
+# 	module load singularity/3.3.0 && \
+# 	module load python/3.7.1 && \
+# 	module load cwl/cwltool && \
+# 	if [ ! -e "$(SINGULARITY_SIF)" ]; then $(MAKE) singularity-pull; fi && \
+# 	for i in tests/test_*.py; do echo $$i; $$i; done
 #
-# workflow-test:
-# 	$(MAKE) -f workflow.makefile test
+# # TODO: figure out why this is missing some tests
+# test-old:
+# 	export PATH=/opt/local/singularity/3.3.0/bin:$(PATH) && \
+# 	module load python/3.7.1 && \
+# 	module load cwl/cwltool && \
+# 	if [ ! -e "$(SINGULARITY_SIF)" ]; then $(MAKE) singularity-pull; fi && \
+# 	python3 test.py
 
-# interactive session with environment populated
+
+# interactive session with environment populated on the HPC
 bash:
 	module load singularity/3.3.0 && \
 	module load python/3.7.1 && \

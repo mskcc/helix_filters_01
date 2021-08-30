@@ -1,0 +1,13 @@
+name: base
+channels:
+  - anaconda
+  - bioconda
+  - conda-forge
+dependencies:
+  # - python=3.6.5 # need to keep Python that came with the conda install from updating or conda will break itself; https://stackoverflow.com/questions/19825250/after-anaconda-installation-conda-command-fails-with-importerror-no-module-na
+  - numpy=1.21.1 # anaconda::numpy=1.19.1
+  - bedops=2.4.39 # bioconda::bedops=2.4.39
+  - parallel=20201122 # conda-forge::parallel=20201122
+  - bcftools=1.9
+  - dos2unix=7.4.1
+  - vcf2maf=1.6.19
