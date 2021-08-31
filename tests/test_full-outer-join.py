@@ -77,6 +77,51 @@ class TestFullOuterJoinScript(PlutoTestCase):
 
         self.assertEqual(lines, expected_lines)
 
+    def test_join_three_files(self):
+        """
+        Test case for joining three or more files
+        """
+        lines1 = [
+        ['Hugo_Symbol', 'Sample1', 'Sample2'],
+        ["TAP1", "0", "0"],
+        ["ERRFI1", "0", "0"],
+        ["STK19", "", "0"],
+        ]
+
+        lines2 = [
+        ['Hugo_Symbol', 'Sample3', 'Sample4'],
+        ["ERRFI1", "0", "0"],
+        ["STK19", "-2", "0"],
+        ["STK11", "0", ""],
+        ]
+
+        lines3 = [
+        ['Hugo_Symbol', 'Sample5', 'Sample6'],
+        ["ERRFI1", "-1", ""],
+        ["STK19", "-1", "-2"],
+        ["STK11", "", "-1"],
+        ]
+
+        cna_file1 = self.write_table(self.tmpdir, filename = "cna1.txt", lines = lines1)
+        cna_file2 = self.write_table(self.tmpdir, filename = "cna2.txt", lines = lines2)
+        cna_file3 = self.write_table(self.tmpdir, filename = "cna3.txt", lines = lines3)
+        output_file = os.path.join(self.tmpdir, "output.tsv")
+
+        command = [ test_script, cna_file1, '--key', 'Hugo_Symbol', '-o', output_file, '--t2', cna_file2, cna_file3 ]
+        returncode, proc_stdout, proc_stderr = self.run_command(command, testcase = self, validate = True)
+
+        lines = self.read_table(output_file)
+
+        expected_lines = [
+        ['Hugo_Symbol', 'Sample1', 'Sample2', 'Sample3', 'Sample4', 'Sample5', 'Sample6'],
+        ['ERRFI1', '0', '0', '0', '0', '-1', 'NA'],
+        ['STK19', 'NA', '0', '-2', '0', '-1', '-2'],
+        ['TAP1', '0', '0', 'NA', 'NA', 'NA', 'NA'],
+        ['STK11', 'NA', 'NA', '0', 'NA', 'NA', '-1']
+            ]
+        self.assertEqual(lines, expected_lines)
+
+
 
 
 if __name__ == "__main__":
