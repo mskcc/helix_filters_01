@@ -30,4 +30,6 @@ CMD [ "/bin/bash" ]
 # install extra libraries
 ADD environment.yml /environment.yml
 RUN conda env update -n base --file /environment.yml
-RUN conda list --explicit > /environment.txt
+RUN mkdir -p /usr/scripts
+ENV PATH=/usr/scripts:$PATH
+ADD bin /usr/scripts

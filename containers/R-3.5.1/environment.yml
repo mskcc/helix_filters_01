@@ -1,0 +1,8 @@
+# name: r
+channels:
+  - conda-forge
+  - r
+dependencies:
+  - python=3.6.5 # need to keep Python that came with the conda install from updating or conda will break itself; https://stackoverflow.com/questions/19825250/after-anaconda-installation-conda-command-fails-with-importerror-no-module-na
+  - r-base=3.5.1
+  - r-argparse=2.0.1

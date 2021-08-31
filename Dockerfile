@@ -38,8 +38,9 @@ RUN conda env update -n base --file /environment-base.yml
 # RUN conda list --explicit > /environment.txt
 
 # add separate env for R; use it like this: $ docker run --rm 'my-container' conda run -n env-r --no-capture-output myscript.R args go here
-ADD environment-r.yml /environment-r.yml
-RUN conda env update -n r --file /environment-r.yml
+# ADD environment-r.yml /environment-r.yml
+# RUN conda env update -n r --file /environment-r.yml
+# NOTE: don't use this due to issue using conda run from Singularity ; https://github.com/conda/conda/issues/10888
 
 # add helix_filters files
 RUN mkdir -p /usr/scripts
