@@ -138,7 +138,7 @@ $(TESTS):
 test: $(TESTS)
 
 # run the test suite inside a Singularity container on the HPC
-test-in-container:
+test-in-container-all:
 	module load singularity/3.3.0 && \
 	for i in tests/test_*.py; do \
 	echo $$i; \
@@ -146,11 +146,16 @@ test-in-container:
 	done
 
 # run the test suite inside a Docker container
-test-in-docker:
+test-in-docker-all:
 	for i in tests/test_*.py; do \
 	echo $$i; \
 	docker run --rm --workdir "$$PWD" -v "$$PWD:$$PWD" "$(DOCKER_TAG)" python3 $$i; \
 	done
+
+# $ make test-in-docker TEST=tests/test_compile-report.py DOCKER_TAG='mskcc/helix_filters_01:reporting'
+TEST:=
+test-in-docker:
+	docker run --rm --workdir "$$PWD" -v "$$PWD:$$PWD" "$(DOCKER_TAG)" python3 "$(TEST)"
 
 # # for some reason the test recipe is not running all tests....
 # test2:

@@ -37,3 +37,4 @@ containers/reporting/report/
 *.Rproj
 environment.txt
 containers/reporting/bin
+portal/

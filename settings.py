@@ -8,6 +8,7 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 # CWL_DIR = os.path.join(THIS_DIR, "cwl")
 REF_DIR = os.path.join(THIS_DIR, "ref")
 BIN_DIR = os.path.join(THIS_DIR, "bin")
+REPORT_DIR = os.path.join(THIS_DIR, "report")
 
 # common args to be included in all cwltool invocations
 # CWL_ARGS = [
