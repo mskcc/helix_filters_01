@@ -6,6 +6,7 @@ params:
   mut_file: data_mutations_extended.txt
   sample_file: data_clinical_sample.txt
   patient_file: data_clinical_patient.txt
+  Rdata_file: report.Rdata
 ---
 
 ```{r setup, include=FALSE}
@@ -15,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 mut_file <- params$mut_file
 sample_file <- params$sample_file
 patient_file <- params$patient_file
+Rdata_file <- params$Rdata_file
 
 mut_df <- read.delim(file = mut_file, header = TRUE, sep = '\t', comment.char = '#')
 sample_df <- read.delim(file = sample_file, header = TRUE, sep = '\t', comment.char = '#')
@@ -35,7 +37,7 @@ for(i in seq(nrow(rename_mut_cols))){
     new <- as.character(rename_mut_cols[["new"]][i])
     setnames(x = mut_df, old = old, new = new)
 }
-save.image()
+save.image(file = Rdata_file, compress = TRUE)
 ```
 
 # Patients

@@ -40,3 +40,4 @@ containers/reporting/bin
 portal/
 report/portal
 *.html
+*.Rdata
