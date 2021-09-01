@@ -33,3 +33,6 @@ portal.txt
 containers/R-3.5.1/bin
 .Rproj.user
 .RData
+containers/reporting/report/
+*.Rproj
+environment.txt
