@@ -13,3 +13,4 @@ dependencies:
   - r-knitr=1.33
   - r-dt=0.18
   - r-plotly=4.9.4.1
+  - r-data.table=1.14.0

@@ -10,6 +10,7 @@ params:
 
 ```{r setup, include=FALSE}
 library('DT')
+library('data.table')
 knitr::opts_chunk$set(echo = TRUE)
 mut_file <- params$mut_file
 sample_file <- params$sample_file
@@ -19,6 +20,21 @@ mut_df <- read.delim(file = mut_file, header = TRUE, sep = '\t', comment.char = 
 sample_df <- read.delim(file = sample_file, header = TRUE, sep = '\t', comment.char = '#')
 patient_df <- read.delim(file = patient_file, header = TRUE, sep = '\t', comment.char = '#')
 
+rename_mut_cols <- data.frame(
+    old=c('Tumor_Sample_Barcode', 'Matched_Norm_Sample_Barcode'),
+    new=c('Tumor', 'Normal')
+    )
+
+# add AF to the mutations
+mut_df[['t_af']] <- round(mut_df[["t_alt_count"]] / mut_df[["t_depth"]], 2)
+mut_df[['n_af']] <- round(mut_df[["n_alt_count"]] / mut_df[["n_depth"]], 2)
+
+# rename some cols in the mut table
+for(i in seq(nrow(rename_mut_cols))){
+    old <- as.character(rename_mut_cols[["old"]][i])
+    new <- as.character(rename_mut_cols[["new"]][i])
+    setnames(x = mut_df, old = old, new = new)
+}
 save.image()
 ```
 
@@ -31,13 +47,13 @@ datatable(patient_df)
 # Samples 
 
 ```{r samples, echo=FALSE}
-sample_cols <-c('SAMPLE_ID', 'SPECIMEN_PRESERVATION_TYPE', 'ONCOTREE_CODE')
+sample_cols <-c('SAMPLE_ID', 'PATIENT_ID', 'IGO_ID', 'COLLAB_ID', 'ONCOTREE_CODE', 'SAMPLE_COVERAGE')
 datatable(sample_df[, sample_cols])
 ```
 
 # Variants
 
 ```{r variants, echo=FALSE}
-mut_cols <-c('Hugo_Symbol', 'Amino_Acid_Change', 'Tumor_Sample_Barcode')
+mut_cols <-c('Hugo_Symbol', 'Amino_Acid_Change', 'Tumor', 'Normal', 't_af', 't_depth', 'n_af', 'n_depth')
 datatable(mut_df[, mut_cols])
 ```

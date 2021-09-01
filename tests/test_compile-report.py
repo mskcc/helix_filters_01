@@ -27,18 +27,34 @@ class TestCompileReport(PlutoTestCase):
         """
         Test case for making a demo of the HTML report
         """
-        mut_lines = [
-        ['Hugo_Symbol', 'Amino_Acid_Change', 'Tumor_Sample_Barcode'],
-        ["TAP1", "A>T", "Sample1"],
-        ]
+        mut1 = {
+        "Hugo_Symbol" : "FGF3",
+        "Amino_Acid_Change": "E116K",
+        "Tumor_Sample_Barcode": "Sample1",
+        "Matched_Norm_Sample_Barcode": "Sample2",
+        "t_depth" : "0",
+        "t_alt_count" : "0",
+        "n_alt_count": "0",
+        "n_depth": "0"
+        }
 
         sample_lines = [
-        ['#SAMPLE_ID', 'SPECIMEN_PRESERVATION_TYPE', 'ONCOTREE_CODE'],
-        ['#SAMPLE_ID', 'SPECIMEN_PRESERVATION_TYPE', 'ONCOTREE_CODE'],
-        ['#STRING', 'STRING', 'STRING'],
-        ['#1', '1', '1'],
-        ['SAMPLE_ID', 'SPECIMEN_PRESERVATION_TYPE', 'ONCOTREE_CODE'],
-        ["Sample1", "FFPE", "MEL"],
+        {
+        'SAMPLE_ID': 'Sample1',
+        'PATIENT_ID': 'Patient1',
+        'IGO_ID': 'IGO_1',
+        'COLLAB_ID': 'Collab1',
+        'ONCOTREE_CODE': 'MEL',
+        'SAMPLE_COVERAGE': '100',
+        },
+        {
+        'SAMPLE_ID': 'Sample2',
+        'PATIENT_ID': 'Patient1',
+        'IGO_ID': 'IGO_2',
+        'COLLAB_ID': 'Collab2',
+        'ONCOTREE_CODE': 'MEL',
+        'SAMPLE_COVERAGE': '100',
+        },
         ]
 
         patient_lines = [
@@ -50,8 +66,12 @@ class TestCompileReport(PlutoTestCase):
         ['p_C_00001', 'F']
         ]
 
-        mut_file = self.write_table(self.tmpdir, filename = "muts.txt", lines = mut_lines)
+        mut_lines = self.dicts2lines(dict_list = [mut1], comment_list = [])
+        mut_file = self.write_table(self.tmpdir, filename = "input.maf", lines = mut_lines)
+
+        sample_lines = self.dicts2lines(dict_list = sample_lines, comment_list = [])
         sample_file = self.write_table(self.tmpdir, filename = "samples.txt", lines = sample_lines)
+
         patient_file = self.write_table(self.tmpdir, filename = "patients.txt", lines = patient_lines)
         output_file = os.path.join(self.tmpdir, "report.html")
 

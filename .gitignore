@@ -38,3 +38,5 @@ containers/reporting/report/
 environment.txt
 containers/reporting/bin
 portal/
+report/portal
+*.html
