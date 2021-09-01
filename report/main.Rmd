@@ -1,0 +1,43 @@
+---
+title: "Analysis Report"
+date: '`r format(Sys.time(), "%B %d, %Y")`'
+output: html_document
+params:
+  mut_file: data_mutations_extended.txt
+  sample_file: data_clinical_sample.txt
+  patient_file: data_clinical_patient.txt
+---
+
+```{r setup, include=FALSE}
+library('DT')
+knitr::opts_chunk$set(echo = TRUE)
+mut_file <- params$mut_file
+sample_file <- params$sample_file
+patient_file <- params$patient_file
+
+mut_df <- read.delim(file = mut_file, header = TRUE, sep = '\t', comment.char = '#')
+sample_df <- read.delim(file = sample_file, header = TRUE, sep = '\t', comment.char = '#')
+patient_df <- read.delim(file = patient_file, header = TRUE, sep = '\t', comment.char = '#')
+
+save.image()
+```
+
+# Patients
+
+```{r patients, echo=FALSE}
+datatable(patient_df)
+```
+
+# Samples 
+
+```{r samples, echo=FALSE}
+sample_cols <-c('SAMPLE_ID', 'SPECIMEN_PRESERVATION_TYPE', 'ONCOTREE_CODE')
+datatable(sample_df[, sample_cols])
+```
+
+# Variants
+
+```{r variants, echo=FALSE}
+mut_cols <-c('Hugo_Symbol', 'Amino_Acid_Change', 'Tumor_Sample_Barcode')
+datatable(mut_df[, mut_cols])
+```

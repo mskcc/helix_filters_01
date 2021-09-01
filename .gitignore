@@ -36,3 +36,4 @@ containers/R-3.5.1/bin
 containers/reporting/report/
 *.Rproj
 environment.txt
+containers/reporting/bin
