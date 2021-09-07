@@ -121,6 +121,48 @@ class TestFullOuterJoinScript(PlutoTestCase):
             ]
         self.assertEqual(lines, expected_lines)
 
+    def test_samples_list(self):
+        """
+        Test that we can filter out some columns based on a list of desired output sample labels
+        """
+        lines1 = [
+        ['Hugo_Symbol', 'Sample-1', 'Sample-2'],
+        ["TAP1", "0", "0"],
+        ["ERRFI1", "0", "0"],
+        ["STK19", "", "0"],
+        ]
+
+        lines2 = [
+        ['Hugo_Symbol', 'Sample-3', 'Sample-4'],
+        ["ERRFI1", "0", "0"],
+        ["STK19", "-2", "0"],
+        ["STK11", "0", ""],
+        ]
+
+        samples_list = [
+        ['Sample-1'],
+        ['Sample-3']
+        ]
+
+        cna_file1 = self.write_table(self.tmpdir, filename = "cna1.txt", lines = lines1)
+        cna_file2 = self.write_table(self.tmpdir, filename = "cna2.txt", lines = lines2)
+        samples_list = self.write_table(self.tmpdir, filename = "samples.txt", lines = samples_list)
+        output_file = os.path.join(self.tmpdir, "output.tsv")
+
+        command = [ test_script, cna_file1, '--t2', cna_file2, '--key', 'Hugo_Symbol', '-o', output_file, '--include-cols-file', samples_list ]
+        returncode, proc_stdout, proc_stderr = self.run_command(command, testcase = self, validate = True)
+
+        lines = self.read_table(output_file)
+
+        expected_lines = [
+            ['Hugo_Symbol', 'Sample-1', 'Sample-3'],
+            ['ERRFI1', '0', '0'],
+            ['STK19', 'NA', '-2'],
+            ['TAP1', '0', 'NA'],
+            ['STK11', 'NA', '0']
+            ]
+        self.assertEqual(lines, expected_lines)
+
 
 
 

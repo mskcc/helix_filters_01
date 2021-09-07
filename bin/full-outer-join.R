@@ -12,6 +12,8 @@ parser <- ArgumentParser()
 parser$add_argument("-2", "--t2", default=NULL, help="One or more tables to merge against Table 1", nargs = "+")
 parser$add_argument("-o", "--output_file", default="out.tsv", help="Output filename")
 parser$add_argument("-k", "--key", default=NULL, help="Merge column key", required = TRUE)
+parser$add_argument("--include-cols-file", default=NULL, dest = "include_cols_file", 
+                    help="File with list of columns to include in the output")
 parser$add_argument("t1", nargs=1, help="Table 1 file to be used for merge")
 args <- parser$parse_args()
 
@@ -19,6 +21,23 @@ t1_filename <- args$t1
 t2_filenames <- args$t2
 output_filename <- args$output_file
 join_colname <- args$key # join_colname <- c('Hugo_Symbol')
+include_cols_file <- args$include_cols_file
+
+# helper function to subset some columsn in the multi-table merge output
+subset_cols <- function(df, keep_cols){
+    old_cols <- colnames(df)
+    final_cols <- old_cols[old_cols %in% keep_cols]
+    df <- df[, final_cols, drop = FALSE]
+    return(df)
+}
+
+# load optional output column whitelist
+include_cols <- NULL
+if(!is.null(include_cols_file)){
+    include_cols <- readLines(include_cols_file)
+}
+# save.image()
+
 
 # check if a t2 table was passed; if so, do the merge, if not, copy the t1 to output filename
 # do it like this to make conditional execution in the pipeline easier
@@ -47,6 +66,9 @@ if(single_file_mode){
                                      sep = '\t', 
                                      na.strings = c('', '.', 'NA'), 
                                      check.names = FALSE)
+    if(!is.null(include_cols)){
+        table_list[["t1"]] <- subset_cols(df = table_list[["t1"]], c(join_colname, include_cols))
+    }
     col_names[["t1"]] <- colnames(table_list[["t1"]])[! colnames(table_list[["t1"]]) %in% join_colname]
     
     # load all other tables
@@ -58,6 +80,9 @@ if(single_file_mode){
                                           sep = '\t', 
                                           na.strings = c('', '.', 'NA'),
                                           check.names = FALSE)
+        if(!is.null(include_cols)){
+            table_list[[label]] <- subset_cols(df = table_list[[label]], c(join_colname, include_cols))
+        }
         col_names[[label]] <- colnames(table_list[[label]])[! colnames(table_list[[label]]) %in% join_colname]
     }
 

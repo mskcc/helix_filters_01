@@ -41,3 +41,7 @@ portal/
 report/portal
 *.html
 *.Rdata
+.Rhistory
+samples.txt
+out.tsv
+o.tsv
