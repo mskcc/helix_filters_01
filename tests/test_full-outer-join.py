@@ -20,14 +20,14 @@ test_script = os.path.join(BIN_DIR, 'full-outer-join.R')
 class TestFullOuterJoinScript(PlutoTestCase):
     def test_full_outer_join_two_files(self):
         lines1 = [
-        ['Hugo_Symbol', 'Sample1', 'Sample2'],
+        ['Hugo_Symbol', 'Sample-1', 'Sample-2'],
         ["TAP1", "0", "0"],
         ["ERRFI1", "0", "0"],
         ["STK19", "", "0"],
         ]
 
         lines2 = [
-        ['Hugo_Symbol', 'Sample3', 'Sample4'],
+        ['Hugo_Symbol', 'Sample-3', 'Sample-4'],
         ["ERRFI1", "0", "0"],
         ["STK19", "-2", "0"],
         ["STK11", "0", ""],
@@ -43,7 +43,7 @@ class TestFullOuterJoinScript(PlutoTestCase):
         lines = self.read_table(output_file)
 
         expected_lines = [
-            ['Hugo_Symbol', 'Sample1', 'Sample2', 'Sample3', 'Sample4'],
+            ['Hugo_Symbol', 'Sample-1', 'Sample-2', 'Sample-3', 'Sample-4'],
             ['ERRFI1', '0', '0', '0', '0'],
             ['STK19', 'NA', '0', '-2', '0'],
             ['TAP1', '0', '0', 'NA', 'NA'],

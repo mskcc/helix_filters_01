@@ -27,7 +27,11 @@ single_file_mode <- is.null(t2_filenames)
 if(single_file_mode){
     # parse table 1 and save it as output
     # NOTE: do not just copy the file because we need to have the R data frame handling for NA values, etc.
-    t1 <- read.delim(file =t1_filename, header = TRUE, sep = '\t', na.strings = c('', '.', 'NA'))
+    t1 <- read.delim(file =t1_filename, 
+                     header = TRUE, 
+                     sep = '\t', 
+                     na.strings = c('', '.', 'NA'), 
+                     check.names = FALSE)
     write.table(x = t1, file = output_filename, quote = FALSE, sep = '\t', row.names = FALSE, col.names = TRUE)
 
     } else {
@@ -38,14 +42,22 @@ if(single_file_mode){
     table_list <- list()
     
     # load t1
-    table_list[["t1"]] <- read.delim(file =t1_filename, header = TRUE, sep = '\t', na.strings = c('', '.', 'NA'))
+    table_list[["t1"]] <- read.delim(file =t1_filename, 
+                                     header = TRUE, 
+                                     sep = '\t', 
+                                     na.strings = c('', '.', 'NA'), 
+                                     check.names = FALSE)
     col_names[["t1"]] <- colnames(table_list[["t1"]])[! colnames(table_list[["t1"]]) %in% join_colname]
     
     # load all other tables
     for(i in seq(length(t2_filenames))){
         filename <- t2_filenames[[i]]
         label <- paste(c('t2_', i), collapse = '')
-        table_list[[label]] <- read.delim(file = filename, header = TRUE, sep = '\t', na.strings = c('', '.', 'NA'))
+        table_list[[label]] <- read.delim(file = filename, 
+                                          header = TRUE, 
+                                          sep = '\t', 
+                                          na.strings = c('', '.', 'NA'),
+                                          check.names = FALSE)
         col_names[[label]] <- colnames(table_list[[label]])[! colnames(table_list[[label]]) %in% join_colname]
     }
 
