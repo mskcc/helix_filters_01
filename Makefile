@@ -131,11 +131,17 @@ export FIXTURES_DIR:=/juno/work/ci/helix_filters_01/fixtures
 # Run the test suite
 # run tests in parallel on juno/silo HPC;
 # $ make test -j 4
-TESTS:=$(shell ls tests/test_*.py)
-$(TESTS):
-	module load singularity/3.3.0 && module load python/3.7.1 && module load cwl/cwltool && echo $@; python3 $@
+# NOTE: need to exlcude tests that run R code because they require different environment!
+# TODO: fix this ^^
+TEST_THREADS:=2
+TESTS:=$(shell find tests -type f -name "test*.py" ! -name test_compile-report.py ! -name test_full-outer-join.py)
 .PHONY: $(TESTS)
-test: $(TESTS)
+$(TESTS):
+	@module load singularity/3.3.0 && module load python/3.7.1 && module load cwl/cwltool && echo $@; python3 $@
+test:
+	@echo ">>> WARNING: Running only Python tests"
+	set -e
+	$(MAKE) $(TESTS) -j $(TEST_THREADS)
 
 # run the test suite inside a Singularity container on the HPC
 test-in-container-all:
