@@ -11,3 +11,4 @@ dependencies:
   - bcftools=1.9
   - dos2unix=7.4.1
   - vcf2maf=1.6.19
+  - bedtools=2.30.0
