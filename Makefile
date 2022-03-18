@@ -163,6 +163,9 @@ TEST:=
 test-in-docker:
 	docker run --rm --workdir "$$PWD" -v "$$PWD:$$PWD" "$(DOCKER_TAG)" python3 "$(TEST)"
 
+test-local:
+	for i in $(TESTS); do echo "$${i}";  python3 "$${i}"; done
+
 # # for some reason the test recipe is not running all tests....
 # test2:
 # 	module load singularity/3.3.0 && \
