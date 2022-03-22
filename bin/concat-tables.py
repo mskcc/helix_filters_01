@@ -148,7 +148,7 @@ def get_files_from_dir(input_dirs):
     files = []
     for input_dir in input_dirs:
         for dirpath, dirnames, filenames in os.walk(input_dir):
-            for filename in filenames:
+            for filename in sorted(filenames):
                 path = os.path.join(dirpath, filename)
                 files.append(path)
     return(files)
