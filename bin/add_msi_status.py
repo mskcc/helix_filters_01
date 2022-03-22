@@ -4,6 +4,10 @@
 Basic use case; write a column with msi status to a table
 Usage:
 python3 bin/add_msi_status.py -i input_file.tsv -o output_file.tsv --header my_header
+
+-----
+NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
+-----
 """
 import os,sys,csv,argparse
 from cBioPortal_utils import MafReader

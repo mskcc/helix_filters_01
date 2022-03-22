@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+"""
+-----
+NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
+-----
+"""
 # copied from /juno/work/ci/roslin-pipelines/variant/2.5.7/bin/scripts/fusion_filter.py
 import sys, os, csv, re
 

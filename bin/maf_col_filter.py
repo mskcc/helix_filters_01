@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Script for dropping specific columns from a given maf file
+
+NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !!
 """
 import sys
 import csv

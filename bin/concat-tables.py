@@ -13,6 +13,12 @@ Example usage::
 
     ./concat-tables.py -o concat.tsv NC-HAPMAP.HaplotypeCaller.annotations.tsv NC-HAPMAP.LoFreq.annotations.tsv
 
+
+
+-----
+NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
+-----
+
 """
 import os
 import csv

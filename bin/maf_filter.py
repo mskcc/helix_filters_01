@@ -5,6 +5,10 @@ Script for filtering maf data for use with analysis and cBioPortal
 
 derived from:
 https://github.com/mskcc/roslin-variant/blob/2d0f7f7b78b89bb31f5bf8b8eb678fd41998213b/setup/bin/maf_filter.py
+
+-----
+NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
+-----
 """
 import sys
 import os

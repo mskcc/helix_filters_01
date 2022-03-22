@@ -5,6 +5,10 @@ Script to add column for t_af tumor variant allele frequency to the maf file
 To calculate vaf, we can use the same columns we give to the portal, which should be t_depth and t_alt_count
 
 tumor_AF = t_alt_count / t_depth
+
+-----
+NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
+-----
 """
 import sys
 import csv

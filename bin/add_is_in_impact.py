@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+-----
+NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
+-----
+"""
 import argparse,csv
 from cBioPortal_utils import MafReader
 

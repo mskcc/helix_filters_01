@@ -43,6 +43,13 @@ t_FL_DP, t_FL_RD, t_FL_AD
 make sure NaN values are set to 0 as well
 
 add a col is_fillout to label if a row was from fillout or not
+
+
+-----
+NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
+-----
+
+
 """
 import sys
 import csv
@@ -57,7 +64,7 @@ with open(input_file) as fin, open(output_file, "w") as fout:
     # skip first line
     # TODO: handle comment lines better
     next(fin)
-    
+
     reader = csv.DictReader(fin, delimiter = '\t')
     old_fieldnames = reader.fieldnames
 

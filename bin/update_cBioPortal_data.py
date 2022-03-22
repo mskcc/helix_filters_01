@@ -84,6 +84,12 @@ $ update_cBioPortal_data.py sample --input output/portal/data_clinical_sample.tx
 
 $ bin/update_cBioPortal_data.py mutations --input data_mutations.cc.maf --facets-txt facets-data.txt --output bar.txt
 
+
+
+-----
+NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
+-----
+
 """
 import csv
 import sys

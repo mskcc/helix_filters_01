@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 Utility functions for cBioPortal file and data handling
+
+-----
+NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
+-----
 """
 import csv
 from collections import OrderedDict
