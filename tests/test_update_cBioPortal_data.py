@@ -7,12 +7,15 @@ import sys
 import os
 import unittest
 
+
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(THIS_DIR)
 sys.path.insert(0, PARENT_DIR)
 from pluto.tools import PlutoTestCase
 from settings import BIN_DIR
 from bin.update_cBioPortal_data import update_mutation_data
+from bin.cBioPortal_utils import MafReader
+from bin.cBioPortal_utils import MafWriter
 sys.path.pop(0)
 
 portal_script = os.path.join(BIN_DIR, 'update_cBioPortal_data.py')
@@ -371,6 +374,77 @@ class TestUpdateCBioMaf(PlutoTestCase):
             }
         ]
         self.assertEqual(mutations, expected_mutations)
+
+
+
+
+
+    def test_maf_to_portal_1(self):
+        """
+        Test conversion of maf file to cBioPortal compatible input format
+        """
+        self.maxDiff = None
+
+        # make a dummy maf file
+        maf_rows = [ self.maf_row1, self.maf_row2, self.maf_row3 ]
+        maf_lines = self.dicts2lines(dict_list = maf_rows, comment_list = self.demo_comments)
+        input_maf_file = self.write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
+
+        output_file = os.path.join(self.tmpdir, "output.portal.maf")
+
+        command = [ portal_script, 'maf2portal', '--input', input_maf_file, '--output', output_file ]
+
+        returncode, proc_stdout, proc_stderr = self.run_command(command, validate = True, testcase = self)
+
+        reader = MafReader(output_file)
+        comments = reader.comments
+        fieldnames = reader.get_fieldnames()
+        mutations = [ row for row in reader.read() ]
+
+        expected_comments = []
+        # NOTE: These fieldnames are truncated here for demonstration
+        expected_fieldnames = [
+            'Hugo_Symbol',
+            'Entrez_Gene_Id',
+            'Chromosome',
+            'Start_Position',
+            'End_Position',
+            'Tumor_Sample_Barcode',
+            'Matched_Norm_Sample_Barcode']
+        expected_mutations = [
+           {
+               'Hugo_Symbol': 'FGF3',
+                'Entrez_Gene_Id': '2248',
+                'Chromosome': '11',
+                'Start_Position': '69625447',
+                'End_Position': '69625448',
+                'Tumor_Sample_Barcode': 'Sample1-T',
+                'Matched_Norm_Sample_Barcode': 'Sample1-N'
+            },
+            {
+                'Hugo_Symbol': 'PNISR',
+                'Entrez_Gene_Id': '25957',
+                'Chromosome': '6',
+                'Start_Position': '99865784',
+                'End_Position': '99865785',
+                'Tumor_Sample_Barcode': 'Sample1-T',
+                'Matched_Norm_Sample_Barcode': 'Sample1-N'
+            },
+            {
+                'Hugo_Symbol': 'PNISR',
+                'Entrez_Gene_Id': '25957',
+                'Chromosome': '6',
+                'Start_Position': '99865788',
+                'End_Position': '99865789',
+                'Tumor_Sample_Barcode': 'Sample1-T',
+                'Matched_Norm_Sample_Barcode': 'Sample1-N'
+            }
+       ]
+
+        self.assertEqual(comments, expected_comments)
+        self.assertEqual(fieldnames, expected_fieldnames)
+        self.assertEqual(mutations, expected_mutations)
+
 
 if __name__ == "__main__":
     unittest.main()

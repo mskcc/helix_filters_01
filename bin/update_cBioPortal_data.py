@@ -97,6 +97,7 @@ if __name__ != "__main__":
     from .cBioPortal_utils import facets_data_keep_cols_map
     from .cBioPortal_utils import parse_facets_data
     from .cBioPortal_utils import MafReader
+    from .cBioPortal_utils import MafWriter
 
 if __name__ == "__main__":
     from cBioPortal_utils import create_file_lines
@@ -105,6 +106,7 @@ if __name__ == "__main__":
     from cBioPortal_utils import facets_data_keep_cols_map
     from cBioPortal_utils import parse_facets_data
     from cBioPortal_utils import MafReader
+    from cBioPortal_utils import MafWriter
 
 # # remove these columns from data_clinical_sample.txt data while updating it with Facets Suite data
 # sample_data_remove_cols = ["purity", "ploidy", "facets_version"]
@@ -372,9 +374,41 @@ def merge_maf_files(**kwargs):
                 mut["ASCN.CLONAL"] = '.'
             writer.writerow(mut)
 
+def convert_maf_to_cBioPortal(**kwargs) -> None:
+    """
+    Convert an input maf file into format compatible for cBioPortal
+    """
+    input_file = kwargs.pop('input_file')
+    output_file = kwargs.pop('output_file')
+
+    reader = MafReader(input_file)
+    comments = reader.comments
+    fieldnames = reader.get_fieldnames()
+
+    with open(output_file, "w") as fout:
+        writer = MafWriter(
+            fout = fout,
+            fieldnames = fieldnames,
+            comments = comments,
+            format = "portal")
+        for row in reader.read():
+            writer.writerow(row)
+
+
+
 def main():
     """
     Parse command line arguments to run the script
+
+
+    TODO: figure out why it gives this error when run without arguments;
+    $ bin/update_cBioPortal_data.py
+    Traceback (most recent call last):
+      File "bin/update_cBioPortal_data.py", line 432, in <module>
+        main()
+      File "bin/update_cBioPortal_data.py", line 429, in main
+        args.func(**vars(args))
+    AttributeError: 'Namespace' object has no attribute 'func'
     """
     # top level CLI arg parser; args common to all output files go here
     parser = argparse.ArgumentParser(description = 'Update mutation file with extra columns for cBioPortal')
@@ -400,6 +434,12 @@ def main():
     merge_mafs.add_argument('--output', dest = 'output_file', required = True, help = 'Name of the output file')
     merge_mafs.add_argument('--facets-maf', dest = 'facets_maf_file', required = True, help = 'The .maf output from Facets Suite')
     merge_mafs.set_defaults(func = merge_maf_files)
+
+
+    maf2portal = subparsers.add_parser('maf2portal', help = 'Convert a maf file to cBioPortal compatible format')
+    maf2portal.add_argument('--input', dest = 'input_file', required = True, help = 'Name of the input file (data_mutations_extended.txt)')
+    maf2portal.add_argument('--output', dest = 'output_file', required = True, help = 'Name of the output file')
+    maf2portal.set_defaults(func = convert_maf_to_cBioPortal)
 
     args = parser.parse_args()
     args.func(**vars(args))
