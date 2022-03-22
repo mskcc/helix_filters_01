@@ -5,6 +5,7 @@ Utility functions for cBioPortal file and data handling
 """
 import csv
 from collections import OrderedDict
+from typing import TextIO, List, Dict
 
 # keep only these columns, and rename them to the listed values
 facets_data_keep_cols_map = { # old:new
@@ -518,6 +519,117 @@ class MafReader(TableReader):
     """
     def __init__(self, filename, comment_char = '#', delimiter = '\t'):
         super().__init__(filename, comment_char, delimiter)
+
+class MafWriter(object):
+    """
+    Class for writing out a .maf format file
+
+    Use this class for applying formatting to mutations and writing them to maf file
+    in order to save them to a maf file with specific compatibility requirements
+
+    Use Cases:
+    - convert list of mutations to cBioPortal input compatible format
+
+    NOTE: the following scripts / modules have maf formatting logic that needs to be migrated here!
+    bin/update_fillout_maf.py
+    bin/maf_filter.py
+    bin/update_cBioPortal_data.py
+    bin/add_af.py
+    bin/add_msi_status.py
+    bin/maf_col_filter.py
+    bin/merge-tables.py
+    bin/concat-tables.py
+
+    https://docs.python.org/3/library/csv.html#csv.DictWriter
+
+
+    Examples:
+
+        reader = MafReader(input_file)
+        comments = reader.comments
+        fieldnames = reader.get_fieldnames()
+
+        with open(output_file, "w") as fout:
+            writer = MafWriter(
+                fout = fout,
+                fieldnames = fieldnames,
+                comments = comments,
+                format = "portal")
+            for row in reader.read():
+                writer.writerow(row)
+
+    """
+    def __init__(self,
+            fout: TextIO, # an open text-based file handle
+            fieldnames: List[str], # list of column headers; will get reformatted based on "format" provided
+            comments: List[str] = None, # a list of comment strings to write out in the file header; needs \n appended!
+            comments_lines: List[str] = None, # a list of comment lines (with newlines) ready to be printed into the file
+            delimiter: str = '\t',
+            extrasaction: str = 'ignore', # do not include any fields not in fieldnames; otherwise, 'raise' error if other fields exist
+            lineterminator: str = '\n', # avoid issues with carriage returns
+            format: str = None, # custom fieldname and output formatter for various compatibility requirements
+            ) -> None: # -> csv.DictWriter
+
+        self.fieldnames = fieldnames
+        self.comments = comments
+        self.comments_lines = comments_lines
+        self.format = format
+        self.delimiter = delimiter
+        self.extrasaction = extrasaction
+        self.lineterminator = lineterminator
+
+        # default to empty lists; fill these in based on the format used!
+        self.formatted_fieldnames = []
+        self.formatted_comments = []
+
+        # check if formatting needs to be applied to fieldnames
+        if format == 'portal':
+            # set fieldnames and comment lines for portal output
+            self.formatted_fieldnames = self.format_portal_fieldnames(fieldnames)
+            self.formatted_comments = []
+        else:
+            # set fieldnames and comment lines for generic maf output
+            self.formatted_fieldnames = fieldnames
+            if comments_lines:
+                self.formatted_comments = comments_lines
+            elif comments:
+                self.formatted_comments = [ c + '\n' for c in comments ]
+            else:
+                self.formatted_comments = []
+
+        # write comments if present
+        fout.writelines(self.formatted_comments)
+        # initialize writer
+        self.writer = csv.DictWriter(fout,
+            delimiter = self.delimiter,
+            fieldnames = self.formatted_fieldnames,
+            lineterminator = self.lineterminator,
+            extrasaction = self.extrasaction)
+
+        # write the header
+        self.writer.writeheader()
+
+    def writerow(self, row: Dict, *args, **kwargs) -> None:
+        """
+        Write out a single row
+        """
+        self.writer.writerow(row, *args, **kwargs)
+
+    @staticmethod
+    def format_portal_fieldnames(fieldnames: List) -> List:
+        """
+        Reformat the maf columns for compatibility with cBioPortal input
+        """
+        # make a copy of the initial fieldnames
+        portal_fieldnames = [ f for f in fieldnames ]
+        # rename HGVSp_Short to Amino_Acid_Change
+        if 'HGVSp_Short' in portal_fieldnames:
+            portal_fieldnames[portal_fieldnames.index('HGVSp_Short')] = 'Amino_Acid_Change'
+        # remove any extraneous fieldnames
+        portal_fieldnames = [ f for f in portal_fieldnames if f in maf_filter_portal_file_cols_to_keep ]
+        return(portal_fieldnames)
+
+
 
 def is_TERT_promoter(mut,
     gene_key = 'Hugo_Symbol',

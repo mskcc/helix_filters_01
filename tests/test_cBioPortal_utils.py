@@ -7,20 +7,25 @@ import sys
 import os
 import unittest
 
+from fixtures_mutations import good_row_FGF3, bad_row_AF
+
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(THIS_DIR)
 sys.path.insert(0, PARENT_DIR)
 from pluto.tools import PlutoTestCase
 from pluto.settings import DATA_SETS
 from settings import BIN_DIR
-from bin.cBioPortal_utils import create_file_lines
-from bin.cBioPortal_utils import generate_header_lines
-from bin.cBioPortal_utils import update_sample_data
-from bin.cBioPortal_utils import parse_facets_data
-from bin.cBioPortal_utils import parse_header_comments
-from bin.cBioPortal_utils import load_facets_data
-from bin.cBioPortal_utils import MafReader
-from bin.cBioPortal_utils import is_TERT_promoter
+from bin.cBioPortal_utils import (
+create_file_lines,
+generate_header_lines,
+update_sample_data,
+parse_facets_data,
+parse_header_comments,
+load_facets_data,
+MafReader,
+MafWriter,
+is_TERT_promoter
+)
 sys.path.pop(0)
 
 class TestCBioUtils(PlutoTestCase):
@@ -571,6 +576,33 @@ class TestMafReader(PlutoTestCase):
         self.assertFalse(is_TERT_promoter({'Hugo_Symbol': 'TERT', 'Start_Position': 1295140}))
         self.assertTrue(is_TERT_promoter({'Hugo_Symbol': 'TERT', 'Start_Position': 1295340}))
         self.assertFalse(is_TERT_promoter({'Hugo_Symbol': 'TERT', 'Start_Position': 1295341}))
+
+class TestMafWriter(PlutoTestCase):
+    def test_maf_writer1(self):
+        self.maxDiff = None
+        demo_comments = [
+        '# comment 1',
+        '# comment 2'
+        ]
+        output_maf = os.path.join(self.tmpdir, "1.maf")
+        maf_rows = [good_row_FGF3, bad_row_AF]
+
+        with open(output_maf, "w") as fout:
+            writer = MafWriter(
+                fout = fout,
+                fieldnames = good_row_FGF3.keys(),
+                comments = demo_comments)
+            for row in maf_rows:
+                writer.writerow(row)
+
+        comments, mutations = self.load_mutations(output_maf)
+        expected_comments = ['# comment 1', '# comment 2']
+        self.assertEqual(comments, expected_comments)
+        expected_mutations = [
+        {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'HGVSp_Short': 'p.E116K', 't_depth': '109', 't_alt_count': '16', 'Consequence': 'missense_variant', 'FILTER': 'PASS', 'ExAC_FILTER': 'PASS', 'set': 'MuTect', 'fillout_t_depth': '122', 'fillout_t_alt': '28', 'hotspot_whitelist': 'FALSE'},
+        {'Hugo_Symbol': 'FGF3', 'Entrez_Gene_Id': '2248', 'Chromosome': '11', 'Start_Position': '69625447', 'Variant_Type': 'SNP', 'Reference_Allele': 'C', 'Tumor_Seq_Allele2': 'T', 'Mutation_Status': '', 'HGVSc': 'c.346G>A', 'HGVSp_Short': 'p.E116K', 't_depth': '0', 't_alt_count': '0', 'Consequence': 'frameshift_variant', 'FILTER': 'PASS', 'ExAC_FILTER': 'PASS', 'set': 'MuTect', 'fillout_t_depth': '919', 'fillout_t_alt': '37', 'hotspot_whitelist': 'FALSE'}
+        ]
+        self.assertEqual(mutations, expected_mutations)
 
 
 
