@@ -12,3 +12,6 @@ dependencies:
   - dos2unix=7.4.1
   - vcf2maf=1.6.19
   - bedtools=2.30.0
+  # try this to fix error with samtools; samtools: error while loading shared libraries: libcrypto.so.1.0.0: cannot open shared object file: No such file or directory
+  # https://github.com/PacificBiosciences/pbbioconda/issues/85
+  - openssl=1.0

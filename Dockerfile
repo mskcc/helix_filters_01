@@ -42,6 +42,12 @@ RUN conda env update -n base --file /environment-base.yml
 # RUN conda env update -n r --file /environment-r.yml
 # NOTE: don't use this due to issue using conda run from Singularity ; https://github.com/conda/conda/issues/10888
 
+# test to make sure it works
+RUN samtools --version
+RUN bedtools --version
+RUN vcf2maf.pl --help
+RUN bedops --version
+
 # add helix_filters files
 RUN mkdir -p /usr/scripts
 ENV PATH=/usr/scripts:$PATH
