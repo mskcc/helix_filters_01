@@ -520,7 +520,7 @@ class TableReader(object):
     fieldnames = table_reader.get_fieldnames()
     records = [ rec for rec in table_reader.read() ]
     """
-    def __init__(self, filename, comment_char = '#', delimiter = '\t'):
+    def __init__(self, filename: str, comment_char: str = '#', delimiter: str = '\t') -> None:
         self.filename = filename
         self.comment_char = comment_char
         self.delimiter = delimiter
@@ -570,7 +570,7 @@ class MafReader(TableReader):
     """
     Rename this as a subclass for compatibility; a version of TableReader just for parsing the variants in a maf
     """
-    def __init__(self, filename, comment_char = '#', delimiter = '\t'):
+    def __init__(self, filename: str, comment_char: str = '#', delimiter: str = '\t') -> None:
         super().__init__(filename, comment_char, delimiter)
 
 class MafWriter(object):
@@ -669,7 +669,7 @@ class MafWriter(object):
         self.writer.writerow(row, *args, **kwargs)
 
     @staticmethod
-    def format_portal_fieldnames(fieldnames: List) -> List:
+    def format_portal_fieldnames(fieldnames: List[str]) -> List[str]:
         """
         Reformat the maf columns for compatibility with cBioPortal input
         """
