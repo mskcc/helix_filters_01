@@ -473,6 +473,33 @@ def parse_header_comments(filename: str, comment_char: str = '#') -> Tuple[List[
     return(comments, start_line)
 
 
+
+def is_TERT_promoter(
+    mut: Dict,
+    gene_key: str = 'Hugo_Symbol',
+    start_key: str = 'Start_Position',
+    start_ge: int = 1295141, # start pos must be greater than or equal to this
+    start_le: int = 1295340 # start pos must be less than or equal to this
+    ) -> bool:
+    """
+    Checks if a variant is in the TERT promoter;
+
+    is_TERT = row['Hugo_Symbol'] == 'TERT'
+    pass_TERT_start = int(row['Start_Position']) >= 1295141
+    pass_TERT_end = int(row['Start_Position']) <= 1295340
+    pass_consequence_or_is_TERT = (pass_consequence_match or (is_TERT and pass_TERT_start and pass_TERT_end))
+
+    NOTE:
+    These coordinates are only for B37 genome build
+
+    """
+    is_TERT = mut[gene_key] == 'TERT'
+    pass_TERT_start = int(mut[start_key]) >= start_ge
+    pass_TERT_end = int(mut[start_key]) <= start_le
+    mut_is_TERT_promoter = is_TERT and pass_TERT_start and pass_TERT_end
+    return(mut_is_TERT_promoter)
+
+
 #
 # CLASSES
 #
@@ -654,30 +681,3 @@ class MafWriter(object):
         # remove any extraneous fieldnames
         portal_fieldnames = [ f for f in portal_fieldnames if f in maf_filter_portal_file_cols_to_keep ]
         return(portal_fieldnames)
-
-
-
-def is_TERT_promoter(
-    mut: Dict,
-    gene_key: str = 'Hugo_Symbol',
-    start_key: str = 'Start_Position',
-    start_ge: int = 1295141, # start pos must be greater than or equal to this
-    start_le: int = 1295340 # start pos must be less than or equal to this
-    ) -> bool:
-    """
-    Checks if a variant is in the TERT promoter;
-
-    is_TERT = row['Hugo_Symbol'] == 'TERT'
-    pass_TERT_start = int(row['Start_Position']) >= 1295141
-    pass_TERT_end = int(row['Start_Position']) <= 1295340
-    pass_consequence_or_is_TERT = (pass_consequence_match or (is_TERT and pass_TERT_start and pass_TERT_end))
-
-    NOTE:
-    These coordinates are only for B37 genome build
-
-    """
-    is_TERT = mut[gene_key] == 'TERT'
-    pass_TERT_start = int(mut[start_key]) >= start_ge
-    pass_TERT_end = int(mut[start_key]) <= start_le
-    mut_is_TERT_promoter = is_TERT and pass_TERT_start and pass_TERT_end
-    return(mut_is_TERT_promoter)
