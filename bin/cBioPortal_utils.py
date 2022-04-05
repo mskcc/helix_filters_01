@@ -9,7 +9,12 @@ NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD 
 """
 import csv
 from collections import OrderedDict
-from typing import TextIO, List, Dict
+from typing import TextIO, List, Dict, Tuple
+
+
+#
+# CONSTANTS & GLOBALS
+#
 
 # keep only these columns, and rename them to the listed values
 facets_data_keep_cols_map = { # old:new
@@ -257,7 +262,15 @@ maf_filter_portal_file_cols_to_keep = [
 "ASCN.CLONAL" #  comes from the same facets file as ASCN.TOTAL_COPY_NUMBER https://github.com/mskcc/pluto-cwl/issues/22
 ]
 
-def generate_header_lines(keys, delimiter = '\t', header_lines_map = header_lines_map):
+
+#
+# FUNCTIONS
+#
+
+def generate_header_lines(
+        keys: List[str],
+        delimiter: str = '\t',
+        header_lines_map: Dict = header_lines_map) -> List[str]:
     """
     Generate the extra header lines needed for the cBio Portal files
     https://github.com/cBioPortal/cbioportal/blob/master/docs/File-Formats.md#example-sample-data-file
@@ -300,7 +313,10 @@ def generate_header_lines(keys, delimiter = '\t', header_lines_map = header_line
         lines.append(line.rstrip(delimiter) + '\n')
     return(lines)
 
-def create_file_lines(clinical_data, delimiter = '\t', na_str = 'NA'):
+def create_file_lines(
+        clinical_data: List[Dict],
+        delimiter: str = '\t',
+        na_str: str = 'NA') -> List[str]:
     """
     Create the lines in the file based on the provided clinical data
     First gets the header lines for the file, then generates each remaining line in the file
@@ -349,7 +365,7 @@ def create_file_lines(clinical_data, delimiter = '\t', na_str = 'NA'):
     return(lines)
 
 
-def update_sample_data(sample_data, facets_data):
+def update_sample_data(sample_data: Dict, facets_data: Dict) -> Dict:
     """
     Add entries to the sample data based on values from the facets data
 
@@ -383,7 +399,7 @@ def update_sample_data(sample_data, facets_data):
             d.pop(key)
     return(d)
 
-def parse_facets_data(rows):
+def parse_facets_data(rows: List[Dict]) -> Dict:
     """
     Need to dig through the data output by Facets Suite .txt files in order to return a dict of per sample info
     that has only the desired info from "hisens" rows
@@ -417,7 +433,7 @@ def parse_facets_data(rows):
             data[sample_id] = d
     return(data)
 
-def load_facets_data(files):
+def load_facets_data(files: List[str]) -> Dict:
     """
     Load the data from all Facets Suite .txt files in the files list
     """
@@ -434,7 +450,7 @@ def load_facets_data(files):
         all_data = {**all_data, **parsed_facets_data}
     return(all_data)
 
-def parse_header_comments(filename, comment_char = '#'):
+def parse_header_comments(filename: str, comment_char: str = '#') -> Tuple[List[str], int]:
     """
     Parse a file with comments in its header to return the comments and the line number to start reader from
 
@@ -455,6 +471,12 @@ def parse_header_comments(filename, comment_char = '#'):
                 comments.append(line.strip())
                 start_line += 1
     return(comments, start_line)
+
+
+#
+# CLASSES
+#
+
 
 class TableReader(object):
     """
@@ -635,12 +657,13 @@ class MafWriter(object):
 
 
 
-def is_TERT_promoter(mut,
-    gene_key = 'Hugo_Symbol',
-    start_key = 'Start_Position',
-    start_ge = 1295141, # start pos must be greater than or equal to this
-    start_le = 1295340 # start pos must be less than or equal to this
-    ):
+def is_TERT_promoter(
+    mut: Dict,
+    gene_key: str = 'Hugo_Symbol',
+    start_key: str = 'Start_Position',
+    start_ge: int = 1295141, # start pos must be greater than or equal to this
+    start_le: int = 1295340 # start pos must be less than or equal to this
+    ) -> bool:
     """
     Checks if a variant is in the TERT promoter;
 
