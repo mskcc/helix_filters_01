@@ -6,6 +6,11 @@ Utility functions for cBioPortal file and data handling
 -----
 NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
 -----
+NOTE: see also
+pluto.tools.TableReader
+pluto.tools.MafWriter
+https://github.com/mskcc/pluto/blob/e10fd75b9f384b8d13ff84f6c955e08b2c354b4f/tools.py#L687
+-----
 """
 import csv
 from collections import OrderedDict
@@ -519,6 +524,13 @@ class TableReader(object):
     comment_lines = table_reader.comment_lines
     fieldnames = table_reader.get_fieldnames()
     records = [ rec for rec in table_reader.read() ]
+
+
+    NOTE: see also
+    pluto.tools.TableReader
+    pluto.tools.MafWriter
+    https://github.com/mskcc/pluto/blob/e10fd75b9f384b8d13ff84f6c955e08b2c354b4f/tools.py#L687
+
     """
     def __init__(self, filename: str, comment_char: str = '#', delimiter: str = '\t') -> None:
         self.filename = filename
@@ -595,6 +607,10 @@ class MafWriter(object):
 
     https://docs.python.org/3/library/csv.html#csv.DictWriter
 
+    NOTE: see also
+    pluto.tools.TableReader
+    pluto.tools.MafWriter
+    https://github.com/mskcc/pluto/blob/e10fd75b9f384b8d13ff84f6c955e08b2c354b4f/tools.py#L687
 
     Examples:
 
