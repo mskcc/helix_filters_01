@@ -27,3 +27,6 @@ GIT_TAG:=$(shell git describe --tags --abbrev=0)
 DOCKER_TAG:=mskcc/$(GIT_NAME):$(GIT_TAG)
 docker-build:
 	docker build --no-cache -t "$(DOCKER_TAG)" .
+
+docker-push:
+	docker push "$(DOCKER_TAG)"
