@@ -1,0 +1,6 @@
+# comment1
+# comment2
+SampleID	Foo	Bar	Baz	RefCount	AltCount
+Sample1	a	b	c	30	100
+Sample2	x	y	z	25	250
+Sample3	zz	yy	bb	375	0
