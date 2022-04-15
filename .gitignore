@@ -46,3 +46,4 @@ samples.txt
 out.tsv
 o.tsv
 tmp/
+go/*/bin
