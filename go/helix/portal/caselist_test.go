@@ -145,6 +145,26 @@ func TestCaseList(t *testing.T) {
         }
     })
 
+    t.Run("Test do not store empty string sample id's", func(t *testing.T) {
+        ids := []string{"Sample1", "Sample2", ""}
+        typ := CaseListTypeAll
+
+        got := NewCaseList("pi_123", ids, typ)
+
+        want := CaseList{
+            StudyIdentifier: "pi_123",
+            Category: "all_cases_in_study",
+            StableId: "pi_123_all",
+            Name: "All Tumors",
+            Description: "All tumor samples",
+            Ids: []string{"Sample1", "Sample2"},
+        }
+
+        if !cmp.Equal(got, want) {
+            t.Errorf("got %q is not the same as %q", got, want)
+        }
+    })
+
     t.Run("Test convert id's to a string field for output", func(t *testing.T) {
         ids := []string{"Sample1", "Sample2"}
         typ := CaseListTypeAll

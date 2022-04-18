@@ -44,13 +44,19 @@ type CaseList struct {
 func (c *CaseList) AddIds(ids []string) () {
     new_ids := []string{}
     for _, v := range c.Ids {
-        if ! stringInSlice(v, new_ids) {
-            new_ids = append(new_ids, v)
+        // skip empty strings
+        if len(strings.TrimSpace(v)) > 0 {
+            if ! stringInSlice(v, new_ids) {
+                new_ids = append(new_ids, v)
+            }
         }
     }
     for _, v := range ids {
-        if ! stringInSlice(v, new_ids) {
-            new_ids = append(new_ids, v)
+        if len(strings.TrimSpace(v)) > 0 {
+            // skip empty strings
+            if ! stringInSlice(v, new_ids) {
+                new_ids = append(new_ids, v)
+            }
         }
     }
     c.Ids = new_ids
