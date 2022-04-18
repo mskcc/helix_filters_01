@@ -47,3 +47,4 @@ out.tsv
 o.tsv
 tmp/
 go/*/bin
+conda

@@ -30,3 +30,5 @@ facets-pairs.txt
 analyst.txt
 portal.txt
 containers
+.gitignore
+*/conda/*
