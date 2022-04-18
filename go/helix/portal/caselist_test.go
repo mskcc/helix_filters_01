@@ -105,6 +105,46 @@ func TestCaseList(t *testing.T) {
         }
     })
 
+    t.Run("Test do not add duplicate id's to the Caselist", func(t *testing.T) {
+        ids := []string{"Sample1", "Sample2", "Sample3"}
+        typ := CaseListTypeAll
+
+        got := NewCaseList("pi_123", ids, typ)
+        got.AddIds([]string{"Sample3", "Sample4", "Sample1", "Sample5"})
+
+        want := CaseList{
+            StudyIdentifier: "pi_123",
+            Category: "all_cases_in_study",
+            StableId: "pi_123_all",
+            Name: "All Tumors",
+            Description: "All tumor samples",
+            Ids: []string{"Sample1", "Sample2", "Sample3", "Sample4", "Sample5"},
+        }
+
+        if !cmp.Equal(got, want) {
+            t.Errorf("got %q is not the same as %q", got, want)
+        }
+    })
+
+    t.Run("Test CaseList initialization only stores unique id's", func(t *testing.T) {
+        ids := []string{"Sample1", "Sample2", "Sample2", "Sample3", "Sample3", "Sample4"}
+        typ := CaseListTypeAll
+
+        got := NewCaseList("pi_123", ids, typ)
+        want := CaseList{
+            StudyIdentifier: "pi_123",
+            Category: "all_cases_in_study",
+            StableId: "pi_123_all",
+            Name: "All Tumors",
+            Description: "All tumor samples",
+            Ids: []string{"Sample1", "Sample2", "Sample3", "Sample4"},
+        }
+
+        if !cmp.Equal(got, want) {
+            t.Errorf("got %q is not the same as %q", got, want)
+        }
+    })
+
     t.Run("Test convert id's to a string field for output", func(t *testing.T) {
         ids := []string{"Sample1", "Sample2"}
         typ := CaseListTypeAll

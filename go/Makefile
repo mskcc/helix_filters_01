@@ -2,6 +2,11 @@ SHELL:=/bin/bash
 .ONESHELL:
 UNAME:=$(shell uname)
 
+# NOTE: need to upgrade the conda version to Go 1.18 ; not in conda at the moment
+# https://go.dev/blog/go1.18
+# https://go.dev/dl/go1.18.1.darwin-amd64.pkg
+# https://go.dev/dl/go1.18.1.linux-amd64.tar.gz
+# NOTE: ^^^ this requires macOS >12 ;  https://github.com/golang/go/issues/50855
 
 # CONDA INSTALL METHOD TO USE ON DEV/PROD SERVERS
 # ~~~~~ Install Dependencies ~~~~~ #

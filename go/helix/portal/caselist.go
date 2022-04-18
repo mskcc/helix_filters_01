@@ -35,14 +35,23 @@ type CaseList struct {
     Ids []string // case_list_ids ids
 }
 
-// add more id's to the current CaseList entry
+// add id's to the current CaseList entry
+// TODO: this should be more efficient
+// try maintaining a map with ordering information instead of just a list
+// https://stackoverflow.com/questions/33207197/how-can-i-create-an-array-that-contains-unique-strings
+// https://stackoverflow.com/questions/34018908/golang-why-dont-we-have-a-set-datastructure
+// https://stackoverflow.com/questions/18695346/how-can-i-sort-a-mapstringint-by-its-values
 func (c *CaseList) AddIds(ids []string) () {
     new_ids := []string{}
     for _, v := range c.Ids {
-        new_ids = append(new_ids, v)
+        if ! stringInSlice(v, new_ids) {
+            new_ids = append(new_ids, v)
+        }
     }
     for _, v := range ids {
-        new_ids = append(new_ids, v)
+        if ! stringInSlice(v, new_ids) {
+            new_ids = append(new_ids, v)
+        }
     }
     c.Ids = new_ids
 }
@@ -119,8 +128,9 @@ func NewCaseList(studyIdentifier string, ids []string, typ CaseListType) CaseLis
         StableId: stableID,
         Name: name,
         Description: description,
-        Ids: ids,
+        Ids: []string{},
     }
+    caseList.AddIds(ids)
     return caseList
 }
 
@@ -196,4 +206,16 @@ func LoadCaseList(file io.Reader) CaseList {
     c := NewCaseListFromMap(m)
 
     return c
+}
+
+// function for checking if a string is in a slice
+// because we cannot use slices.Contains because we cannot use Go 1.18 because macOS is old
+// https://stackoverflow.com/questions/15323767/does-go-have-if-x-in-construct-similar-to-python
+func stringInSlice(a string, list []string) bool {
+    for _, b := range list {
+        if b == a {
+            return true
+        }
+    }
+    return false
 }
