@@ -2,6 +2,8 @@ SHELL:=/bin/bash
 .ONESHELL:
 UNAME:=$(shell uname)
 
+# SETUP DEVELOPMENT ENVIRONMENT FROM HERE: https://github.com/stevekm/go-env
+
 # project setup:
 # $ go mod init helix
 # $ go get github.com/google/go-cmp
