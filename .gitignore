@@ -46,3 +46,4 @@ o.tsv
 tmp/
 go/*/bin
 conda
+helix/bin/
