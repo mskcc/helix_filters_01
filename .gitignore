@@ -37,8 +37,6 @@ containers/reporting/report/
 *.Rproj
 environment.txt
 containers/reporting/bin
-portal/
-report/portal
 *.html
 *.Rdata
 .Rhistory
