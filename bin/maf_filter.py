@@ -16,6 +16,7 @@ import csv
 import re
 import argparse
 import json
+from typing import Dict, Tuple, List
 
 # relative imports, from CLI and from parent project
 if __name__ != "__main__":
@@ -26,7 +27,7 @@ if __name__ == "__main__":
     from cBioPortal_utils import maf_filter_portal_file_cols_to_keep
     from cBioPortal_utils import parse_header_comments
 
-def filter_row(row, is_impact):
+def filter_row(row: Dict, is_impact: bool) -> Tuple[Dict, bool, bool, bool, bool, str]:
     """
     Check filter criteria against a single row representing a variant
 
@@ -276,7 +277,11 @@ def filter_row(row, is_impact):
 
     return(row, analysis_keep, portal_keep, fillout_keep, reject_row, reject_reason, reject_flag, filter_flags)
 
-def filter_rows(row_list, is_impact, keep_rejects = False):
+def filter_rows(
+        row_list: List[Dict],
+        is_impact: bool,
+        keep_rejects: bool = False
+        ) -> Tuple[ List[Dict], List[Dict], List[Dict], List[Dict] ]:
     """
     Filters the rows in the list
     """
@@ -307,13 +312,13 @@ def filter_rows(row_list, is_impact, keep_rejects = False):
 
 
 def main(
-    input_file,
-    version_string,
-    analyst_file,
-    portal_file,
-    is_impact = True,
-    rejected_file = 'rejected.muts.maf',
-    keep_rejects = False):
+    input_file: str,
+    version_string: str,
+    analyst_file: str,
+    portal_file: str,
+    is_impact: bool = True,
+    rejected_file: str = 'rejected.muts.maf',
+    keep_rejects: bool = False) -> None:
     """
     Main control function for the module when called as a script. Filters the input .maf file into an "analyst file" and a "portal file", meant to be used for downstream data analysis and for import to cBioPortal, respectively.
 
