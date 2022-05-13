@@ -69,4 +69,58 @@ func TestMutations(t *testing.T) {
 			t.Errorf("got %v is not the same as %v", got, want)
 		}
 	})
+
+
+	t.Run("Test Mutation update uncalled status", func(t *testing.T) {
+		mutation := Mutation{
+			TRefCount:      11,
+			TAltCount:      5,
+			MutationStatus: "CALLED",
+			IsFillout:      false,
+			Metadata:       mapstructure.Metadata{},
+			SourceMap:      map[string]string{},
+		}
+
+		got := mutation
+		got.SetUncalled()
+
+		want := Mutation{
+			TRefCount:      11,
+			TAltCount:      5,
+			MutationStatus: "UNCALLED",
+			IsFillout:      false,
+			Metadata:       mapstructure.Metadata{},
+			SourceMap:      map[string]string{},
+		}
+		if !cmp.Equal(got, want) {
+			t.Errorf("got %v is not the same as %v", got, want)
+		}
+	})
+
+
+	t.Run("Test Mutation convert to map after updating status", func(t *testing.T) {
+		mutation := Mutation{
+			TRefCount:      11,
+			TAltCount:      5,
+			MutationStatus: "CALLED",
+			IsFillout:      false,
+			Metadata:       mapstructure.Metadata{},
+			SourceMap:      map[string]string{"foo":"bar"},
+		}
+
+		mutation.SetUncalled()
+
+		got := mutation.ToMap()
+
+		want := map[string]string{
+			"t_ref_count":     "11",
+			"t_alt_count":     "5",
+			"Mutation_Status": "UNCALLED",
+			"fillout":         "False",
+			"foo":             "bar",
+		}
+		if !cmp.Equal(got, want) {
+			t.Errorf("got %#v is not the same as %#v", got, want)
+		}
+	})
 }

@@ -67,6 +67,14 @@ func (mutation *Mutation) ToMap() map[string]string {
 	return outputMapString
 }
 
+
+// update the Mutation for UNCALLED status
+func (mutation *Mutation) SetUncalled() {
+	mutation.MutationStatus = "UNCALLED"
+}
+
+
+// convert a map of strings into a Mutation object
 func MutationFromMap(data map[string]string) Mutation {
 	var mutation Mutation
 	var metadata mapstructure.Metadata
