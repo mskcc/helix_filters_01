@@ -1,0 +1,74 @@
+package mafio
+
+import (
+    "testing"
+    // "fmt"
+    // "strings"
+    "github.com/google/go-cmp/cmp"
+    "github.com/mitchellh/mapstructure"
+)
+
+
+func TestMutations(t *testing.T) {
+    t.Run("Test Mutation initialization", func(t *testing.T) {
+      // source data
+        data := map [string]string{
+            "t_ref_count": "11",
+            "t_alt_count": "5",
+            "Mutation_Status": "CALLED",
+            "fillout": "True",
+            "foo": "bar", // extraneous key
+          }
+
+        // expected values
+        var t_ref_count int64 = 11
+        var t_alt_count int64 = 5
+        var Mutation_Status = "CALLED"
+        var fillout bool = true
+        metadata := mapstructure.Metadata{
+          Keys: []string{"t_ref_count", "t_alt_count", "Mutation_Status", "fillout"},
+          Unused: []string{"foo"},
+          Unset: []string{"SourceMap", "Metadata"},
+        }
+
+        // convert to mutation type
+        got := MutationFromMap(data)
+
+        want := Mutation {
+            TRefCount: t_ref_count,
+            TAltCount: t_alt_count,
+            MutationStatus: Mutation_Status,
+            IsFillout: fillout,
+            Metadata: metadata,
+            SourceMap: data,
+        }
+        if !cmp.Equal(got, want) {
+            // https://faun.pub/golangs-fmt-sprintf-and-printf-demystified-4adf6f9722a2
+            t.Errorf("got %v is not the same as %v", got, want )
+        }
+    })
+
+  t.Run("Test Mutation convert back to map", func(t *testing.T) {
+    data := map [string]string{
+        "t_ref_count": "11",
+        "t_alt_count": "5",
+        "Mutation_Status": "CALLED",
+        "fillout": "True",
+        "foo": "bar", // extraneous key
+      }
+    mutation := MutationFromMap(data)
+    got := mutation.ToMap()
+    want := map[string]string{
+      "t_ref_count": "11",
+      "t_alt_count": "5",
+      "Mutation_Status": "CALLED",
+      "fillout": "True",
+      "foo": "bar",
+    }
+    // fmt.Printf("\n\n%v\n\n", got)
+    if !cmp.Equal(got, want) {
+        // https://faun.pub/golangs-fmt-sprintf-and-printf-demystified-4adf6f9722a2
+        t.Errorf("got %v is not the same as %v", got, want )
+    }
+  })
+}
