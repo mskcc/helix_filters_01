@@ -9,6 +9,7 @@ UNAME:=$(shell uname)
 # $ go get github.com/google/go-cmp
 # $ go get github.com/google/go-cmp/cmp
 # $ go install github.com/google/go-cmp/cmp
+# gofmt -l -w .
 
 # run the test cases
 test:
