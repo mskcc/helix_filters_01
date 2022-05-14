@@ -16,7 +16,7 @@ type Mutation struct {
 	TRefCount      int64  `mapstructure:"t_ref_count"`
 	TAltCount      int64  `mapstructure:"t_alt_count"`
 	MutationStatus string `mapstructure:"Mutation_Status"`
-	IsFillout      bool   `mapstructure:"fillout"`
+	IsFillout      bool   `mapstructure:"is_fillout"`
 
 	SourceMap map[string]string     // the original row from the input file
 	Metadata  mapstructure.Metadata // extra info from the data import https://pkg.go.dev/github.com/mitchellh/mapstructure#Metadata
