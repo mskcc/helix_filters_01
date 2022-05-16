@@ -8,6 +8,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"os"
 	"reflect"
+	"sort"
 )
 
 // representation of Mutation object type
@@ -16,7 +17,7 @@ type Mutation struct {
 	TRefCount      int64  `mapstructure:"t_ref_count"`
 	TAltCount      int64  `mapstructure:"t_alt_count"`
 	MutationStatus string `mapstructure:"Mutation_Status"`
-	IsFillout      bool   `mapstructure:"fillout"`
+	IsFillout      bool   `mapstructure:"is_fillout"`
 
 	SourceMap map[string]string     // the original row from the input file
 	Metadata  mapstructure.Metadata // extra info from the data import https://pkg.go.dev/github.com/mitchellh/mapstructure#Metadata
@@ -96,11 +97,13 @@ func MutationFromMap(data map[string]string) Mutation {
 		panic(err)
 	}
 
+	// add the original map data, and the conversion metadata
 	mutation.SourceMap = data
 	mutation.Metadata = metadata
+	// need to sort the string slices inside the metadata because it tends to break test cases sporadically otherwise
+	sort.Strings(mutation.Metadata.Unset) // so far this is the only one affected
 
 	// fmt.Printf("\n\n%#v\n\n", mutation)
-
 	return mutation
 }
 

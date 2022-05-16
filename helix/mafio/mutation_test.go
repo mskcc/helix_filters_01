@@ -15,7 +15,7 @@ func TestMutations(t *testing.T) {
 			"t_ref_count":     "11",
 			"t_alt_count":     "5",
 			"Mutation_Status": "CALLED",
-			"fillout":         "True",
+			"is_fillout":         "True",
 			"foo":             "bar", // extraneous key
 		}
 
@@ -23,11 +23,11 @@ func TestMutations(t *testing.T) {
 		var t_ref_count int64 = 11
 		var t_alt_count int64 = 5
 		var Mutation_Status = "CALLED"
-		var fillout bool = true
+		var is_fillout bool = true
 		metadata := mapstructure.Metadata{
-			Keys:   []string{"t_ref_count", "t_alt_count", "Mutation_Status", "fillout"},
+			Keys:   []string{"t_ref_count", "t_alt_count", "Mutation_Status", "is_fillout"},
 			Unused: []string{"foo"},
-			Unset:  []string{"SourceMap", "Metadata"},
+			Unset:  []string{"Metadata", "SourceMap"}, // these get sorted by the MutationFromMap method
 		}
 
 		// convert to mutation type
@@ -37,12 +37,15 @@ func TestMutations(t *testing.T) {
 			TRefCount:      t_ref_count,
 			TAltCount:      t_alt_count,
 			MutationStatus: Mutation_Status,
-			IsFillout:      fillout,
+			IsFillout:      is_fillout,
 			Metadata:       metadata,
 			SourceMap:      data,
 		}
-		if !cmp.Equal(got, want) {
-			t.Errorf("got %v is not the same as %v", got, want)
+		// if !cmp.Equal(got, want) {
+		// 	t.Errorf("got %v is not the same as %v", got, want)
+		// }
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
 		}
 	})
 
@@ -51,7 +54,7 @@ func TestMutations(t *testing.T) {
 			"t_ref_count":     "11",
 			"t_alt_count":     "5",
 			"Mutation_Status": "CALLED",
-			"fillout":         "True",
+			"is_fillout":         "True",
 			"foo":             "bar", // extraneous key
 		}
 		mutation := MutationFromMap(data)
@@ -60,7 +63,7 @@ func TestMutations(t *testing.T) {
 			"t_ref_count":     "11",
 			"t_alt_count":     "5",
 			"Mutation_Status": "CALLED",
-			"fillout":         "True",
+			"is_fillout":         "True",
 			"foo":             "bar",
 		}
 		// fmt.Printf("\n\n%v\n\n", got)
@@ -116,7 +119,7 @@ func TestMutations(t *testing.T) {
 			"t_ref_count":     "11",
 			"t_alt_count":     "5",
 			"Mutation_Status": "UNCALLED",
-			"fillout":         "False",
+			"is_fillout":         "False",
 			"foo":             "bar",
 		}
 		if !cmp.Equal(got, want) {

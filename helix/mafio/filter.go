@@ -27,7 +27,7 @@ func IsUncalledFilter(mutation *Mutation) bool {
 func IsUncalledMutationUpdate(mutation *Mutation) bool {
 	isUncalled := IsUncalledFilter(mutation)
 	if isUncalled {
-		mutation.MutationStatus = "UNCALLED"
+		mutation.SetUncalled()
 	}
 	return isUncalled
 }
