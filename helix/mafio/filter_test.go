@@ -22,7 +22,7 @@ func TestFilters(t *testing.T) {
 			SourceMap:      map[string]string{},
 		}
 		// fmt.Printf("\n\n%v\n\n", mutation)
-		got := IsUncalledFilter(mutation)
+		got := IsUncalledFilter(&mutation)
 		want := true
 		if !cmp.Equal(got, want) {
 			t.Errorf("got %v is not the same as %v", got, want)
@@ -37,7 +37,7 @@ func TestFilters(t *testing.T) {
 			Metadata:       mapstructure.Metadata{},
 			SourceMap:      map[string]string{},
 		}
-		got = IsUncalledFilter(mutation)
+		got = IsUncalledFilter(&mutation)
 		want = false
 		if !cmp.Equal(got, want) {
 			t.Errorf("got %v is not the same as %v", got, want)
@@ -52,26 +52,74 @@ func TestFilters(t *testing.T) {
 			Metadata:       mapstructure.Metadata{},
 			SourceMap:      map[string]string{},
 		}
-		got = IsUncalledFilter(mutation)
+		got = IsUncalledFilter(&mutation)
 		want = true
 		if !cmp.Equal(got, want) {
 			t.Errorf("got %v is not the same as %v", got, want)
 		}
 	})
 
-	// t.Run("Test Mutation convert back to map", func(t *testing.T) {
-	// 	// got := mutation.ToMap()
-	// 	// want := map[string]string{
-	// 	// 	"t_ref_count":     "11",
-	// 	// 	"t_alt_count":     "5",
-	// 	// 	"Mutation_Status": "CALLED",
-	// 	// 	"fillout":         "True",
-	// 	// 	"foo":             "bar",
-	// 	// }
-	// 	// fmt.Printf("\n\n%v\n\n", got)
-	// 	// if !cmp.Equal(got, want) {
-	// 	// 	// https://faun.pub/golangs-fmt-sprintf-and-printf-demystified-4adf6f9722a2
-	// 	// 	t.Errorf("got %v is not the same as %v", got, want)
-	// 	// }
-	// })
+	t.Run("Test mutation filtering IsUncalledMutationUpdate", func(t *testing.T) {
+		// a mutation is considered "Uncalled" if t_alt_count == 0 or is_fillout = True
+		// an "uncalled" mutation should be "kept" for the data_mutations_uncalled.txt file
+
+		// source data; is Uncalled
+    mutation := Mutation{
+			TRefCount:      10,
+			TAltCount:      0, // should be kept in uncalled file
+			MutationStatus: "",
+			IsFillout:      false,
+			Metadata:       mapstructure.Metadata{},
+			SourceMap:      map[string]string{},
+		}
+		got := IsUncalledMutationUpdate(&mutation)
+		want := true
+		if !cmp.Equal(got, want) {
+			t.Errorf("got %v is not the same as %v", got, want)
+		}
+
+		// check that the Mutation was updated
+		wantedMutation := Mutation{
+			TRefCount:      10,
+			TAltCount:      0,
+			MutationStatus: "UNCALLED", // updated value
+			IsFillout:      false,
+			Metadata:       mapstructure.Metadata{},
+			SourceMap:      map[string]string{},
+		}
+		if !cmp.Equal(wantedMutation, mutation) {
+			t.Errorf("got %v is not the same as %v", wantedMutation, mutation)
+		}
+
+
+		// test that a non-uncalled Mutation does not get changed
+		mutation = Mutation{
+			TRefCount:      10,
+			TAltCount:      10,
+			MutationStatus: "CALLED", // should not change
+			IsFillout:      false,
+			Metadata:       mapstructure.Metadata{},
+			SourceMap:      map[string]string{},
+		}
+		got = IsUncalledMutationUpdate(&mutation)
+		want = false
+		if !cmp.Equal(got, want) {
+			t.Errorf("got %v is not the same as %v", got, want)
+		}
+
+		// check that the Mutation was NOT updated
+		wantedMutation = Mutation{
+			TRefCount:      10,
+			TAltCount:      10,
+			MutationStatus: "CALLED", // updated value
+			IsFillout:      false,
+			Metadata:       mapstructure.Metadata{},
+			SourceMap:      map[string]string{},
+		}
+		if !cmp.Equal(wantedMutation, mutation) {
+			t.Errorf("got %v is not the same as %v", wantedMutation, mutation)
+		}
+
+	})
+
 }
