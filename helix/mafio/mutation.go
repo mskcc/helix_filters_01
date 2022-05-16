@@ -75,6 +75,30 @@ func (mutation *Mutation) SetUncalled() {
 }
 
 
+// get the fieldnames that should be output in the .maf file
+// NOTE: output the keys in a sorted order so that its easier for test cases; this is NOT the order they were encountered in the original maf file
+func (mutation *Mutation) GetMafFieldnames() []string {
+	keys := []string{}
+	mutMap := mutation.ToMap()
+	for k, _ := range mutMap {
+        keys = append(keys, k)
+    }
+	sort.Strings(keys)
+	return keys
+}
+
+// convert the mutation entry to the values for the row to be printed to the maf file
+// need to return the values inthe order specified by the supplied headers
+// NOTE: the same as writer.MakeRowFields(); which should be used???
+// func (mutation *Mutation) ToRow(headers []string) []string {
+// 	mutMap := mutation.ToMap()
+// 	values := []string{}
+// 	for _, v := range headers {
+//         values = append(values, mutMap[v])
+//     }
+// 	return values
+// }
+
 // convert a map of strings into a Mutation object
 func MutationFromMap(data map[string]string) Mutation {
 	var mutation Mutation
