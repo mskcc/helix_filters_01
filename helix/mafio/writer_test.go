@@ -1,8 +1,11 @@
 package mafio
 
 import (
+	// "fmt"
 	"strings"
 	"testing"
+	"github.com/google/go-cmp/cmp"
+	"github.com/mitchellh/mapstructure"
 )
 
 func TestWriter(t *testing.T) {
@@ -84,6 +87,91 @@ zz\tyy\tbb
 
 		if got.String() != want {
 			t.Errorf("got %q is not the same as %q", got, want)
+		}
+	})
+
+
+	t.Run("write maf from Mutations", func(t *testing.T) {
+		comments := []string{"#comment 1", "#comment 2"}
+		mutations := []Mutation{
+			Mutation{
+				TRefCount: 10,
+				TAltCount: 10,
+				MutationStatus: "CALLED",
+				IsFillout: false,
+				SourceMap: map[string]string{
+					"Mutation_Status": "CALLED",
+					"is_fillout":      "False",
+					"t_alt_count":     "10",
+					"t_ref_count":     "10",
+					"Foo": "foo1",
+				},
+				Metadata: mapstructure.Metadata{
+					Keys:   []string{"t_ref_count", "t_alt_count", "Mutation_Status", "is_fillout"},
+					Unused: []string{"Foo"},
+					Unset:  []string{"Metadata", "SourceMap"},
+				},
+			},
+			Mutation{
+				TRefCount: 10,
+				TAltCount: 10,
+				MutationStatus: "CALLED",
+				IsFillout: true,
+				SourceMap: map[string]string{
+					"Mutation_Status": "CALLED",
+					"is_fillout":      "True",
+					"t_alt_count":     "10",
+					"t_ref_count":     "10",
+					"Foo": "foo2",
+				},
+				Metadata: mapstructure.Metadata{
+					Keys:   []string{"t_ref_count", "t_alt_count", "Mutation_Status", "is_fillout"},
+					Unused: []string{"Foo"},
+					Unset:  []string{"Metadata", "SourceMap"},
+				},
+			},
+			Mutation{
+				TRefCount: 10,
+				TAltCount: 0,
+				MutationStatus: "CALLED",
+				IsFillout: false,
+				SourceMap: map[string]string{
+					"Mutation_Status": "CALLED",
+					"is_fillout":      "False",
+					"t_alt_count":     "0",
+					"t_ref_count":     "10",
+					"Foo": "foo3",
+				},
+				Metadata: mapstructure.Metadata{
+					Keys:   []string{"t_ref_count", "t_alt_count", "Mutation_Status", "is_fillout"},
+					Unused: []string{"Foo"},
+					Unset:  []string{"Metadata", "SourceMap"},
+				},
+			},
+		}
+
+		outputStr := new(strings.Builder)
+		headers := mutations[0].GetMafFieldnames() // get the headers from the first Mutation; in real life cases it should come from reader.ParseHeader() instead to get correct ordering
+		writer := NewMafWriter(outputStr, headers, comments)
+		for _, mutation := range mutations {
+				fields := MakeRowFields(headers, mutation.ToMap())
+				writer.WriteRow(fields)
+			}
+
+		// NOTE: column order here comes from mutation.ToMap();
+		// in real life cases it should come from reader.ParseHeader() instead to get correct ordering
+		wantedStr := `#comment 1
+#comment 2
+Foo\tMutation_Status\tis_fillout\tt_alt_count\tt_ref_count
+foo1\tCALLED\tFalse\t10\t10
+foo2\tCALLED\tTrue\t10\t10
+foo3\tCALLED\tFalse\t0\t10
+`
+		var want string = strings.ReplaceAll(wantedStr, `\t`, "\t")
+		got := outputStr.String()
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
 		}
 	})
 
