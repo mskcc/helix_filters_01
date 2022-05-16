@@ -14,8 +14,8 @@ import (
 // representation of Mutation object type
 // TODO: implement all the default MAF fields on this struct eventually; currently just implement the ones that are needed for use cases
 type Mutation struct {
-	TRefCount      int64  `mapstructure:"t_ref_count"`
-	TAltCount      int64  `mapstructure:"t_alt_count"`
+	TRefCount      uint64  `mapstructure:"t_ref_count"`
+	TAltCount      uint64  `mapstructure:"t_alt_count"`
 	MutationStatus string `mapstructure:"Mutation_Status"`
 	IsFillout      bool   `mapstructure:"is_fillout"`
 

@@ -20,8 +20,8 @@ func TestMutations(t *testing.T) {
 		}
 
 		// expected values
-		var t_ref_count int64 = 11
-		var t_alt_count int64 = 5
+		var t_ref_count uint64 = 11
+		var t_alt_count uint64 = 5
 		var Mutation_Status = "CALLED"
 		var is_fillout bool = true
 		metadata := mapstructure.Metadata{
