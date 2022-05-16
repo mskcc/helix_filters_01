@@ -7,16 +7,22 @@ import (
 	"testing"
 )
 
+// fixtures for test cases
 var s1 string = `#comment 1
 #comment2
 Foo\tBar\tBaz
 1\t2\t3
 `
-
 // need to convert \t to real tabs
 var s string = strings.ReplaceAll(s1, `\t`, "\t")
+var test_file string = "../testdata/tsv/test.tsv"
 
-var test_file string = "test.tsv"
+// NOTE: update this as more fields are added to Mutation
+var _mafStr string = `#comment 1
+#comment2
+Mutation_Status\tt_ref_count\tt_alt_count\tis_fillout
+`
+
 
 func TestReader(t *testing.T) {
 
