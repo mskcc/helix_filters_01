@@ -5,7 +5,7 @@ import (
 	"encoding/csv"
 	"io"
 	"log"
-	"os"
+	// "os"
 )
 
 type MafReader struct {
@@ -30,22 +30,19 @@ func (m *MafReader) ReadRow() (map[string]string, error) {
 	return row_map, err
 }
 
-func NewMafReader(filepath string) MafReader {
-	file, err := os.Open(filepath)
-	if err != nil {
-		log.Fatalln("Couldn't open the file", err)
-	}
+func NewMafReader(file io.Reader, comments []string, headers []string) MafReader {
+	// filepath string
+	// file, err := os.Open(filepath)
+	// if err != nil {
+	// 	log.Fatalln("Couldn't open the file", err)
+	// }
 	// TODO: WHEN TO CALL THIS??
 	// defer file.Close() // err "read test.tsv: file already closed"
-
-	comments := ParseComments(file)
-
+	// comments := ParseComments(file)
 	// reset the input file cursor
-	file.Seek(0, 0)
-
-	headers := ParseHeader(file)
-
-	file.Seek(0, 0)
+	// file.Seek(0, 0)
+	// headers := ParseHeader(file)
+	// file.Seek(0, 0)
 
 	reader := csv.NewReader(file)
 	reader.Comma = delim

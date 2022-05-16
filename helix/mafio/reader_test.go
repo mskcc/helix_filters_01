@@ -2,9 +2,13 @@ package mafio
 
 import (
 	"io"
+	"os"
+	"fmt"
 	"log"
 	"strings"
 	"testing"
+	"github.com/google/go-cmp/cmp"
+	"github.com/mitchellh/mapstructure"
 )
 
 // fixtures for test cases
@@ -18,15 +22,22 @@ var s string = strings.ReplaceAll(s1, `\t`, "\t")
 var test_file string = "../testdata/tsv/test.tsv"
 
 // NOTE: update this as more fields are added to Mutation
+// - called mut
+// - called mut (should be uncalled, fillout == true)
+// - called mut (should be uncalled, t_alt_count == 0)
 var _mafStr string = `#comment 1
 #comment2
-Mutation_Status\tt_ref_count\tt_alt_count\tis_fillout
+Mutation_Status\tt_ref_count\tt_alt_count\tis_fillout\tFoo
+CALLED\t10\t10\tFalse\tfoo1
+CALLED\t10\t10\tTrue\tfoo2
+CALLED\t10\t0\tFalse\tfoo3
 `
-
+var mafStr string = strings.ReplaceAll(_mafStr, `\t`, "\t")
 
 func TestReader(t *testing.T) {
 
 	t.Run("parse the comment lines", func(t *testing.T) {
+		fmt.Printf("")
 		reader := strings.NewReader(s)
 		got := ParseComments(reader)
 		want := []string{"#comment 1", "#comment2"}
@@ -77,7 +88,13 @@ func TestReader(t *testing.T) {
 	})
 
 	t.Run("read a tab delimited file", func(t *testing.T) {
-		m := NewMafReader(test_file)
+		file, err := os.Open(test_file)
+		if err != nil {
+			log.Fatalln("Couldn't open the file", err)
+		}
+		defer file.Close()
+
+		m := NewMafReader(file, []string{"# comment1", "# comment2"}, []string{"SampleID", "Foo", "Bar", "Baz", "RefCount", "AltCount"})
 
 		wanted_comments := []string{"# comment1", "# comment2"}
 		wanted_headers := []string{"SampleID", "Foo", "Bar", "Baz", "RefCount", "AltCount"}
@@ -149,7 +166,13 @@ func TestReader(t *testing.T) {
 	})
 
 	t.Run("iterate over rows in a tab delimited file", func(t *testing.T) {
-		m := NewMafReader(test_file)
+		file, err := os.Open(test_file)
+		if err != nil {
+			log.Fatalln("Couldn't open the file", err)
+		}
+		defer file.Close()
+
+		m := NewMafReader(file, []string{"# comment1", "# comment2"}, []string{"SampleID", "Foo", "Bar", "Baz", "RefCount", "AltCount"})
 		var rows []map[string]string
 
 		for {
@@ -186,6 +209,142 @@ func TestReader(t *testing.T) {
 				}
 			}
 		}
+	})
+
+
+// Tests for reading mutations
+	t.Run("Read mutations from maf format string", func(t *testing.T) {
+		// read the comments
+		comment_reader := strings.NewReader(mafStr)
+		comments := ParseComments(comment_reader)
+		comments_wanted := []string{"#comment 1", "#comment2"}
+		if diff := cmp.Diff(comments_wanted, comments); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		}
+
+		// read the headers
+		header_reader := strings.NewReader(mafStr)
+		headers := ParseHeader(header_reader)
+		headers_wanted := []string{"Mutation_Status", "t_ref_count", "t_alt_count", "is_fillout", "Foo"}
+		if diff := cmp.Diff(headers_wanted, headers); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		}
+
+		// initalize maf reader
+		mafStr_reader := strings.NewReader(mafStr)
+		reader := NewMafReader(mafStr_reader, comments, headers)
+
+		// read all rows and mutations
+		var rows []map[string]string
+		var mutations []Mutation
+		for {
+			row, err := reader.ReadRow()
+			if row == nil {
+				break
+			}
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatal(err)
+				break
+			}
+			// convert row to a Mutation
+			mutation := MutationFromMap(row)
+			rows = append(rows, row)
+			mutations = append(mutations, mutation)
+		}
+		rows_wanted := []map[string]string{
+			{
+			"Mutation_Status": "CALLED",
+			"is_fillout":      "False",
+			"t_alt_count":     "10",
+			"t_ref_count":     "10",
+			"Foo": "foo1",
+			},
+			{
+			"Mutation_Status": "CALLED",
+			"is_fillout":      "True",
+			"t_alt_count":     "10",
+			"t_ref_count":     "10",
+			"Foo": "foo2",
+			},
+			{
+			"Mutation_Status": "CALLED",
+			"is_fillout":      "False",
+			"t_alt_count":     "0",
+			"t_ref_count":     "10",
+			"Foo": "foo3",
+			},
+		}
+		if diff := cmp.Diff(rows_wanted, rows); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		}
+
+		mutations_wanted := []Mutation{
+			Mutation{
+				TRefCount: 10,
+				TAltCount: 10,
+				MutationStatus: "CALLED",
+				IsFillout: false,
+				SourceMap: map[string]string{
+					"Mutation_Status": "CALLED",
+					"is_fillout":      "False",
+					"t_alt_count":     "10",
+					"t_ref_count":     "10",
+					"Foo": "foo1",
+				},
+				Metadata: mapstructure.Metadata{
+					Keys:   []string{"t_ref_count", "t_alt_count", "Mutation_Status", "is_fillout"},
+					Unused: []string{"Foo"},
+					Unset:  []string{"Metadata", "SourceMap"},
+				},
+			},
+			Mutation{
+				TRefCount: 10,
+				TAltCount: 10,
+				MutationStatus: "CALLED",
+				IsFillout: true,
+				SourceMap: map[string]string{
+					"Mutation_Status": "CALLED",
+					"is_fillout":      "True",
+					"t_alt_count":     "10",
+					"t_ref_count":     "10",
+					"Foo": "foo2",
+				},
+				Metadata: mapstructure.Metadata{
+					Keys:   []string{"t_ref_count", "t_alt_count", "Mutation_Status", "is_fillout"},
+					Unused: []string{"Foo"},
+					Unset:  []string{"Metadata", "SourceMap"},
+				},
+			},
+			Mutation{
+				TRefCount: 10,
+				TAltCount: 0,
+				MutationStatus: "CALLED",
+				IsFillout: false,
+				SourceMap: map[string]string{
+					"Mutation_Status": "CALLED",
+					"is_fillout":      "False",
+					"t_alt_count":     "0",
+					"t_ref_count":     "10",
+					"Foo": "foo3",
+				},
+				Metadata: mapstructure.Metadata{
+					Keys:   []string{"t_ref_count", "t_alt_count", "Mutation_Status", "is_fillout"},
+					Unused: []string{"Foo"},
+					Unset:  []string{"Metadata", "SourceMap"},
+				},
+			},
+		}
+		if diff := cmp.Diff(mutations_wanted, mutations); diff != "" {
+			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
+		}
+
+
+
+
+
 	})
 
 }
