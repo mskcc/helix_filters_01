@@ -23,6 +23,7 @@ build:
 	mkdir -p "$(BUILD_DIR)"
 	go build -o "$(BUILD_DIR)/newCaseList" cmd/newCaseList/main.go
 	go build -o "$(BUILD_DIR)/updateCaseList" cmd/updateCaseList/main.go
+	go build -o "$(BUILD_DIR)/filterUncalledMutations" cmd/filterUncalledMutations/main.go
 
 build-test: $(BUILD_DIR)/newCaseList $(BUILD_DIR)/updateCaseList
 	./bin/newCaseList all foo Sample1,Sample2,Sample2 > cases.txt
@@ -36,7 +37,8 @@ GIT_NAME:=helix
 GIT_TAG:=$(shell git describe --tags --abbrev=0)
 DOCKER_TAG:=mskcc/$(GIT_NAME):$(GIT_TAG)
 docker-build:
-	docker build --no-cache -t "$(DOCKER_TAG)" .
+	docker build -t "$(DOCKER_TAG)" .
+# --no-cache
 
 docker-push:
 	docker push "$(DOCKER_TAG)"
