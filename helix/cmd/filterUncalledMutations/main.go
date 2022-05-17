@@ -97,14 +97,11 @@ func main() {
 		// check if the mutation is "uncalled" or not
 		isUncalled := mafio.IsUncalledMutationUpdate(&mutation)
 		fields := mafio.MakeRowFields(headers, mutation.ToMap())
+		// write the row to the corresponding file
 		if isUncalled {
 			mutsUncalledWriter.WriteRow(fields)
 		} else {
 			mutsWriter.WriteRow(fields)
 		}
-		// fmt.Printf("%v\n", mutation)
 	}
-	// fmt.Printf("%v %v %v\n", inputFilepath, outputMutsPath, outputUncalledPath, comments)
-	// fmt.Printf("%v\n", comments)
-	// fmt.Printf("%v\n", headers)
 }
