@@ -23,6 +23,7 @@ portal/
 ├── meta_clinical_sample.txt (X)
 ├── meta_CNA.txt (X)
 ├── meta_fusions.txt (X)
+├── meta_SV.txt (X)
 ├── meta_mutations_extended.txt (X)
 ├── meta_study.txt (X)
 ├── <project_id>_data_cna_hg19.seg (X from reduce_sig_figs.cwl + concat.cwl)
@@ -68,6 +69,9 @@ $ generate_cbioPortal_files.py meta_cna --cancer-study-id cancer_study_1
 
 # meta_fusions.txt
 $ generate_cbioPortal_files.py meta_fusion --cancer-study-id cancer_study_1
+
+# meta_SV.txt
+$ generate_cbioPortal_files.py meta_sv --cancer-study-id cancer_study_1
 
 # meta_mutations_extended.txt
 $ generate_cbioPortal_files.py meta_mutations --cancer-study-id cancer_study_1
@@ -347,6 +351,21 @@ def generate_fusion_meta_data(cancer_study_identifier, data_filename):
     }
     return(data)
 
+def generate_sv_meta_data(cancer_study_identifier, data_filename):
+    """
+    """
+    data = {
+    'cancer_study_identifier': cancer_study_identifier,
+    'data_filename': data_filename,
+    'datatype': 'SV',
+    'genetic_alteration_type': 'STRUCTURAL_VARIANT',
+    'stable_id': 'structural_variants',
+    'show_profile_in_analysis_tab': "true",
+    'profile_description': 'Structural variants data.',
+    'profile_name' : 'SV data',
+    }
+    return(data)
+
 def generate_mutation_meta_data(cancer_study_identifier, data_filename):
     """
     """
@@ -571,6 +590,22 @@ def generate_fusion_meta_data_file(**kwargs):
     data_filename = kwargs.pop('data_filename', 'data_fusions.txt')
 
     meta_data = generate_fusion_meta_data(
+        cancer_study_identifier = cancer_study_identifier,
+        data_filename = data_filename
+        )
+    lines = generate_meta_lines(meta_data)
+
+    with open(output, "w") as fout:
+        fout.writelines(lines)
+
+def generate_sv_meta_data_file(**kwargs):
+    """
+    """
+    output = kwargs.pop('output', 'meta_SV.txt')
+    cancer_study_identifier = kwargs.pop('cancer_study_identifier')
+    data_filename = kwargs.pop('data_filename', 'data_SV.txt')
+
+    meta_data = generate_sv_meta_data(
         cancer_study_identifier = cancer_study_identifier,
         data_filename = data_filename
         )
@@ -817,6 +852,15 @@ def main():
     meta_fusion.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
     meta_fusion.add_argument('--fusion-data-filename', dest = 'data_filename', default = 'data_fusions.txt', help = 'Filename of the associated fusion data file')
     meta_fusion.set_defaults(func = generate_fusion_meta_data_file)
+
+    
+    # subparser for meta_SV.txt
+    meta_fusion = subparsers.add_parser('meta_sv', help = 'Create the SV metadata file')
+    meta_fusion.add_argument('--output', dest = 'output', default = "meta_SV.txt", help = 'Name of the output file')
+    meta_fusion.add_argument('--cancer-study-id', dest = 'cancer_study_identifier', required = True, help = 'ID for the cancer study')
+    meta_fusion.add_argument('--sv-data-filename', dest = 'data_filename', default = 'data_SV.txt', help = 'Filename of the associated fusion data file')
+    meta_fusion.set_defaults(func = generate_sv_meta_data_file)
+    
 
     # subparser for meta_mutations_extended.txt
     meta_mutations = subparsers.add_parser('meta_mutations', help = 'Create the Mutations metadata file')
