@@ -1,38 +1,31 @@
 package main
 
 // USAGE:
-// newCaseList <type> <studyIdentifier> Sample1,Sample2,...
+// newCaseList <type> <studyIdentifier> Sample1,Sample2,... > case_list.txt
 
 import (
 	"fmt"
 	"helix/portal"
 	"log"
-	"os"
 	"strings"
+	"github.com/alecthomas/kong"
 )
 
-func main() {
-	args := os.Args[1:]
-
-	typ_str := args[0]
-	studyIdentifier := args[1]
-	ids_str := args[2]
-
+// primary run function for the script
+func run(typeLabel string, studyIdentifier string, ids []string) error {
+	// check the type of case list required
 	var typ portal.CaseListType
-
-	if typ_str == "all" {
+	if typeLabel == "all" {
 		typ = portal.CaseListTypeAll
-	} else if typ_str == "cnaseq" {
+	} else if typeLabel == "cnaseq" {
 		typ = portal.CaseListTypeCNASeq
-	} else if typ_str == "cna" {
+	} else if typeLabel == "cna" {
 		typ = portal.CaseListTypeCNA
-	} else if typ_str == "seq" {
+	} else if typeLabel == "seq" {
 		typ = portal.CaseListTypeSeq
 	} else {
-		log.Fatalf("Invalid type: %q. Use one of 'all', 'cna', 'seq', or 'cnaseq'", typ_str)
+		log.Fatalf("Invalid type: %q. Use one of 'all', 'cna', 'seq', or 'cnaseq'", typeLabel)
 	}
-
-	ids := strings.Split(ids_str, ",")
 
 	c := portal.NewCaseList(studyIdentifier, ids, typ)
 	lines := c.ToLines()
@@ -40,4 +33,33 @@ func main() {
 		fmt.Println(line)
 	}
 
+	return nil
+}
+
+// struct to hold the command line parsing options
+type CLI struct {
+	TypeLabel string `help:"type of case list to create [all, cnaseq, cna, seq]" arg:""`
+	StudyIdentifier string `help:"Study identifier" arg:""`
+	Ids string `help:"comma-delimited list of id's to add to the case list" arg:""`
+}
+
+// method to run the script with the CLI args; gets invoked by `ctx.Run()`
+func (cli *CLI) Run () error {
+	ids_str := cli.Ids
+	ids := strings.Split(ids_str, ",")
+	typeLabel := cli.TypeLabel
+	studyIdentifier := cli.StudyIdentifier
+
+	err := run(typeLabel, studyIdentifier, ids)
+	return err
+}
+
+func main() {
+	var cli CLI
+
+	ctx := kong.Parse(&cli,
+		kong.Name("Create Case List File"),
+		kong.Description("Program for creating a case list file for cBioPortal."))
+
+	ctx.FatalIfErrorf(ctx.Run())
 }
