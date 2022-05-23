@@ -1,7 +1,7 @@
 package main
 
 // USAGE:
-// filterUncalledMutations /path/to/data_mutations.txt /path/to/outputdir
+// filterUncalledMutations /path/to/data_mutations.txt --output-dir /path/to/outputdir
 // NOTE: creates directory "output" and places files in there to avoid filename collision in pwd
 
 import (
@@ -11,32 +11,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"github.com/alecthomas/kong"
 )
 
-var _defaultOutputDir string = "output"
-var _defaultDataMutsFilename string = "data_clinical_mutations.txt"
-var _defaultDataMutsUncalledFilename string = "data_mutations_uncalled.txt"
-
-func main() {
-	// get CLI args
-	args := os.Args[1:]
-	inputFilepath := args[0]
-	var outputDir string
-	if len(args) > 1 {
-		outputDir = args[1]
-	} else  {
-		outputDir = _defaultOutputDir
-	}
-	outputMutsPath := filepath.Join(outputDir, _defaultDataMutsFilename)
-	outputUncalledPath := filepath.Join(outputDir, _defaultDataMutsUncalledFilename)
-
-	// make output path
-	err := os.MkdirAll(outputDir, os.ModePerm)
-	if err != nil {
-		fmt.Printf("Could not create directory %v\n", outputDir)
-		log.Fatalln("Couldn't create directory the file", err)
-	}
-
+// primary method for running the uncalled filter methods on the supplied input / output files
+func run(inputFilepath string, mutsFilepath string, uncalledFilepath string) error {
 	// open input and output files
 	inputFile, err2 := os.Open(inputFilepath)
 	if err2 != nil {
@@ -44,13 +23,13 @@ func main() {
 	}
 	defer inputFile.Close()
 
-	outputMutsFile, err3 := os.Create(outputMutsPath)
+	outputMutsFile, err3 := os.Create(mutsFilepath)
 	if err3 != nil {
 		log.Fatalln("Couldn't open the file", err3)
 	}
 	defer outputMutsFile.Close()
 
-	outputUncalledFile, err4 := os.Create(outputUncalledPath)
+	outputUncalledFile, err4 := os.Create(uncalledFilepath)
 	if err4 != nil {
 		log.Fatalln("Couldn't open the file", err4)
 	}
@@ -104,4 +83,45 @@ func main() {
 			mutsWriter.WriteRow(fields)
 		}
 	}
+
+	return nil
+}
+
+// struct to hold the command line parsing options
+type CLI struct {
+	InputFilepath string `help:"path to input mutations file" arg:""`
+	OutputDir string `help:"path to output directory" default:"./output"` // --output-dir
+	MutsFilename string `default:"data_mutations_extended.txt" help:"output filename for called mutations"` // --muts-filename
+	UncalledFilename string `default:"data_mutations_uncalled.txt" help:"output filename for uncalled mutations"` // --uncalled-filename
+}
+
+// method to run the script with the CLI args; gets invoked by `ctx.Run()`
+func (cli *CLI) Run () error {
+	outputDir := cli.OutputDir
+
+	err := os.MkdirAll(outputDir, os.ModePerm)
+	if err != nil {
+		fmt.Printf("Could not create directory %v\n", outputDir)
+		log.Fatalln("Couldn't create directory the file", err)
+	}
+
+	inputFilepath := cli.InputFilepath
+	mutsFilename := cli.MutsFilename
+	uncalledFilename := cli.UncalledFilename
+
+	mutsFilepath := filepath.Join(outputDir, mutsFilename)
+	uncalledFilepath := filepath.Join(outputDir, uncalledFilename)
+
+	err = run(inputFilepath, mutsFilepath, uncalledFilepath)
+	return err
+}
+
+func main() {
+	var cli CLI
+
+	ctx := kong.Parse(&cli,
+		kong.Name("Filter Uncalled Mutations"),
+		kong.Description("Program for splitting mutations files into called and uncalled mutations."))
+
+	ctx.FatalIfErrorf(ctx.Run())
 }
