@@ -29,7 +29,7 @@ build-test: $(BUILD_DIR)/newCaseList $(BUILD_DIR)/updateCaseList
 	./bin/newCaseList all foo Sample1,Sample2,Sample2 > cases.txt
 	./bin/updateCaseList cases.txt Sample2,Sample3
 	rm -f cases.txt
-
+.PHONY: $(BUILD_DIR)/newCaseList $(BUILD_DIR)/updateCaseList
 
 # make the Docker container
 GIT_NAME:=helix
