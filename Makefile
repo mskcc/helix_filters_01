@@ -71,11 +71,14 @@ conda:
 	bash "$(CONDASH)" -b -p conda
 	rm -f "$(CONDASH)"
 
-install: conda
+init:
+	git submodule update --init --recursive
+
+install: conda init
+	source conda/bin/activate && \
 	conda install -y \
 	anaconda::numpy=1.19.1 \
 	anaconda::pandas=1.1.3
-	git submodule update --init --recursive
 
 
 
