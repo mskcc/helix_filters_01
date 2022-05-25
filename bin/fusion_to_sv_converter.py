@@ -1,8 +1,9 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # NOTE: This script was downloaded from https://github.com/cBioPortal/datahub-study-curation-tools/tree/master/fusion-to-sv-converter.
+# NOTE: This script was supplied by the cBioPortal team
 #
 # ------------------------------------------------------------------------------
-# Script which converts the file in cBioPortal fusion data format to the 
+# Script which converts the file in cBioPortal fusion data format to the
 # structural variant format.
 #
 # To get usage:
@@ -28,19 +29,19 @@ def write_data(final_mapped_data, header, outfile):
 
 def map_fusion_to_sv(fusion_dict):
 	final_mapped_data = list()
-	
+
 	for id in fusion_dict:
 		fusion_column_value = fusion_dict[id][0]['Event_Info']
-		
+
 		#Find the fusion partner1 and partner2 genes based on their position in Fusion column. Add the index field.
 		for row in range(len(fusion_dict[id])):
 			gene = fusion_dict[id][row]['Hugo_Symbol']
 			if gene in fusion_column_value: fusion_dict[id][row]['index'] = fusion_column_value.index(gene)
 			else: fusion_dict[id][row]['index'] = None
-			
+
 		#Sort by the index values
 		fusion_dict[id].sort(key= lambda x: (x['index'] is not None, x['index']), reverse=False)
-		
+
 		#Group by index values. (Picks the last occurence if duplicated)
 		dict1 = {}
 		for key, value in groupby(fusion_dict[id], key = itemgetter('index')):
@@ -86,14 +87,14 @@ def interface():
 	parser.add_argument('-s', '--sv_file', required = True, help = 'Path to save the structural variant file',type = str)
 	args = parser.parse_args()
 	return args
-	
+
 def main(parsed_args):
-	
+
 	data = csv.DictReader(open(parsed_args.fusion_file, 'r'), delimiter='\t')
 
 	#Check the input file format - the file should have at least the following fields - Tumor_Sample_Barcode, Fusion, Hugo_Symbol, Entrez_Gene_Id
 	file_format_check(data.fieldnames, parsed_args.fusion_file)
-	
+
 	#Update fieldnames to map to SV format.
 	data.fieldnames = ['Event_Info' if item == 'Fusion' else item for item in data.fieldnames]
 	data.fieldnames = ['Site2_Effect_On_Frame' if item == 'Frame' else item for item in data.fieldnames]
@@ -110,7 +111,7 @@ def main(parsed_args):
 	sv_data = map_fusion_to_sv(fusion_dict)
 
 	write_data(sv_data, data.fieldnames, parsed_args.sv_file)
- 
+
 if __name__ == '__main__':
 	parsed_args = interface()
 	main(parsed_args)
