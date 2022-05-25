@@ -1,1 +1,5 @@
-MAF format .tsv file parsing, replicating the functionality of Python's `csv.DictReader` and `DictWriter`
+# `mafio`
+
+MAF format .tsv file parsing package
+
+https://docs.gdc.cancer.gov/Data/File_Formats/MAF_Format/
