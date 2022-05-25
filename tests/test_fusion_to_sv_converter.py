@@ -3,8 +3,6 @@
 """
 Tests cases for converting fusion files to sv format
 """
-from settings import BIN_DIR
-from pluto.tools import PlutoTestCase, TableReader
 import os
 import sys
 import unittest
@@ -12,6 +10,8 @@ import unittest
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(THIS_DIR)
 sys.path.insert(0, PARENT_DIR)
+from settings import BIN_DIR
+from pluto.tools import PlutoTestCase, TableReader
 sys.path.pop(0)
 
 script = os.path.join(BIN_DIR, 'fusion_to_sv_converter.py')
