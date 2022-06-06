@@ -15,7 +15,7 @@ func TestMutations(t *testing.T) {
 			"t_ref_count":     "11",
 			"t_alt_count":     "5",
 			"Mutation_Status": "CALLED",
-			"is_fillout":         "True",
+			"is_fillout":      "True",
 			"foo":             "bar", // extraneous key
 		}
 
@@ -54,7 +54,7 @@ func TestMutations(t *testing.T) {
 			"t_ref_count":     "11",
 			"t_alt_count":     "5",
 			"Mutation_Status": "CALLED",
-			"is_fillout":         "True",
+			"is_fillout":      "True",
 			"foo":             "bar", // extraneous key
 		}
 		mutation := MutationFromMap(data)
@@ -63,7 +63,7 @@ func TestMutations(t *testing.T) {
 			"t_ref_count":     "11",
 			"t_alt_count":     "5",
 			"Mutation_Status": "CALLED",
-			"is_fillout":         "True",
+			"is_fillout":      "True",
 			"foo":             "bar",
 		}
 		// fmt.Printf("\n\n%v\n\n", got)
@@ -72,7 +72,6 @@ func TestMutations(t *testing.T) {
 			t.Errorf("got %v is not the same as %v", got, want)
 		}
 	})
-
 
 	t.Run("Test Mutation update uncalled status", func(t *testing.T) {
 		mutation := Mutation{
@@ -100,7 +99,6 @@ func TestMutations(t *testing.T) {
 		}
 	})
 
-
 	t.Run("Test Mutation convert to map after updating status", func(t *testing.T) {
 		mutation := Mutation{
 			TRefCount:      11,
@@ -108,7 +106,7 @@ func TestMutations(t *testing.T) {
 			MutationStatus: "CALLED",
 			IsFillout:      false,
 			Metadata:       mapstructure.Metadata{},
-			SourceMap:      map[string]string{"foo":"bar"},
+			SourceMap:      map[string]string{"foo": "bar"},
 		}
 
 		mutation.SetUncalled()
@@ -119,7 +117,7 @@ func TestMutations(t *testing.T) {
 			"t_ref_count":     "11",
 			"t_alt_count":     "5",
 			"Mutation_Status": "UNCALLED",
-			"is_fillout":         "False",
+			"is_fillout":      "False",
 			"foo":             "bar",
 		}
 		if !cmp.Equal(got, want) {

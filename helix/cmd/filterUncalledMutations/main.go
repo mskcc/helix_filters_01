@@ -5,13 +5,13 @@ package main
 // NOTE: creates directory "output" and places files in there to avoid filename collision in pwd
 
 import (
-	"io"
 	"fmt"
+	"github.com/alecthomas/kong"
 	"helix/mafio"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
-	"github.com/alecthomas/kong"
 )
 
 // primary method for running the uncalled filter methods on the supplied input / output files
@@ -89,14 +89,14 @@ func run(inputFilepath string, mutsFilepath string, uncalledFilepath string) err
 
 // struct to hold the command line parsing options
 type CLI struct {
-	InputFilepath string `help:"path to input mutations file" arg:""`
-	OutputDir string `help:"path to output directory" default:"./output"` // --output-dir
-	MutsFilename string `default:"data_mutations_extended.txt" help:"output filename for called mutations"` // --muts-filename
+	InputFilepath    string `help:"path to input mutations file" arg:""`
+	OutputDir        string `help:"path to output directory" default:"./output"`                                  // --output-dir
+	MutsFilename     string `default:"data_mutations_extended.txt" help:"output filename for called mutations"`   // --muts-filename
 	UncalledFilename string `default:"data_mutations_uncalled.txt" help:"output filename for uncalled mutations"` // --uncalled-filename
 }
 
 // method to run the script with the CLI args; gets invoked by `ctx.Run()`
-func (cli *CLI) Run () error {
+func (cli *CLI) Run() error {
 	outputDir := cli.OutputDir
 
 	err := os.MkdirAll(outputDir, os.ModePerm)

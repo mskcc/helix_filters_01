@@ -2,7 +2,6 @@ package mafio
 
 // module for holding filter criteria
 
-
 // if mutation should be kept in the data_mutations_uncalled.txt instead of data_mutations.txt file
 // a mutation is considered "Uncalled" if t_alt_count == 0 or is_fillout = True
 // https://github.com/mskcc/pluto-cwl/issues/63

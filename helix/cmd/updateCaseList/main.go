@@ -5,15 +5,15 @@ package main
 
 import (
 	"fmt"
+	"github.com/alecthomas/kong"
 	"helix/portal"
 	"log"
 	"os"
 	"strings"
-	"github.com/alecthomas/kong"
 )
 
 // primary run method for the script
-func run (inputFilepath string, ids []string) error {
+func run(inputFilepath string, ids []string) error {
 	// open the intput file
 	file, err := os.Open(inputFilepath)
 	if err != nil {
@@ -39,11 +39,11 @@ func run (inputFilepath string, ids []string) error {
 // struct to hold the command line parsing options
 type CLI struct {
 	InputFilepath string `help:"path to input case list file" arg:""`
-	Ids string `help:"comma-delimited list of id's to add to the case list" arg:""`
+	Ids           string `help:"comma-delimited list of id's to add to the case list" arg:""`
 }
 
 // method to run the script with the CLI args; gets invoked by `ctx.Run()`
-func (cli *CLI) Run () error {
+func (cli *CLI) Run() error {
 	ids_str := cli.Ids
 	ids := strings.Split(ids_str, ",")
 	inputFilepath := cli.InputFilepath

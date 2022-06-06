@@ -14,8 +14,8 @@ import (
 // representation of Mutation object type
 // TODO: implement all the default MAF fields on this struct eventually; currently just implement the ones that are needed for use cases
 type Mutation struct {
-	TRefCount      uint64  `mapstructure:"t_ref_count"`
-	TAltCount      uint64  `mapstructure:"t_alt_count"`
+	TRefCount      uint64 `mapstructure:"t_ref_count"`
+	TAltCount      uint64 `mapstructure:"t_alt_count"`
 	MutationStatus string `mapstructure:"Mutation_Status"`
 	IsFillout      bool   `mapstructure:"is_fillout"`
 
@@ -68,12 +68,10 @@ func (mutation *Mutation) ToMap() map[string]string {
 	return outputMapString
 }
 
-
 // update the Mutation for UNCALLED status
 func (mutation *Mutation) SetUncalled() {
 	mutation.MutationStatus = "UNCALLED"
 }
-
 
 // get the fieldnames that should be output in the .maf file
 // NOTE: output the keys in a sorted order so that its easier for test cases; this is NOT the order they were encountered in the original maf file
@@ -81,8 +79,8 @@ func (mutation *Mutation) GetMafFieldnames() []string {
 	keys := []string{}
 	mutMap := mutation.ToMap()
 	for k, _ := range mutMap {
-        keys = append(keys, k)
-    }
+		keys = append(keys, k)
+	}
 	sort.Strings(keys)
 	return keys
 }

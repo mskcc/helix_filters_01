@@ -5,10 +5,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/alecthomas/kong"
 	"helix/portal"
 	"log"
 	"strings"
-	"github.com/alecthomas/kong"
 )
 
 // primary run function for the script
@@ -38,13 +38,13 @@ func run(typeLabel string, studyIdentifier string, ids []string) error {
 
 // struct to hold the command line parsing options
 type CLI struct {
-	TypeLabel string `help:"type of case list to create [all, cnaseq, cna, seq]" arg:""`
+	TypeLabel       string `help:"type of case list to create [all, cnaseq, cna, seq]" arg:""`
 	StudyIdentifier string `help:"Study identifier" arg:""`
-	Ids string `help:"comma-delimited list of id's to add to the case list" arg:""`
+	Ids             string `help:"comma-delimited list of id's to add to the case list" arg:""`
 }
 
 // method to run the script with the CLI args; gets invoked by `ctx.Run()`
-func (cli *CLI) Run () error {
+func (cli *CLI) Run() error {
 	ids_str := cli.Ids
 	ids := strings.Split(ids_str, ",")
 	typeLabel := cli.TypeLabel

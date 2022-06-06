@@ -13,7 +13,7 @@ func TestFilters(t *testing.T) {
 		// an "uncalled" mutation should be "kept" for the data_mutations_uncalled.txt file
 
 		// source data
-    mutation := Mutation{
+		mutation := Mutation{
 			TRefCount:      10,
 			TAltCount:      0, // should be kept in uncalled file
 			MutationStatus: "",
@@ -43,7 +43,6 @@ func TestFilters(t *testing.T) {
 			t.Errorf("got %v is not the same as %v", got, want)
 		}
 
-
 		mutation = Mutation{
 			TRefCount:      10,
 			TAltCount:      10,
@@ -64,7 +63,7 @@ func TestFilters(t *testing.T) {
 		// an "uncalled" mutation should be "kept" for the data_mutations_uncalled.txt file
 
 		// source data; is Uncalled
-    mutation := Mutation{
+		mutation := Mutation{
 			TRefCount:      10,
 			TAltCount:      0, // should be kept in uncalled file
 			MutationStatus: "",
@@ -90,7 +89,6 @@ func TestFilters(t *testing.T) {
 		if !cmp.Equal(wantedMutation, mutation) {
 			t.Errorf("got %v is not the same as %v", wantedMutation, mutation)
 		}
-
 
 		// test that a non-uncalled Mutation does not get changed
 		mutation = Mutation{

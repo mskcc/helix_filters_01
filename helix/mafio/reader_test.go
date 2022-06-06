@@ -1,14 +1,14 @@
 package mafio
 
 import (
-	"io"
-	"os"
 	"fmt"
-	"log"
-	"strings"
-	"testing"
 	"github.com/google/go-cmp/cmp"
 	"github.com/mitchellh/mapstructure"
+	"io"
+	"log"
+	"os"
+	"strings"
+	"testing"
 )
 
 // fixtures for test cases
@@ -17,6 +17,7 @@ var s1 string = `#comment 1
 Foo\tBar\tBaz
 1\t2\t3
 `
+
 // need to convert \t to real tabs
 var s string = strings.ReplaceAll(s1, `\t`, "\t")
 var test_file string = "../testdata/tsv/test.tsv"
@@ -211,8 +212,7 @@ func TestReader(t *testing.T) {
 		}
 	})
 
-
-// Tests for reading mutations
+	// Tests for reading mutations
 	t.Run("Read mutations from maf format string", func(t *testing.T) {
 		// read the comments
 		comment_reader := strings.NewReader(mafStr)
@@ -256,25 +256,25 @@ func TestReader(t *testing.T) {
 		}
 		rows_wanted := []map[string]string{
 			{
-			"Mutation_Status": "CALLED",
-			"is_fillout":      "False",
-			"t_alt_count":     "10",
-			"t_ref_count":     "10",
-			"Foo": "foo1",
+				"Mutation_Status": "CALLED",
+				"is_fillout":      "False",
+				"t_alt_count":     "10",
+				"t_ref_count":     "10",
+				"Foo":             "foo1",
 			},
 			{
-			"Mutation_Status": "CALLED",
-			"is_fillout":      "True",
-			"t_alt_count":     "10",
-			"t_ref_count":     "10",
-			"Foo": "foo2",
+				"Mutation_Status": "CALLED",
+				"is_fillout":      "True",
+				"t_alt_count":     "10",
+				"t_ref_count":     "10",
+				"Foo":             "foo2",
 			},
 			{
-			"Mutation_Status": "CALLED",
-			"is_fillout":      "False",
-			"t_alt_count":     "0",
-			"t_ref_count":     "10",
-			"Foo": "foo3",
+				"Mutation_Status": "CALLED",
+				"is_fillout":      "False",
+				"t_alt_count":     "0",
+				"t_ref_count":     "10",
+				"Foo":             "foo3",
 			},
 		}
 		if diff := cmp.Diff(rows_wanted, rows); diff != "" {
@@ -283,16 +283,16 @@ func TestReader(t *testing.T) {
 
 		mutations_wanted := []Mutation{
 			Mutation{
-				TRefCount: 10,
-				TAltCount: 10,
+				TRefCount:      10,
+				TAltCount:      10,
 				MutationStatus: "CALLED",
-				IsFillout: false,
+				IsFillout:      false,
 				SourceMap: map[string]string{
 					"Mutation_Status": "CALLED",
 					"is_fillout":      "False",
 					"t_alt_count":     "10",
 					"t_ref_count":     "10",
-					"Foo": "foo1",
+					"Foo":             "foo1",
 				},
 				Metadata: mapstructure.Metadata{
 					Keys:   []string{"t_ref_count", "t_alt_count", "Mutation_Status", "is_fillout"},
@@ -301,16 +301,16 @@ func TestReader(t *testing.T) {
 				},
 			},
 			Mutation{
-				TRefCount: 10,
-				TAltCount: 10,
+				TRefCount:      10,
+				TAltCount:      10,
 				MutationStatus: "CALLED",
-				IsFillout: true,
+				IsFillout:      true,
 				SourceMap: map[string]string{
 					"Mutation_Status": "CALLED",
 					"is_fillout":      "True",
 					"t_alt_count":     "10",
 					"t_ref_count":     "10",
-					"Foo": "foo2",
+					"Foo":             "foo2",
 				},
 				Metadata: mapstructure.Metadata{
 					Keys:   []string{"t_ref_count", "t_alt_count", "Mutation_Status", "is_fillout"},
@@ -319,16 +319,16 @@ func TestReader(t *testing.T) {
 				},
 			},
 			Mutation{
-				TRefCount: 10,
-				TAltCount: 0,
+				TRefCount:      10,
+				TAltCount:      0,
 				MutationStatus: "CALLED",
-				IsFillout: false,
+				IsFillout:      false,
 				SourceMap: map[string]string{
 					"Mutation_Status": "CALLED",
 					"is_fillout":      "False",
 					"t_alt_count":     "0",
 					"t_ref_count":     "10",
-					"Foo": "foo3",
+					"Foo":             "foo3",
 				},
 				Metadata: mapstructure.Metadata{
 					Keys:   []string{"t_ref_count", "t_alt_count", "Mutation_Status", "is_fillout"},
@@ -340,10 +340,6 @@ func TestReader(t *testing.T) {
 		if diff := cmp.Diff(mutations_wanted, mutations); diff != "" {
 			t.Errorf("got vs want mismatch (-want +got):\n%s", diff)
 		}
-
-
-
-
 
 	})
 
