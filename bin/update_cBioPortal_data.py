@@ -3,6 +3,8 @@
 """
 Script to update mutation file with extra columns for cBioPortal
 
+NOTE: TODO: MOVE THIS LOGIC INTO THE generate_cBioPortal_files.py SCRIPT INSTEAD!! DO NOT HAVE MULTIPLE FOLLOW-UP STEPS FOR UPDATING DATA FILES, DO ALL THE FILE GENERATION LOGIC UP FRONT AT ONCE
+
 Description
 -----------
 
