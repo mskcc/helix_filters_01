@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 """
+-----
+NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
+-----
+
 Script to update columns in the custom samples fillout maf file for use with cBioPortal
 
 Need to fix these columsn from fillout.maf for cBioPortal
@@ -43,11 +47,6 @@ t_FL_DP, t_FL_RD, t_FL_AD
 make sure NaN values are set to 0 as well
 
 add a col is_fillout to label if a row was from fillout or not
-
-
------
-NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
------
 
 
 """
