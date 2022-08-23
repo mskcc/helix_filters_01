@@ -5,6 +5,11 @@ Script to update mutation file with extra columns for cBioPortal
 
 NOTE: TODO: MOVE THIS LOGIC INTO THE generate_cBioPortal_files.py SCRIPT INSTEAD!! DO NOT HAVE MULTIPLE FOLLOW-UP STEPS FOR UPDATING DATA FILES, DO ALL THE FILE GENERATION LOGIC UP FRONT AT ONCE
 
+-----
+NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
+-----
+
+
 Description
 -----------
 
@@ -86,11 +91,6 @@ $ update_cBioPortal_data.py sample --input output/portal/data_clinical_sample.tx
 
 $ bin/update_cBioPortal_data.py mutations --input data_mutations.cc.maf --facets-txt facets-data.txt --output bar.txt
 
-
-
------
-NOTE: MOVE MAF OUTPUT AND FORMATTER TO cBioPortal_utils.MafWriter !! DO NOT ADD MORE ONE-OFF MAF FORMATTING MODULES AND METHODS !!
------
 
 """
 import csv
@@ -431,7 +431,7 @@ def main():
     sample.add_argument('--facets-txt', dest = 'facets_txt_file', required = True, help = 'The .txt output from Facets Suite')
     sample.set_defaults(func = update_sample_file)
 
-    mutations = subparsers.add_parser('mutations', help = 'Update the clinical mutations data file')
+    mutations = subparsers.add_parser('mutations', help = 'Merges data from Facets into the portal clinical mutations data')
     mutations.add_argument('--input', dest = 'input_file', required = True, help = 'Name of the input file')
     mutations.add_argument('--output', dest = 'output_file', required = True, help = 'Name of the output file')
     mutations.add_argument('--facets-txt', dest = 'facets_txt_file', required = True, help = 'The .txt output from Facets Suite')

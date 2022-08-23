@@ -457,6 +457,8 @@ def load_facets_data(files: List[str]) -> Dict:
 
 def parse_header_comments(filename: str, comment_char: str = '#') -> Tuple[List[str], int]:
     """
+    NOTE: use TableReader / MafReader instead of this method!!
+    
     Parse a file with comments in its header to return the comments and the line number to start reader from
 
     comments, start_line = parse_header_comments(filename)
