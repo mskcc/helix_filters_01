@@ -247,6 +247,7 @@ maf_filter_portal_file_cols_to_keep = [
 "Matched_Norm_Sample_UUID",
 "HGVSc",
 "HGVSp",
+# "HGVSp_Short", # need to not output this in portal file !!
 "Amino_Acid_Change",
 "Transcript_ID",
 "Exon_Number",
@@ -458,7 +459,7 @@ def load_facets_data(files: List[str]) -> Dict:
 def parse_header_comments(filename: str, comment_char: str = '#') -> Tuple[List[str], int]:
     """
     NOTE: use TableReader / MafReader instead of this method!!
-    
+
     Parse a file with comments in its header to return the comments and the line number to start reader from
 
     comments, start_line = parse_header_comments(filename)
@@ -638,6 +639,7 @@ class MafWriter(object):
             delimiter: str = '\t',
             extrasaction: str = 'ignore', # do not include any fields not in fieldnames; otherwise, 'raise' error if other fields exist
             lineterminator: str = '\n', # avoid issues with carriage returns
+            restval: str = "MafWriter.MISSINGVAL", 
             format: str = None, # custom fieldname and output formatter for various compatibility requirements
             ) -> None: # -> csv.DictWriter
 
@@ -648,6 +650,7 @@ class MafWriter(object):
         self.delimiter = delimiter
         self.extrasaction = extrasaction
         self.lineterminator = lineterminator
+        self.restval = restval
 
         # default to empty lists; fill these in based on the format used!
         self.formatted_fieldnames = []
@@ -675,7 +678,8 @@ class MafWriter(object):
             delimiter = self.delimiter,
             fieldnames = self.formatted_fieldnames,
             lineterminator = self.lineterminator,
-            extrasaction = self.extrasaction)
+            extrasaction = self.extrasaction, 
+            restval = self.restval)
 
         # write the header
         self.writer.writeheader()
@@ -684,7 +688,25 @@ class MafWriter(object):
         """
         Write out a single row
         """
+        # check if row needs formatting update
+        if self.format == 'portal':
+            row = self.format_portal_row(row)
         self.writer.writerow(row, *args, **kwargs)
+    
+    @staticmethod
+    def format_portal_row(row: Dict) -> Dict:
+        """
+        Update a maf row for portal output
+
+        NOTE: need to move other maf row updating logic here !!
+
+        """
+        # update row keys;
+        # "The portal MAF can be minimized since Genome Nexus re-annotates it when HGVSp_Short column is missing"
+        if 'HGVSp_Short' in row:
+            row['Amino_Acid_Change'] = row['HGVSp_Short']
+            row.pop('HGVSp_Short')
+        return(row)
 
     @staticmethod
     def format_portal_fieldnames(fieldnames: List[str]) -> List[str]:
@@ -693,9 +715,11 @@ class MafWriter(object):
         """
         # make a copy of the initial fieldnames
         portal_fieldnames = [ f for f in fieldnames ]
+        
         # rename HGVSp_Short to Amino_Acid_Change
         if 'HGVSp_Short' in portal_fieldnames:
             portal_fieldnames[portal_fieldnames.index('HGVSp_Short')] = 'Amino_Acid_Change'
+
         # remove any extraneous fieldnames
         portal_fieldnames = [ f for f in portal_fieldnames if f in maf_filter_portal_file_cols_to_keep ]
         return(portal_fieldnames)

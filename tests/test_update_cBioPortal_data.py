@@ -256,6 +256,7 @@ class TestUpdateCBioMaf(PlutoTestCase):
         "End_Position": "69625448",
         "Tumor_Sample_Barcode": "Sample1-T",
         "Matched_Norm_Sample_Barcode": "Sample1-N",
+        "HGVSp_Short": "p.T235S",
         "portal_val": "foo" # dummy value that would only be in portal data_mutations_extended.txt output maf file
         }
         self.maf_row2 = {
@@ -266,6 +267,7 @@ class TestUpdateCBioMaf(PlutoTestCase):
         "End_Position": "99865785",
         "Tumor_Sample_Barcode": "Sample1-T",
         "Matched_Norm_Sample_Barcode": "Sample1-N",
+        "HGVSp_Short": "p.Q176H",
         "portal_val": "foo" # dummy value that would only be in portal data_mutations_extended.txt output maf file
         }
         self.maf_row3 = { # extra row with no match in facets
@@ -276,6 +278,7 @@ class TestUpdateCBioMaf(PlutoTestCase):
         "End_Position": "99865789",
         "Tumor_Sample_Barcode": "Sample1-T",
         "Matched_Norm_Sample_Barcode": "Sample1-N",
+        "HGVSp_Short": "p.S478C",
         "portal_val": "foo" # dummy value that would only be in portal data_mutations_extended.txt output maf file
         }
         self.facets_row1 = {
@@ -286,6 +289,7 @@ class TestUpdateCBioMaf(PlutoTestCase):
         "End_Position": "69625448",
         "Tumor_Sample_Barcode": "Sample1-T",
         "Matched_Norm_Sample_Barcode": "Sample1-N",
+        "HGVSp_Short": "p.P59T",
         "ASCN.TOTAL_COPY_NUMBER": "1" # dummy value that would only be in facets Tumor1.Normal1_hisens.ccf.maf output maf file
         }
         self.facets_row2 = {
@@ -296,6 +300,7 @@ class TestUpdateCBioMaf(PlutoTestCase):
         "End_Position": "99865785",
         "Tumor_Sample_Barcode": "Sample1-T",
         "Matched_Norm_Sample_Barcode": "Sample1-N",
+        "HGVSp_Short": "p.A470del",
         "ASCN.TOTAL_COPY_NUMBER": "2" # dummy value that would only be in facets Tumor1.Normal1_hisens.ccf.maf output maf file
         }
         self.facets_row3 = { # extra row with no match in maf
@@ -306,6 +311,7 @@ class TestUpdateCBioMaf(PlutoTestCase):
         "End_Position": "99865785",
         "Tumor_Sample_Barcode": "Sample1-T",
         "Matched_Norm_Sample_Barcode": "Sample1-N",
+        "HGVSp_Short": "p.M867Wfs*2",
         "ASCN.TOTAL_COPY_NUMBER": "2" # dummy value that would only be in facets Tumor1.Normal1_hisens.ccf.maf output maf file
         }
 
@@ -337,7 +343,7 @@ class TestUpdateCBioMaf(PlutoTestCase):
 
         comments, mutations = self.load_mutations(output_file)
         expected_comments = [ '# comment 1', '# comment 2' ]
-        self.assertEqual(comments, expected_comments)
+        
         expected_mutations = [
             {
             "Hugo_Symbol" : "FGF3",
@@ -348,7 +354,8 @@ class TestUpdateCBioMaf(PlutoTestCase):
             "Tumor_Sample_Barcode": "Sample1-T",
             "Matched_Norm_Sample_Barcode": "Sample1-N",
             "portal_val": "foo",
-            "ASCN.CLONAL": "1"
+            "ASCN.CLONAL": "1",
+            'HGVSp_Short': 'p.T235S'
             },
             {
             "Hugo_Symbol" : "PNISR",
@@ -359,7 +366,8 @@ class TestUpdateCBioMaf(PlutoTestCase):
             "Tumor_Sample_Barcode": "Sample1-T",
             "Matched_Norm_Sample_Barcode": "Sample1-N",
             "portal_val": "foo",
-            "ASCN.CLONAL": "2"
+            "ASCN.CLONAL": "2",
+            'HGVSp_Short': 'p.Q176H'
             },
             {
             "Hugo_Symbol" : "PNISR",
@@ -370,10 +378,15 @@ class TestUpdateCBioMaf(PlutoTestCase):
             "Tumor_Sample_Barcode": "Sample1-T",
             "Matched_Norm_Sample_Barcode": "Sample1-N",
             "portal_val": "foo",
-            "ASCN.CLONAL": "."
+            "ASCN.CLONAL": ".",
+            'HGVSp_Short': 'p.S478C'
             }
         ]
-        self.assertEqual(mutations, expected_mutations)
+        self.assertEqual(comments, expected_comments)
+        self.assertEqual(len(mutations), len(expected_mutations))
+        # self.assertEqual(mutations, expected_mutations)
+        for i, mut in enumerate(mutations):
+            self.assertDictEqual(dict(**mut), expected_mutations[i])
 
 
 
@@ -410,7 +423,8 @@ class TestUpdateCBioMaf(PlutoTestCase):
             'Start_Position',
             'End_Position',
             'Tumor_Sample_Barcode',
-            'Matched_Norm_Sample_Barcode']
+            'Matched_Norm_Sample_Barcode',
+            'Amino_Acid_Change']
         expected_mutations = [
            {
                'Hugo_Symbol': 'FGF3',
@@ -419,7 +433,8 @@ class TestUpdateCBioMaf(PlutoTestCase):
                 'Start_Position': '69625447',
                 'End_Position': '69625448',
                 'Tumor_Sample_Barcode': 'Sample1-T',
-                'Matched_Norm_Sample_Barcode': 'Sample1-N'
+                'Matched_Norm_Sample_Barcode': 'Sample1-N',
+                'Amino_Acid_Change': 'p.T235S'
             },
             {
                 'Hugo_Symbol': 'PNISR',
@@ -428,7 +443,8 @@ class TestUpdateCBioMaf(PlutoTestCase):
                 'Start_Position': '99865784',
                 'End_Position': '99865785',
                 'Tumor_Sample_Barcode': 'Sample1-T',
-                'Matched_Norm_Sample_Barcode': 'Sample1-N'
+                'Matched_Norm_Sample_Barcode': 'Sample1-N',
+                'Amino_Acid_Change': 'p.Q176H'
             },
             {
                 'Hugo_Symbol': 'PNISR',
@@ -437,13 +453,16 @@ class TestUpdateCBioMaf(PlutoTestCase):
                 'Start_Position': '99865788',
                 'End_Position': '99865789',
                 'Tumor_Sample_Barcode': 'Sample1-T',
-                'Matched_Norm_Sample_Barcode': 'Sample1-N'
+                'Matched_Norm_Sample_Barcode': 'Sample1-N',
+                'Amino_Acid_Change': 'p.S478C'
             }
        ]
 
         self.assertEqual(comments, expected_comments)
         self.assertEqual(fieldnames, expected_fieldnames)
-        self.assertEqual(mutations, expected_mutations)
+        self.assertEqual(len(mutations), len(expected_mutations))
+        for i, mut in enumerate(mutations):
+            self.assertDictEqual(dict(**mut), expected_mutations[i])
 
 
 if __name__ == "__main__":

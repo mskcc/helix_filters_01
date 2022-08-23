@@ -67,6 +67,8 @@ def filter_row(row: Dict, is_impact: bool) -> Tuple[Dict, bool, bool, bool, bool
     # update row keys;
     # "The portal MAF can be minimized since Genome Nexus re-annotates it when HGVSp_Short column is missing"
     row['Amino_Acid_Change'] = row['HGVSp_Short']
+    # NOTE: !!! This ^^^ logic is now in cBioProtal_utils.MafWriter ; from now on get this functionality from there!!
+    
     event_type = row['Variant_Type']
 
     # get some values from the row to use for filter criteria

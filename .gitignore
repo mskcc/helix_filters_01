@@ -47,3 +47,4 @@ tmp/
 go/*/bin
 conda
 helix/bin/
+helix_filters_01.code-workspace
