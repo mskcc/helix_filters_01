@@ -101,8 +101,11 @@ with open(input_file) as fin, open(output_file, "w") as fout:
             t_alt_count_fillout = row['t_FL_AD']
 
             # replace the values in the row with the fillout values
-            row['t_depth'] = str(int(t_ref_count_fillout) + int(t_alt_count_fillout))
             row['t_ref_count'] = t_ref_count_fillout
             row['t_alt_count'] = t_alt_count_fillout
+            try:
+                row['t_depth'] = str(int(t_ref_count_fillout) + int(t_alt_count_fillout))
+            except ValueError: #         ValueError: invalid literal for int() with base 10: ''
+                row['t_depth'] = ''
 
         writer.writerow(row)

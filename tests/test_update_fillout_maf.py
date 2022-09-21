@@ -56,9 +56,19 @@ class TestUpdateFilloutMaf(PlutoTestCase):
         "t_FL_RD": "5",
         "t_FL_AD": "6"
         }
+        self.maf_row4 = {
+        "Tumor_Sample_Barcode": "Sample1-T",
+        "t_depth": "", # empty values
+        "t_ref_count": "", # empty values
+        "t_alt_count": "", # empty values
+        "SRC": "Sample2-T,", # is a fillout; SRC doesnt contain Tumor_Sample_Barcode
+        "t_FL_DP": "", # empty values
+        "t_FL_RD": "", # empty values
+        "t_FL_AD": "" # empty values
+        }
 
     def test_update_maf1(self):
-        maf_rows = [ self.maf_row1, self.maf_row2, self.maf_row3 ]
+        maf_rows = [ self.maf_row1, self.maf_row2, self.maf_row3, self.maf_row4 ]
         maf_lines = self.dicts2lines(dict_list = maf_rows, comment_list = self.comments)
         input_file = self.write_table(self.tmpdir, filename = "input.maf", lines = maf_lines)
         output_file = os.path.join(self.tmpdir, "output.txt")
@@ -110,6 +120,20 @@ class TestUpdateFilloutMaf(PlutoTestCase):
             't_ref_count_sample': '2',
             't_alt_count_sample': '3',
             'is_fillout': 'True'
+            },
+            {
+            "Tumor_Sample_Barcode": "Sample1-T",
+            'is_fillout': 'True',
+            "t_depth": "", # empty values
+            "t_ref_count": "",
+            "t_alt_count": "",
+            't_alt_count_sample': '',
+            't_depth_sample': '',
+            't_ref_count_sample': '',
+            "SRC": "Sample2-T,",
+            "t_FL_DP": "",
+            "t_FL_RD": "",
+            "t_FL_AD": ""
             }
         ]
         self.assertEqual(comments, expected_comments)
