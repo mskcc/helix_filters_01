@@ -55,11 +55,11 @@ unexport PYTHONPATH
 unexport PYTHONHOME
 
 ifeq ($(UNAME), Darwin)
-CONDASH:=Miniconda3-4.5.4-MacOSX-x86_64.sh
+CONDASH:=Miniconda3-4.7.12-MacOSX-x86_64.sh
 endif
 
 ifeq ($(UNAME), Linux)
-CONDASH:=Miniconda3-4.5.4-Linux-x86_64.sh
+CONDASH:=Miniconda3-4.7.12-Linux-x86_64.sh
 endif
 
 CONDAURL:=https://repo.anaconda.com/miniconda/$(CONDASH)
@@ -75,10 +75,10 @@ init:
 	git submodule update --init --recursive
 
 install: conda init
-	source conda/bin/activate && \
-	conda install -y \
-	anaconda::numpy=1.19.1 \
-	anaconda::pandas=1.1.3
+	conda env create -n pytest -f environment-pytest.yml
+	conda activate pytest
+	conda install -y anaconda::numpy=1.21.5 anaconda::pandas=1.4.2
+
 
 
 
@@ -146,6 +146,12 @@ test:
 	set -e
 	$(MAKE) $(TESTS) -j $(TEST_THREADS)
 
+pytest:
+	source conda/bin/activate && \
+	conda activate pytest && \
+	python -c 'import numpy' && \
+	pytest -n auto --maxprocesses 24 --ignore "tests/test_compile-report.py" --ignore "tests/test_full-outer-join.py" tests
+
 # run the test suite inside a Singularity container on the HPC
 test-in-container-all:
 	module load singularity/3.3.0 && \
@@ -187,14 +193,14 @@ test-local:
 
 
 # interactive session with environment populated on the HPC
-bash:
-	module load singularity/3.3.0 && \
-	module load python/3.7.1 && \
-	module load cwl/cwltool && \
-	module load jq && \
-	bash
+# bash:
+# 	module load singularity/3.3.0 && \
+# 	module load python/3.7.1 && \
+# 	module load cwl/cwltool && \
+# 	module load jq && \
+# 	bash
 
-clean:
-	rm -rf cache tmp
-clean-all: clean
-	rm -rf output portal analysis mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cncf_files.txt mutation_svs_txt_files.txt mutation_svs_maf_files.txt
+# clean:
+# 	rm -rf cache tmp
+# clean-all: clean
+# 	rm -rf output portal analysis mutation_maf_files.txt facets_hisens_seg_files.txt facets_hisens_cncf_files.txt mutation_svs_txt_files.txt mutation_svs_maf_files.txt

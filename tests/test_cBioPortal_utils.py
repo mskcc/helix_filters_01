@@ -6,8 +6,10 @@ unit tests for cBioPortal utility functions
 import sys
 import os
 import unittest
-
-from fixtures_mutations import good_row_FGF3, bad_row_AF
+try:
+    from fixtures_mutations import good_row_FGF3, bad_row_AF
+except ModuleNotFoundError:
+    from .fixtures_mutations import good_row_FGF3, bad_row_AF
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(THIS_DIR)
