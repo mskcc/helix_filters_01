@@ -149,7 +149,6 @@ test:
 pytest:
 	source conda/bin/activate && \
 	conda activate pytest && \
-	python -c 'import numpy' && \
 	pytest -n auto --maxprocesses 24 --ignore "tests/test_compile-report.py" --ignore "tests/test_full-outer-join.py" tests
 
 # run the test suite inside a Singularity container on the HPC
