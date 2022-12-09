@@ -1,1 +1,17 @@
-pluto/environment.yml
+channels:
+  - defaults
+  - anaconda
+  - conda-forge
+dependencies:
+  - numpy=1.21.5
+  # - pandas=1.4.2
+  - pytest=7.1.2
+  - pytest-xdist=2.5.0
+  - nodejs
+  - pip>=19
+  - pip:
+    - toil[cwl]==5.7.1
+#   - git+https://github.com/mskcc/toil.git@5.4.2#egg=toil[cwl] # not working on M1 Apple macOS
+    - cwlref-runner==1.0
+#   - sphinx==4.0.2
+

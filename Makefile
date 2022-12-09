@@ -74,10 +74,11 @@ conda:
 init:
 	git submodule update --init --recursive
 
-install: conda init
-	conda env create -n pytest -f environment-pytest.yml
-	conda activate pytest
-	conda install -y anaconda::numpy=1.21.5 anaconda::pandas=1.4.2
+install: conda 
+	conda env update -n base --file environment-pytest.yml
+# conda env create -n pytest -f environment-pytest.yml
+# conda activate pytest
+# conda install -y anaconda::numpy=1.21.5 anaconda::pandas=1.4.2
 
 
 
@@ -136,20 +137,20 @@ export FIXTURES_DIR:=/juno/work/ci/helix_filters_01/fixtures
 # $ make test -j 4
 # NOTE: need to exlcude tests that run R code because they require different environment!
 # TODO: fix this ^^
-TEST_THREADS:=2
-TESTS:=$(shell find tests -type f -name "test*.py" ! -name test_compile-report.py ! -name test_full-outer-join.py)
-.PHONY: $(TESTS)
-$(TESTS):
-	@module load singularity/3.3.0 && module load python/3.7.1 && module load cwl/cwltool && echo $@; python3 $@
-test:
-	@echo ">>> WARNING: Running only Python tests"
-	set -e
-	$(MAKE) $(TESTS) -j $(TEST_THREADS)
+# TEST_THREADS:=2
+# TESTS:=$(shell find tests -type f -name "test*.py" ! -name test_compile-report.py ! -name test_full-outer-join.py)
+# .PHONY: $(TESTS)
+# $(TESTS):
+# 	@module load singularity/3.3.0 && module load python/3.7.1 && module load cwl/cwltool && echo $@; python3 $@
+# test:
+# 	@echo ">>> WARNING: Running only Python tests"
+# 	set -e
+# 	$(MAKE) $(TESTS) -j $(TEST_THREADS)
 
-pytest:
+test:
 	source conda/bin/activate && \
-	conda activate pytest && \
-	pytest -n auto --maxprocesses 24 --ignore "tests/test_compile-report.py" --ignore "tests/test_full-outer-join.py" tests
+	nice pytest -n auto --maxprocesses 24 --ignore "tests/test_compile-report.py" --ignore "tests/test_full-outer-join.py" tests
+# conda activate pytest && \
 
 # run the test suite inside a Singularity container on the HPC
 test-in-container-all:
