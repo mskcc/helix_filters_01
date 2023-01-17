@@ -1,0 +1,102 @@
+---
+title: '<img src="MSKCC-logo.png" style="position: absolute; left: 0px;  max-width: 30%; height: auto;"> Analysis Report'
+subtitle: 'Center for Molecular Oncology <br> Informatics '
+date: '`r format(Sys.time(), "%B %d, %Y")`'
+output:
+
+  
+  prettydoc::html_pretty:
+    theme: architect
+keep_md: true
+always_allow_html: true
+self_contained: true
+---
+
+
+```{css, echo=FALSE}
+
+table {
+  font-size: 12px;
+}
+
+table th, table td {
+  border-bottom: 1px solid #bbb;
+  text-align: left;
+  padding: 1px;
+}
+
+table th {
+  font-weight: 700;
+  background-color: #fff;
+  color: black;
+}
+
+table.summary_table_style tr:nth-child(odd) {
+  background-color: #FBEEC7;
+}
+
+table.summary_table_style {
+    border-top: 2px solid #FFA500;
+    border-bottom: 2px solid #FFA500;
+}
+
+table.summary_table_style td{
+  border-bottom: 1px solid #FFA500;
+}
+
+
+table.data_clinical_table_style tr:nth-child(odd) {
+  background-color: #DBDEFF;
+}
+
+table.data_clinical_table_style {
+    border-top: 2px solid #DBDEFF;
+    border-bottom: 2px solid #DBDEFF;
+}
+
+}
+```
+
+```{r loadData, echo=FALSE, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(comment = NA)
+source("load_data.R", local=knitr::knit_global())
+```
+
+
+```{r data_clinical, echo=FALSE}
+clinical_header_row_css<- "background-color: #8b8da3; color: #fff;"
+
+
+#"html", col.names = NULL, align = 'l'
+kable(tbl01, col.names = NULL) %>% kable_styling(htmltable_class = "data_clinical_table_style", full_width = T, position = "left")%>% add_header_above(c( "Data clinical:" = 4), align= "l",extra_css= clinical_header_row_css )
+```
+
+
+```{r summary, echo=FALSE}
+general_summary <- "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+msi_summary <- "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+tmb_summary <- "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+cumments_summary <- "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+summary_table <- data.frame(c("Summary:","MSI Status:", "Tumor Mutations Burden:", "Comments:"),c(general_summary,msi_summary,tmb_summary,cumments_summary))
+
+
+kable(summary_table, col.names = NULL) %>% kable_styling(htmltable_class = "summary_table_style", full_width = T, position = "left")%>%
+  column_spec(1, bold = T)
+
+
+
+```
+
+
+```{r mutations, echo=FALSE}
+row_top_css <- "background-color: #63a0e1; color: #fff;"
+row_middle_css <- "background-color: #87CEFA; color: #fff;"
+n <- rbind(mafTbl,cnvTbl)
+
+# , "html",  align = 'l'
+kable(n) %>% kable_styling(htmltable_class = "table_class", full_width = T, position = "left")%>%
+  add_header_above(c( "Somatic alterations detected in this sample:" = 5), align= "l",extra_css= row_top_css )%>%
+  pack_rows("Mutations", 1, nrow(mafTbl), label_row_css = row_middle_css)%>%
+  pack_rows("Copy Number Alterations", nrow(mafTbl)+1, nrow(mafTbl)+nrow(cnvTbl), label_row_css = row_middle_css)
+```

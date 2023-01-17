@@ -1,12 +1,12 @@
 ---
 title: "Analysis Report"
 date: '`r format(Sys.time(), "%B %d, %Y")`'
-output: 
-  prettydoc::html_pretty:
-    theme: architect
-    highlight: github
-    toc: true
-    toc_depth: 2
+output: html_document
+  # prettydoc::html_pretty:
+  #   theme: architect
+  #   highlight: github
+  #   toc: true
+  #   toc_depth: 2
     # css: styles.css # correct this later, it can't overwrite themplate's css
     # self_contained: false
     # lib_dir: libs
@@ -29,24 +29,24 @@ params:
   Rdata_file: report.Rdata
 ---
 
-```{css, echo=FALSE}
-#TOC {
-  width: 800px;
-  padding: 30px;
-}
+<!-- ```{css, echo=FALSE} -->
+<!-- #TOC { -->
+<!--   width: 800px; -->
+<!--   padding: 30px; -->
+<!-- } -->
 
-.datatables {
-  width:1600px !important;
-  } 
-#content-wrapper {
-  float: left;
-  padding: 30px;
-}
+<!-- .datatables { -->
+<!--   width:1600px !important; -->
+<!--   }  -->
+<!-- #content-wrapper { -->
+<!--   float: left; -->
+<!--   padding: 30px; -->
+<!-- } -->
 
-div.dt-button-collection {
-    width: 200px;
-}
-```
+<!-- div.dt-button-collection { -->
+<!--     width: 200px; -->
+<!-- } -->
+<!-- ``` -->
 
 ```{r, include=FALSE}
 library(jsonlite)
@@ -175,8 +175,6 @@ df <- data.frame(colA= c("Project ID: ",  "Project PI: ", "PI email: ", "Request
                        nrow(patient_df),
                        nrow(sample_df),
                        input_json_qc$assay
-                       
-                       
                        )
                  
                  )
@@ -198,12 +196,16 @@ kable(df, "html", col.names = NULL, align = 'l') %>%
 sample_cols <-c( 'Collab ID', 'Oncotree code', 'TMB', 'MSI', 'MSI status', 'Tumor coverage', 'Normal status',  'Sample type', #default visible ones
                  'Normal coverage','Patient ID', 'Normal', 'Tumor','Sex') #default hidden ones
 
+#,'Responsive' for table width
 
 datatable(
-  sample_df[, sample_cols], rownames = FALSE, elementId = "samples_table",
+  sample_df[, sample_cols], 
+  rownames = FALSE, 
+  elementId = "samples_table",
   #callback = JS(  'for ( var i=6 ; i<13 ; i++ ) {table.column( i ).visible( false, false );} table.columns.adjust().draw( false );' ), # columns hidden in the beginning, speeds up loading
-  extensions = 'Buttons', 
+  extensions = c('Buttons','ColReorder'), 
   options = list(
+    colReorder = TRUE,
     #autoWidth = TRUE,
     columnDefs = list(list(width = 'auto', targets = "_all")),
     scrollX = TRUE, scrollY = TRUE, scrollCollapse = TRUE,
@@ -232,13 +234,13 @@ mut_cols <-c('Collab ID',  'Gene', 'Amino acid change', 'Tumor AF', 'Tumor depth
 datatable(
   mut_df[, mut_cols], rownames = FALSE, elementId = "variant_table",
   callback = JS( 'for ( var i=9 ; i<11 ; i++ ) {table.column( i ).visible( false, false );} table.columns.adjust().draw( false );'),
-  extensions = 'Buttons', 
+  extensions = 'Buttons',
   options = list(
     columnDefs = list(list(width = 'auto', targets = "_all")),
     scrollX = TRUE, scrollY = TRUE, scrollCollapse = TRUE,
     dom = 'Blfrtip',
-    buttons = 
-      list('copy', 'print', 
+    buttons =
+      list('copy', 'print',
            list(extend = 'collection',buttons = c('csv', 'excel', 'pdf'),text = 'Download'),
            list(extend = 'colvis', text = 'Columns', columns = 'th:nth-child(n+2)')
            )
@@ -248,12 +250,40 @@ datatable(
 ```
 
 
-# QC check
+# Variants NEW
 
-```{bash , echo=FALSE}
-python ../qc_check/qc_check.py ../mutation_report/sample_project_dir/13038_G 
+```{r, include=TRUE, echo=TRUE}
+datatable(  head(mut_df) )
 ```
 
-# Resources
+teest ddenemee 
 
-Full list of Impact genes: <a href="http://cmo.mskcc.org/index.php/gene-panels/#msk-impact" target="_blank">http://cmo.mskcc.org/index.php/gene-panels/#msk-impact</a>
+```{r abcdefg, include= TRUE, echo=FALSE}
+datatable(  head(mut_df) )
+```
+
+
+
+
+<!-- # QC check -->
+<!-- ```{r qc check, echo=FALSE} -->
+<!-- df <- data.frame(colA= c("Homo_concordance: ",  "cDNA contamination: "), -->
+<!--                  colB= c( -->
+<!--                        "s_C_TFXJPJ_X007_d02 (DRILA_LUAD_X0006aS2) didn't match any genotype, including its pair FROZENPOOLEDNORMAL_IMPACT505_V2 (##)", -->
+<!--                        "All good" -->
+<!--                        ) -->
+<!--                  ) -->
+<!-- kable(df, "html", col.names = NULL, align = 'l') %>% -->
+<!--   kable_styling(bootstrap_options = "striped", full_width = F, position = "left") -->
+
+<!-- ``` -->
+
+
+
+<!-- ```{bash , echo=FALSE} -->
+<!-- #python ../qc_check/qc_check.py ../mutation_report/sample_project_dir/13038_G  -->
+<!-- ``` -->
+
+<!-- # Resources -->
+
+<!-- Full list of Impact genes: <a href="http://cmo.mskcc.org/index.php/gene-panels/#msk-impact" target="_blank">http://cmo.mskcc.org/index.php/gene-panels/#msk-impact</a> -->

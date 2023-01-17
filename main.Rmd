@@ -175,8 +175,6 @@ df <- data.frame(colA= c("Project ID: ",  "Project PI: ", "PI email: ", "Request
                        nrow(patient_df),
                        nrow(sample_df),
                        input_json_qc$assay
-                       
-                       
                        )
                  
                  )
@@ -249,9 +247,22 @@ datatable(
 
 
 # QC check
+```{r qc check, echo=FALSE}
+df <- data.frame(colA= c("Homo_concordance: ",  "cDNA contamination: "),
+                 colB= c(
+                       "s_C_TFXJPJ_X007_d02 (DRILA_LUAD_X0006aS2) didn't match any genotype, including its pair FROZENPOOLEDNORMAL_IMPACT505_V2 (##)",
+                       "All good"
+                       )
+                 )
+kable(df, "html", col.names = NULL, align = 'l') %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+
+```
+
+
 
 ```{bash , echo=FALSE}
-python ../qc_check/qc_check.py ../mutation_report/sample_project_dir/13038_G 
+#python ../qc_check/qc_check.py ../mutation_report/sample_project_dir/13038_G 
 ```
 
 # Resources
