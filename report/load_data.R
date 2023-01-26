@@ -1,3 +1,4 @@
+
 source("load_argos.R")
 
 suppressPackageStartupMessages({
@@ -8,11 +9,11 @@ suppressPackageStartupMessages({
 
 if(interactive() && exists("SOURCED") && SOURCED) halt(".INCLUDE")
 
-argos_dir="data/argos/11704_Y/1.1.2/20221102_20_40_060423"
+argos_dir=commandArgs()$project_path  #data/argos/11704_Y/1.1.2/20221102_20_40_060423
 aa=load_argos(argos_dir)
 samp=names(aa)[1]
 
-geneAnnotation=readRDS("data/geneAnnotation.rds")
+geneAnnotation=readRDS(commandArgs()$geneAnnotation_path)  #"data/geneAnnotation.rds"
 
 tbl01=read_csv("data/section01.csv")
 tbl01$Value1=aa[[samp]][tbl01$Value1] %>% unlist

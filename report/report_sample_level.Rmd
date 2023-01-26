@@ -10,56 +10,51 @@ output:
 keep_md: true
 always_allow_html: true
 self_contained: true
+
+params:
+  project_path: dummy
+  geneAnnotation_path: dummy
 ---
 
 
 ```{css, echo=FALSE}
-
 table {
   font-size: 12px;
 }
-
 table th, table td {
   border-bottom: 1px solid #bbb;
   text-align: left;
   padding: 1px;
 }
-
 table th {
   font-weight: 700;
   background-color: #fff;
   color: black;
 }
-
 table.summary_table_style tr:nth-child(odd) {
   background-color: #FBEEC7;
 }
-
 table.summary_table_style {
     border-top: 2px solid #FFA500;
     border-bottom: 2px solid #FFA500;
 }
-
 table.summary_table_style td{
   border-bottom: 1px solid #FFA500;
 }
-
-
 table.data_clinical_table_style tr:nth-child(odd) {
   background-color: #DBDEFF;
 }
-
 table.data_clinical_table_style {
     border-top: 2px solid #DBDEFF;
     border-bottom: 2px solid #DBDEFF;
-}
-
 }
 ```
 
 ```{r loadData, echo=FALSE, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(comment = NA)
+
+commandArgs <- function(...) list("project_path" = params$project_path, "geneAnnotation_path" = params$geneAnnotation_path)
 source("load_data.R", local=knitr::knit_global())
 ```
 
