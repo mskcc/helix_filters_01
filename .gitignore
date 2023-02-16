@@ -48,3 +48,7 @@ go/*/bin
 conda
 helix/bin/
 helix_filters_01.code-workspace
+report/count_samples.sh
+report/run_bad_sample.sh
+report/run_sample_projects.sh
+report/sample_command.sh
