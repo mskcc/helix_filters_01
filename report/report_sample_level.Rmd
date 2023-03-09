@@ -1,8 +1,6 @@
 ---
-title: '<img src="MSKCC-logo.png" style="position: absolute; left: 0px;  max-width: 30%; height: auto;"> Analysis Report'
-subtitle: 'Center for Molecular Oncology <br> Informatics '
-date: '`r format(Sys.time(), "%B %d, %Y")`'
-output:  
+title: 'Analysis Report'
+output:
   prettydoc::html_pretty:
     theme: architect
     mathjax: null
@@ -14,10 +12,29 @@ self_contained: true
 params:
   project_path: dummy
   geneAnnotation_path: dummy
-  child_docs: !r c("load_data.Rmd")
+  child_docs: !r c("/work/ci/vurals/mutation_report/Goliath/load_data.Rmd") #
   sample_id: dummy
 ---
 
+
+```{css, echo=FALSE}
+@media screen and (max-width: 600px) {
+  img.img_class {
+    display: none;
+  }
+}
+```
+
+
+```{r, echo=FALSE}
+htmltools::img(src = "MSKCC-logo.png",
+               alt = 'logo',
+               class = 'img_class',
+               style = 'position:absolute; top:-120px; left:0; padding:3px; max-height: 70px', 
+               # width = "30%",
+               heigth = "auto"
+               )
+```
 
 ```{r set_defaults, echo=FALSE, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)

@@ -2,7 +2,7 @@
 
 
 
-source("load_argos.R")
+source("/work/ci/vurals/mutation_report/Goliath/load_data.R")
 
 suppressPackageStartupMessages({
     library(tidyverse)
