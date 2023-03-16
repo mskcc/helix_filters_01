@@ -9,28 +9,29 @@ VERSION="0.2.1"
 parser <- ArgumentParser()
 parser$add_argument("--output_dir", help="Output directory") # ToDo: make default current working dir. default=default_output_dir, 
 parser$add_argument("--argosDir", help="argosDir Project path")
-#parser$add_argument("--geneAnnotation_path", help="Gene annotation file")
+# parser$add_argument("--geneAnnotation_path", help="Gene annotation file")
 parser$add_argument("--sampleID", help="Sample id")
-
+parser$add_argument("-o", "--output_file", default="report999.html", help="Output filename")
 
 args <- parser$parse_args()
 
-projectNo=stringi::stri_match(args$argosDir,regex="argos/([^/]+)/")[2]
+params = list(
+        argosDir = args$argosDir,
+        ##geneAnnotation_path = args$geneAnnotation_path,
+        sampleID=args$sampleID
+    )
+
+
 
 
 # compile the HTML report
 rmarkdown::render(
     input = "report_sample_level.Rmd", 
-    params = list(
-        argosDir = args$argosDir,
-        #geneAnnotation_path = args$geneAnnotation_path,
-        sampleID=args$sampleID
-    ),
-    output_file = paste0(args$sampleID,".html"),
+    params = params,
+    output_format = "html_document",
+    output_file = args$output_file,
     output_dir = args$output_dir,
-    # output_format="html_document", ##causes to ignore the template given in the Rmd file
-    intermediates_dir=tempdir(),
-    clean=T
+    # intermediates_dir = args$intermediates_dir, 
+    clean = TRUE
 )
 
-# #paste0("rpt_",projectNo,"-",args$sampleID,"__",VERSION,".html"),

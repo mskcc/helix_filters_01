@@ -1,0 +1,6 @@
+since the beginning of 2023
+echo -> for item in $(find . -maxdepth 1 -type d -newermt "2023-01-01"); do echo $PWD/$item/*/*; done
+generate some junk before, just ignore it
+
+echo -> for item in $(find . -maxdepth 1 -type d -newermt "2022-11-01"); do echo $PWD/$item/*/*; done  |grep -v IM_gbm | grep -v delphi > /work/ci/vurals/mutation_report/sample_project_paths2
+and manually deleting some of the previouse versions of reruns

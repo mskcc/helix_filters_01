@@ -5,16 +5,17 @@ output:
     theme: architect
     mathjax: null
     css: "style.css"
-
 keep_md: true
 always_allow_html: true
 self_contained: true
 
-params:
-  argosDir : dummy
-  sampleID : dummy
-  #geneAnnotation_path : dummy
+# params:
+#   argosDir: dummy
+#   sampleID: dummy
 ---
+
+
+
 
 
 
@@ -22,6 +23,10 @@ params:
 source("load_data.R", local=knitr::knit_global())
 data=load_data(params$argosDir,params$sampleID)
 ```
+
+
+
+
 
 ```{css, echo=FALSE}
 @media screen and (max-width: 600px) {
@@ -34,7 +39,7 @@ data=load_data(params$argosDir,params$sampleID)
 htmltools::img(src = "MSKCC-logo.png",
                alt = 'logo',
                class = 'img_class',
-               style = 'position:absolute; top:-120px; left:0; padding:3px; max-height: 40px', 
+               style = 'position:absolute; top:-120px; left:0; padding:3px; max-height: 70px', 
                # width = "30%",
                heigth = "auto"
                )
@@ -54,41 +59,49 @@ knitr::opts_chunk$set(comment = NA)
 
 
 
+```{r report_info, echo=FALSE}
+report_id <- "Report uuid comes here"
+
+report_info_table <- data.frame(c("Report uuid:"),c(report_id))
+
+kable(report_info_table, col.names = NULL) %>% 
+  kable_styling( full_width = T, position = "left")%>% 
+  column_spec(1, bold = T)
+```
+
 
 
 
 ```{r data_clinical, echo=FALSE}
 clinical_header_row_css<- "background-color: #8b8da3; color: #fff;"
-kable(data$tbl01, col.names = NULL) %>% kable_styling(htmltable_class = "data_clinical_table_style", full_width = T, position = "left") %>% add_header_above(c( "Data clinical:" = 4), align= "l",extra_css= clinical_header_row_css )
+
+#"html", col.names = NULL, align = 'l'
+kable(data$tbl01)
+# kable(tbl01, col.names = NULL) %>% kable_styling(htmltable_class = "data_clinical_table_style", full_width = T, position = "left")%>% add_header_above(c( "Data clinical:" = 4), align= "l",extra_css= clinical_header_row_css )
 ```
 
 ```{r summary, echo=FALSE}
-kable(data$summaryTbl, col.names = NULL) %>% kable_styling(htmltable_class = "summary_table_style", full_width = T, position = "left") %>% column_spec(1, bold = T)
+kable(data$summaryTbl, col.names = NULL) %>% kable_styling(htmltable_class = "summary_table_style", full_width = T, position = "left")%>%
+  column_spec(1, bold = T)
 ```
 
 
 ```{r mutations, echo=FALSE}
 row_top_css <- "background-color: #63a0e1; color: #fff;"
 row_middle_css <- "background-color: #87CEFA; color: #fff;"
-n <- rbind(data$mafTbl,data$cnvTbl,data$fusionTbl)
+n <- rbind(data$mafTbl,data$cnvTbl)
 
 kable(n) %>% kable_styling(htmltable_class = "table_class", full_width = T, position = "left")%>%
   add_header_above(c( "Somatic alterations detected in this sample:" = 5), align= "l",extra_css= row_top_css )%>%
   pack_rows("Mutations", 1, nrow(data$mafTbl), label_row_css = row_middle_css)%>%
-  pack_rows("Copy Number Alterations", nrow(data$mafTbl)+1, nrow(data$mafTbl)+nrow(data$cnvTbl), label_row_css = row_middle_css) %>%
-  pack_rows("Fusion events", nrow(data$mafTbl)+nrow(data$cnvTbl)+1, nrow(data$mafTbl)+nrow(data$cnvTbl)+nrow(data$fusionTbl), label_row_css = row_middle_css)
+  pack_rows("Copy Number Alterations", nrow(data$mafTbl)+1, nrow(data$mafTbl)+nrow(data$cnvTbl), label_row_css = row_middle_css)
 ```
 
-
+```{r fusions, echo=FALSE}
+kable(data$fusionTbl)
+```
 
 ```{r cnvs, echo=FALSE}
-kable(data$cnvTblFull)%>%
-  add_header_above(c( "Unfiltered set of Copy Number Alterations:" = 5), align= "l",extra_css= row_top_css )
-```
-
-```{r report_info, echo=FALSE}
-kable(data$reportTbl, col.names = NULL) %>% 
-  kable_styling( full_width = F, position = "left")%>% 
-  column_spec(1, bold = T)
+kable(data$cnvTblFull)
 ```
 

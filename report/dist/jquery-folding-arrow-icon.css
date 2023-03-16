@@ -1,0 +1,65 @@
+svg.folding-arrow-icon {
+  height: 0.8em;
+  width: 0.8em;
+  vertical-align: baseline;
+}
+svg.folding-arrow-icon > g {
+  transition: transform 0.5s;
+}
+.folding-arrow.showing > svg.folding-arrow-icon > g {
+  transform: rotate(90deg);
+}
+.folding-arrow.showing > svg.folding-arrow-icon.updown > g {
+  transform: scale(1, -1);
+}
+.folding-arrow.showing > svg.folding-arrow-icon.plus > g {
+  transform: rotate(45deg);
+}
+svg.folding-arrow-icon.plus-minus > g {
+  transition: none;
+}
+svg.folding-arrow-icon.plus-minus > g line.v {
+  transition: transform 0.5s;
+}
+.folding-arrow.showing > svg.folding-arrow-icon.plus-minus > g {
+  transform: none;
+}
+.folding-arrow.showing > svg.folding-arrow-icon.plus-minus > g line.v {
+  transform: scale(1, 0);
+}
+ul.folding-arrows {
+  list-style-type: none;
+}
+ul.folding-arrows > li.folding-arrow {
+  text-indent: -1.3em;
+}
+ul.folding-arrows > li.folding-arrow :not(.folding-arrow) {
+  text-indent: 0;
+}
+.burger-icon {
+  width: 2em;
+  height: 2em;
+}
+.burger-icon line {
+  stroke: black;
+  stroke-width: 3;
+}
+.burger.showing .burger-icon line.topline {
+  transform: translate(0px, 10px);
+}
+.burger.showing .burger-icon line.bottomline {
+  transform: translate(0px, -10px);
+  opacity: 0;
+  transition: transform 0.5s, opacity 0.5s 0.1s;
+}
+.burger.showing .burger-icon line.midline {
+  transform: rotate(-90deg);
+}
+.burger.showing .burger-icon g {
+  transform: rotate(45deg);
+}
+.burger-icon g,
+.burger-icon line {
+  transition: transform  0.5s, opacity 0.1s;
+}
+/*# sourceMappingURL=jquery-folding-arrow-icon.css.map */

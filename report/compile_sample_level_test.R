@@ -20,7 +20,7 @@ projectNo=stringi::stri_match(args$argosDir,regex="argos/([^/]+)/")[2]
 
 # compile the HTML report
 rmarkdown::render(
-    input = "report_sample_level.Rmd", 
+    input = "report_sample_level_folding_sections.Rmd", 
     params = list(
         argosDir = args$argosDir,
         #geneAnnotation_path = args$geneAnnotation_path,

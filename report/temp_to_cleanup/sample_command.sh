@@ -1,0 +1,1 @@
+Rscript compile_sample_level.R --project_path /juno/res/ci/voyager/argos/05971_BN/1.1.2/20230109_23_29_954449/ --geneAnnotation data/geneAnnotation.rds --sample_id s_C_K49JET_X001_d01 --output_file sil.html

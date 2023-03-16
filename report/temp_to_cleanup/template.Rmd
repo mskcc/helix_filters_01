@@ -1,0 +1,30 @@
+#### {{i}}
+
+
+```{r var{{i}}, echo=FALSE}
+datatable(
+  mut_df[mut_df$Tumor=="{{i}}",mut_cols],
+  rownames = FALSE, 
+  # elementId = "samples_table_temp99",
+  class = "a_class_name",
+  #callback = JS(  'for ( var i=6 ; i<13 ; i++ ) {table.column( i ).visible( false, false );} table.columns.adjust().draw( false );' ), # columns hidden in the beginning, speeds up loading
+  extensions = c('Buttons','ColReorder'), 
+  options = list(
+    paging=FALSE,
+    pageLength = 99,
+    info = FALSE,
+    ##searching = FALSE,
+    colReorder = TRUE,
+    #autoWidth = TRUE,
+    columnDefs = list(list(width = 'auto', targets = "_all")),
+    scrollX = TRUE, scrollY = TRUE, scrollCollapse = TRUE,
+    dom = 'Blfrtip',
+    buttons = 
+      list('copy', 'print', 
+           list(extend = 'collection',buttons = c('csv', 'excel', 'pdf'),text = 'Download'),
+           list(extend = 'colvis', text = 'Columns')  #, columns = 'th:nth-child(n+5)' list of columns to be selected in the visibility dropdown 
+           )
+  )
+)
+
+```

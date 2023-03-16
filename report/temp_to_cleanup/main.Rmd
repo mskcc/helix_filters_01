@@ -1,0 +1,259 @@
+---
+title: "Analysis Report"
+date: '`r format(Sys.time(), "%B %d, %Y")`'
+output: 
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    toc: true
+    toc_depth: 2
+    # css: styles.css # correct this later, it can't overwrite themplate's css
+    # self_contained: false
+    # lib_dir: libs
+    # toc_float: true
+    # toc_float:
+    #   collapsed: false
+    #   smooth_scroll: false
+  # html_document:
+  #   theme: united
+  #   toc: true
+  #   toc_depth: 2
+  #   toc_float:
+  #     collapsed: false
+  #     smooth_scroll: false
+  
+params:
+  mut_file: data_mutations_extended.txt
+  sample_file: data_clinical_sample.txt
+  patient_file: data_clinical_patient.txt
+  Rdata_file: report.Rdata
+---
+
+```{css, echo=FALSE}
+#TOC {
+  width: 800px;
+  padding: 30px;
+}
+
+.datatables {
+  width:1600px !important;
+  } 
+#content-wrapper {
+  float: left;
+  padding: 30px;
+}
+
+div.dt-button-collection {
+    width: 200px;
+}
+```
+
+```{r, include=FALSE}
+library(jsonlite)
+library(reticulate)
+use_python("/usr/bin/python3")
+library('DT')
+library('data.table')
+library(knitr)
+library(kableExtra)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(comment = NA)
+mut_file <- 'sample_project_dir/13088_J/portal/data_mutations_extended.txt'
+sample_file <- 'sample_project_dir/13088_J/portal/data_clinical_sample.txt'
+patient_file <- 'sample_project_dir/13088_J/portal/data_clinical_patient.txt'
+muts_maf_file <- 'sample_project_dir/13088_J/analysis/13088_J.muts.maf'
+sample_pairing_file <- 'sample_project_dir/13088_J/sample_pairing.txt'
+sample_summary_file <- 'sample_project_dir/13088_J/qc_metrics/consolidated_metrics/13088_J_SampleSummary.txt'
+input_json_helix_filters_file <- 'sample_project_dir/13088_J/json/argos_helix_filters_v21.9.3/21.9.3/7ca7606c-b092-4896-a4ba-0c3855096f9f/input.json'
+input_json_qc_file <- 'sample_project_dir/13088_J/json/argos_qc_v1.1.2/1.1.2/3adcfd4c-1733-4d06-85ca-2464e2f8b1ff/input.json'
+
+
+Rdata_file <- "myRdatafile" #params$Rdata_file
+
+mut_df <- read.delim(file = mut_file, header = TRUE, sep = '\t', comment.char = '#')
+sample_df <- read.delim(file = sample_file, header = TRUE, sep = '\t', comment.char = '#')
+patient_df <- read.delim(file = patient_file, header = TRUE, sep = '\t', comment.char = '#')
+muts_maf_df <- read.delim(file = muts_maf_file, header = TRUE, sep = '\t', comment.char = '#')
+
+input_json_helix_filters <- read_json(input_json_helix_filters_file,simplifyDataFrame=TRUE)
+input_json_qc <- read_json(input_json_qc_file,simplifyDataFrame=TRUE)
+
+```
+
+```{r func_definition, echo = FALSE}
+rename_col <- function(df,colname,newcolname) {
+  colnames(df)[which(names(df) == colname)] <- newcolname
+  return(df)
+}
+```
+
+```{r table_mods, include=FALSE}
+#to get is_in_impact
+muts_maf_df$key_column <- paste(muts_maf_df$Chromosome, muts_maf_df$Start_Position, muts_maf_df$End_Position)
+mut_df$key_column <- paste(mut_df$Chromosome, mut_df$Start_Position, mut_df$End_Position)
+mut_df <- merge(x = mut_df, y = muts_maf_df[,c("key_column","is_in_impact")], by.x = "key_column", by.y = "key_column")
+#
+#add matched paired normal, common name is SAMPLE_ID, which is tumor 
+sample_pairing_df <- read.delim(file = sample_pairing_file, header = FALSE, sep = '\t', col.names = c("MATCHED_NORMAL_SAMPLE_ID","SAMPLE_ID"))
+sample_df <- merge(x = sample_df, y = sample_pairing_df, by.x = "SAMPLE_ID", by.y = "SAMPLE_ID" )
+
+#get the coverage info
+sample_summary_df <- read.delim(file = sample_summary_file, header = TRUE, sep = '\t', comment.char = '#')
+sample_df$TUMOR_SAMPLE_COVERAGE <- merge(x = sample_df, y = sample_summary_df, by.x = "SAMPLE_ID", by.y = "Sample")$Coverage
+sample_df$NORMAL_SAMPLE_COVERAGE  <- merge(x = sample_df, y = sample_summary_df, by.x = "MATCHED_NORMAL_SAMPLE_ID", by.y = "Sample" )$Coverage  #check here
+#--
+
+#add collab_id to mut_df
+mut_df <- merge(x=mut_df,y=sample_df[,c(1,5)], by.x = 'Tumor_Sample_Barcode', by.y = 'SAMPLE_ID')
+
+#create normal_status column  https://stackoverflow.com/questions/39165340/dataframe-create-new-column-based-on-other-columns
+sample_df$NORMAL_STATUS <- with(sample_df, ifelse(grepl("POOLEDNORMAL", MATCHED_NORMAL_SAMPLE_ID),    "unmatched", ifelse(grepl("_dZ",MATCHED_NORMAL_SAMPLE_ID),    "matched_clin", "matched_res") ))
+mut_df$NORMAL_STATUS    <- with(mut_df,    ifelse(grepl("POOLEDNORMAL", Matched_Norm_Sample_Barcode), "unmatched", ifelse(grepl("_dZ",Matched_Norm_Sample_Barcode), "matched_clin", "matched_res") ))
+
+#merge patient_table into sample_table
+sample_df$Sex <- merge(x = sample_df, y = patient_df, by.x = "PATIENT_ID", by.y = "PATIENT_ID")$SEX
+
+
+# add AF to the mutations
+mut_df[['t_af']] <- round(mut_df[["t_alt_count"]] / mut_df[["t_depth"]], 2)
+mut_df[['n_af']] <- round(mut_df[["n_alt_count"]] / mut_df[["n_depth"]], 2)
+
+
+#### Rename columns ####
+
+#Samples table
+sample_df <- rename_col(sample_df,"SAMPLE_ID","Tumor")
+sample_df <- rename_col(sample_df,'MATCHED_NORMAL_SAMPLE_ID','Normal')
+sample_df <- rename_col(sample_df,'NORMAL_SAMPLE_COVERAGE','Normal coverage')
+sample_df <- rename_col(sample_df,'TUMOR_SAMPLE_COVERAGE','Tumor coverage')
+sample_df <- rename_col(sample_df,'ONCOTREE_CODE','Oncotree code')
+sample_df <- rename_col(sample_df,'SAMPLE_TYPE', 'Sample type')
+sample_df <- rename_col(sample_df,'CMO_TMB_SCORE', 'TMB')
+sample_df <- rename_col(sample_df,'NORMAL_STATUS', 'Normal status')
+sample_df <- rename_col(sample_df,'PATIENT_ID', 'Patient ID')
+sample_df <- rename_col(sample_df,'COLLAB_ID', 'Collab ID')
+sample_df <- rename_col(sample_df,'MSI_SCORE', 'MSI')
+sample_df <- rename_col(sample_df,'MSI_STATUS', 'MSI status')
+
+
+#Variants table
+mut_df <- rename_col(mut_df,"Tumor_Sample_Barcode","Tumor")
+mut_df <- rename_col(mut_df,"Matched_Norm_Sample_Barcode","Normal")
+mut_df <- rename_col(mut_df,"Hugo_Symbol","Gene")
+mut_df <- rename_col(mut_df,'NORMAL_STATUS', 'Normal status')
+mut_df <- rename_col(mut_df,'COLLAB_ID', 'Collab ID')
+mut_df <- rename_col(mut_df,'Amino_Acid_Change', 'Amino acid change')
+mut_df <- rename_col(mut_df,'t_af', 'Tumor AF')
+mut_df <- rename_col(mut_df,'t_depth', 'Tumor depth')
+mut_df <- rename_col(mut_df,'n_af', 'Normal AF')
+mut_df <- rename_col(mut_df,'n_depth', 'Normal depth')
+mut_df <- rename_col(mut_df,'is_in_impact', 'Is in Impact')
+
+#TEMP fix for TMB values
+sample_df$TMB <- sample_df$TMB/1000
+
+#round numbers to 2 decimal points
+sample_df$TMB <- sapply(sample_df$TMB, round, digits=1)
+sample_df$MSI <- sapply(sample_df$MSI, round, digits=1)
+
+
+
+save.image(file = Rdata_file, compress = TRUE)
+```
+
+# Project summary
+```{r project summary, echo=FALSE}
+df <- data.frame(colA= c("Project ID: ",  "Project PI: ", "PI email: ", "Request PI: ", "Number of patients: ", "Number of samples: ", "Assay: "),
+                 colB= c(
+                       input_json_helix_filters$project_id, 
+                       paste(input_json_qc$pi,' (',input_json_helix_filters$project_pi,')'),
+                       input_json_qc$pi_email,
+                       input_json_helix_filters$request_pi,
+                       nrow(patient_df),
+                       nrow(sample_df),
+                       input_json_qc$assay
+                       
+                       
+                       )
+                 
+                 )
+
+#kablel(df )
+#kbl(df,, align = "l", format = "html", table.attr = "style='max-width:30%;'" , )
+kable(df, "html", col.names = NULL, align = 'l') %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+# kable_classic_2(full_width = F)
+  
+#   kable_styling(full_width = F)
+
+```
+
+# Samples
+
+```{r samples, echo=FALSE}
+
+sample_cols <-c( 'Collab ID', 'Oncotree code', 'TMB', 'MSI', 'MSI status', 'Tumor coverage', 'Normal status',  'Sample type', #default visible ones
+                 'Normal coverage','Patient ID', 'Normal', 'Tumor','Sex') #default hidden ones
+
+
+datatable(
+  sample_df[, sample_cols], rownames = FALSE, elementId = "samples_table",
+  #callback = JS(  'for ( var i=6 ; i<13 ; i++ ) {table.column( i ).visible( false, false );} table.columns.adjust().draw( false );' ), # columns hidden in the beginning, speeds up loading
+  extensions = 'Buttons', 
+  options = list(
+    #autoWidth = TRUE,
+    columnDefs = list(list(width = 'auto', targets = "_all")),
+    scrollX = TRUE, scrollY = TRUE, scrollCollapse = TRUE,
+    dom = 'Blfrtip',
+    buttons = 
+      list('copy', 'print', 
+           list(extend = 'collection',buttons = c('csv', 'excel', 'pdf'),text = 'Download'),
+           list(extend = 'colvis', text = 'Columns')  #, columns = 'th:nth-child(n+5)' list of columns to be selected in the visibility dropdown 
+           )
+  )
+)
+
+# for hiding nonsquential columns    https://datatables.net/reference/api/columns().visible()
+# table.columns( [ 3, 5, 9 ] ).visible( false, false );
+# table.columns.adjust().draw( false ); // adjust column sizing and redraw
+
+
+```
+
+
+# Variants
+
+```{r variants, echo=FALSE}
+mut_cols <-c('Collab ID',  'Gene', 'Amino acid change', 'Tumor AF', 'Tumor depth', 'Normal AF', 'Normal depth','Is in Impact', 'Tumor', 'Normal')
+
+datatable(
+  mut_df[, mut_cols], rownames = FALSE, elementId = "variant_table",
+  callback = JS( 'for ( var i=9 ; i<11 ; i++ ) {table.column( i ).visible( false, false );} table.columns.adjust().draw( false );'),
+  extensions = 'Buttons', 
+  options = list(
+    columnDefs = list(list(width = 'auto', targets = "_all")),
+    scrollX = TRUE, scrollY = TRUE, scrollCollapse = TRUE,
+    dom = 'Blfrtip',
+    buttons = 
+      list('copy', 'print', 
+           list(extend = 'collection',buttons = c('csv', 'excel', 'pdf'),text = 'Download'),
+           list(extend = 'colvis', text = 'Columns', columns = 'th:nth-child(n+2)')
+           )
+  )
+)
+
+```
+
+
+# QC check
+
+```{bash , echo=FALSE}
+python ../qc_check/qc_check.py ../mutation_report/sample_project_dir/13038_G 
+```
+
+# Resources
+
+Full list of Impact genes: <a href="http://cmo.mskcc.org/index.php/gene-panels/#msk-impact" target="_blank">http://cmo.mskcc.org/index.php/gene-panels/#msk-impact</a>
