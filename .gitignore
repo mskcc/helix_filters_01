@@ -52,5 +52,6 @@ report/count_samples.sh
 report/run_bad_sample.sh
 report/run_sample_projects.sh
 report/sample_command.sh
-report/temp_to_cleanup
-
+report/temp_to_cleanup/
+report/run_bad_sample_test.sh
+report/many_run_std_output.txt
