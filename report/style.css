@@ -1,13 +1,14 @@
 
 .inner {
 
-  width: 80%;
+  width: 75%;
 
 }
 
 header {
-  padding-top: 3px;
-  padding-bottom: 3px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  height: 75px;
 
 }
 
@@ -28,7 +29,7 @@ table th {
 }
 
 table.summary_table_style tr:nth-child(odd) {
-  background-color: #FBEEC7;
+  background-color: #fbf8c7;
 }
 
 table.summary_table_style {
@@ -50,4 +51,14 @@ table.data_clinical_table_style {
     border-bottom: 2px solid #DBDEFF;
 }
 
+table thead tr th div {
+  padding-bottom: 1px !important; /* had to put important because kable's add_header_above puts some styling, and seems can not be avoided */
+  border-bottom: none !important; 
+  padding: 1px;
+}
 
+@media screen and (max-width: 600px) {
+  img.img_class {
+    display: none;
+  }
+}
