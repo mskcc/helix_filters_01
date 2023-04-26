@@ -11,8 +11,8 @@ always_allow_html: true
 self_contained: true
 
 params:
-  argosDir : "~/Work/mutation_report_sample_level/data/argos/11704_Y/1.1.2/20221102_20_40_060423"
-  sampleID : "s_C_VXXWFY_X006_d05"
+  argosDir : dummy #"~/Work/mutation_report_sample_level/data/argos/11704_Y/1.1.2/20221102_20_40_060423"
+  sampleID : dummy #"s_C_VXXWFY_X006_d05"
   #geneAnnotation_path : dummy
 ---
 
@@ -20,6 +20,7 @@ params:
 source("load_data.R", local=knitr::knit_global())
 data=load_data(params$argosDir,params$sampleID)
 ```
+
 
 ```{r, echo=FALSE}
 htmltools::img(src = "MSKCC-logo.png",
@@ -64,11 +65,11 @@ kable(n) %>% kable_styling(htmltable_class = "table_class", full_width = T, posi
 ```
 
 ```{r methods, echo=FALSE}
-methods_text <- "Methods' text Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+
 
 free_text_header_css <- "background-color: #FBEEC7; padding-left: 0px; " #color: #fff; 
 
-kable(methods_text, col.names = NULL, align = "lc")%>%
+kable(data$methods, col.names = NULL, align = "lc", escape = FALSE)%>%
   kable_styling(htmltable_class = "summary_table_style", full_width = T, position = "left") %>% 
   add_header_above(c( "Methods:" = 1), align= "l",extra_css= free_text_header_css ) %>%
   row_spec(1, extra_css = "text-align: justify; background-color: #fff;")
@@ -81,7 +82,7 @@ kable(methods_text, col.names = NULL, align = "lc")%>%
 glossary_text <- data.frame( c("Coverage","FC","FC","FC","FC"), c("Numerical value indicating, on average, how many times a given nucleotide is sequenced.", "Fold Change Normalized coverage of a gene relative to the coverage in a sample type matched normal sample.","Fold Change Normalized coverage of a gene relative to the coverage in a sample type matched normal sample.","Fold Change Normalized coverage of a gene relative to the coverage in a sample type matched normal sample.","Fold Change Normalized coverage of a gene relative to the coverage in a sample type matched normal sample.") )
 colnames(glossary_text) <- c("Term", "Definition")
 
-kable(glossary_text)%>%
+kable(data$glossaryTbl)%>%
   kable_styling(htmltable_class = "summary_table_style", full_width = T, position = "left") %>% 
   add_header_above(c("Glossary of terms used in the report" = 2), align= "l",extra_css= free_text_header_css )
 ```
@@ -89,10 +90,50 @@ kable(glossary_text)%>%
 
 ---
 
-```{r unfiltered_cnvs, echo=FALSE}
-kable(data$cnvTblFull)%>%
-  add_header_above(c( "Unfiltered set of Copy Number Alterations:" = 5), align= "l",extra_css= row_top_css )
+```{=html}
+<div class="wrap-collabsible"> 
+    <input id="collapsible" class="toggle" type="checkbox"> 
+    
+    <label for="collapsible" class="lbl-toggle">
+        Unfiltered set of copy number alterations:
+    </label>
+
+    <div class="collapsible-content">     
+        <div class="content-inner">  
 ```
+
+```{r unfiltered_mutations, echo=FALSE}
+kable(data$mafTblFull)#%>%
+  #add_header_above(c( "Unfiltered set of Mutations:" = 5), align= "l",extra_css= row_top_css )
+```
+```{=html}
+</div>
+</div>
+</div>
+```
+
+```{=html}
+<div class="wrap-collabsible"> 
+    <input id="collapsible2" class="toggle" type="checkbox"> 
+    
+    <label for="collapsible2" class="lbl-toggle">
+        Unfiltered set of mutations:
+    </label>
+
+    <div class="collapsible-content">     
+        <div class="content-inner">
+```
+```{r unfiltered_cnvs, echo=FALSE}
+kable(data$cnvTblFull)#%>%
+  #add_header_above(c( "Unfiltered set of Copy Number Alterations:" = 5), align= "l",extra_css= row_top_css )
+```
+```{=html}
+</div>
+</div>
+</div>
+```
+
+
 
 ```{r report_info, echo=FALSE}
 kable(data$reportTbl, col.names = NULL) %>% 

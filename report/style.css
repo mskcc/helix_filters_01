@@ -2,6 +2,7 @@
 .inner {
 
   width: 75%;
+  max-width: 80em;
 
 }
 
@@ -9,7 +10,6 @@ header {
   padding-top: 20px;
   padding-bottom: 20px;
   height: 75px;
-
 }
 
 table {
@@ -33,8 +33,8 @@ table.summary_table_style tr:nth-child(odd) {
 }
 
 table.summary_table_style {
-    border-top: 2px solid #FFA500;
-    border-bottom: 2px solid #FFA500;
+  border-top: 2px solid #FFA500;
+  border-bottom: 2px solid #FFA500;
 }
 
 table.summary_table_style td{
@@ -62,3 +62,70 @@ table thead tr th div {
     display: none;
   }
 }
+
+
+/*-------------*/
+
+.wrap-collabsible {
+    margin-bottom: 1.2rem 0;
+  }
+  
+input[type='checkbox'] {
+display: none;
+}
+
+.lbl-toggle {
+    display: block;
+    cursor: pointer;
+    transition: all 0.25s ease-out;
+    font-size: 0.8rem;
+    background-color: #87CEFA; 
+    color: #fff;
+    padding-left: 0.3rem;
+    margin-bottom: 0.3rem;
+}
+
+.lbl-toggle:hover {
+  color: black;
+  font-weight: bold;
+}
+
+/* For the small arrow, some clever use of borders makes it easy to create the triangle shape: */
+.lbl-toggle::before {
+    content: ' ';
+    display: inline-block;
+
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 5px solid currentColor;
+    vertical-align: middle;
+    margin-right: .7rem;
+    transform: translateY(-2px);
+
+    transition: transform .2s ease-out;
+}
+
+.toggle:checked + .lbl-toggle::before {
+transform: rotate(90deg) translateX(-3px);
+}
+
+.collapsible-content {
+max-height: 0px;
+overflow: hidden;
+transition: max-height .25s ease-in-out;
+}
+
+.toggle:checked + .lbl-toggle + .collapsible-content {
+max-height: 100vh;
+}
+
+.toggle:checked + .lbl-toggle {
+border-bottom-right-radius: 0;
+border-bottom-left-radius: 0;
+}
+
+.collapsible-content .content-inner {
+
+}
+
+
