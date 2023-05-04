@@ -57,7 +57,7 @@ row_middle_css <- "background-color: #87CEFA; color: #fff;"
 n <- rbind(data$mafTbl,data$cnvTbl,data$fusionTbl)
 
 #htmltable_class = "table_class",
-kable(n) %>% kable_styling(htmltable_class = "table_class", full_width = T, position = "left")%>%
+kable(n, escape = FALSE) %>% kable_styling(htmltable_class = "table_class", full_width = T, position = "left")%>%
   add_header_above(c( "Somatic alterations detected in this sample:" = 5), align= "l",extra_css= row_top_css )%>%
   pack_rows("Mutations", 1, nrow(data$mafTbl), label_row_css = row_middle_css)%>%
   pack_rows("Copy Number Alterations", nrow(data$mafTbl)+1, nrow(data$mafTbl)+nrow(data$cnvTbl), label_row_css = row_middle_css) %>%
@@ -79,10 +79,7 @@ kable(data$methods, col.names = NULL, align = "lc", escape = FALSE)%>%
 ```
 
 ```{r glossary, echo=FALSE}
-glossary_text <- data.frame( c("Coverage","FC","FC","FC","FC"), c("Numerical value indicating, on average, how many times a given nucleotide is sequenced.", "Fold Change Normalized coverage of a gene relative to the coverage in a sample type matched normal sample.","Fold Change Normalized coverage of a gene relative to the coverage in a sample type matched normal sample.","Fold Change Normalized coverage of a gene relative to the coverage in a sample type matched normal sample.","Fold Change Normalized coverage of a gene relative to the coverage in a sample type matched normal sample.") )
-colnames(glossary_text) <- c("Term", "Definition")
-
-kable(data$glossaryTbl)%>%
+kable(data$glossaryTbl, escape = FALSE)%>%
   kable_styling(htmltable_class = "summary_table_style", full_width = T, position = "left") %>% 
   add_header_above(c("Glossary of terms used in the report" = 2), align= "l",extra_css= free_text_header_css )
 ```
