@@ -43,13 +43,23 @@ load_argos<-function(odir) {
 
     dpt=read_tsv(file.path(pdir,"data_clinical_patient.txt"),comment="#")
 
-    maf=read_tsv(fs::dir_ls(adir,regex=".muts.maf$"),comment="#", col_types = cols(.default = "?", Chromosome = "character"))
+    if(!("MSI_STATUS" %in% colnames(dpt))) {
+        dpt$MSI_STATUS <- 'unknown'
+        dpt$MSI_SCORE <- 'unknown'
+    }
+    if(!("CMO_TMB_SCORE" %in% colnames(dpt))) {
+        dpt$CMO_TMB_SCORE <- 'unknown'
+    }
 
+
+    maf=read_tsv(fs::dir_ls(adir,regex=".muts.maf$"),comment="#", col_types = cols(.default = "?", Chromosome = "character"))
+        
     pairingTable=maf %>%
         distinct(SAMPLE_ID=Tumor_Sample_Barcode,NORMAL_ID=Matched_Norm_Sample_Barcode) %>%
         mutate(NORMAL_ID=gsub("_","-",NORMAL_ID) %>% gsub("^s-","",.))
 
     maf=maf %>% group_split(Tumor_Sample_Barcode)
+  
     names(maf)=map(maf,\(x){x$Tumor_Sample_Barcode[1]}) %>% unlist
 
     sampleTbl=read_tsv(file.path(pdir,"data_clinical_sample.txt"),comment="#") %>%

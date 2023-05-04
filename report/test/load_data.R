@@ -46,6 +46,7 @@ load_data<-function(argos_dir,sampleID) {
     nMut=number_of_events(mafTbl)
     nCNV=number_of_events(cnvTblFull)
     nFusion=number_of_events(fusionTbl)
+    print('8')
 
     summaryTxt=glue("{nMut} mutations, {nCNV} copy number alterations, {nFusion} structural variant dectected")
 
