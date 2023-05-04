@@ -1,0 +1,10 @@
+Term,Definition
+🟢1,"*Level 1*, FDA-recognized biomarker predictive of response to an FDA-approved drug in this indication."
+🔵2,"*Level 2*, Standard care biomarker recommended by the NCCN or other expert panels predictive of response to an FDA-approved drug in this indication."
+🟣3A,"*Level 3A*, Compelling clinical evidence supports the biomarker as being predictive of response to a drug in this indication."
+⚫️4,"*Level 4*, Compelling biological evidence supports the biomarker as being predictive of response to a drug."
+🔴R1,"*Level R1*, Standard care biomarker predictive of resistance to an FDA-approved drug in this indication."
+🔴R2,"*Level R2*, Compelling clinical evidence supports the biomarker as being predictive of resistance to a drug."
+<font color="blue">🅞</font>,"Oncogenic, or likely oncogenic alteration."
+MAF,"Mutation Allele Frequency (also called variant allele frequency)"
+TCN,"Total Copy Number from *FACETS* algorithm"
