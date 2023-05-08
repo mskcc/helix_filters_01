@@ -37,11 +37,11 @@ table thead tr th div {
 
 /*clinical table styles */
 table.data_clinical_table_style tr:nth-child(odd) {
-  background-color: #D4E6AE;
+  background-color: #DFDFD8;
 }
 table.data_clinical_table_style {
-    border-top: 2px solid #00787A;
-    border-bottom: 2px solid #00787A;
+    border-top: 2px solid #737373;
+    border-bottom: 2px solid #737373;
 }
 /*==========*==========*/
 
