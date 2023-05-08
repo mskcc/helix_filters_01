@@ -11,8 +11,8 @@ always_allow_html: true
 self_contained: true
 
 params:
-  argosDir : dummy #"~/Work/mutation_report_sample_level/data/argos/11704_Y/1.1.2/20221102_20_40_060423"
-  sampleID : dummy #"s_C_VXXWFY_X006_d05"
+  argosDir : "~/Work/mutation_report_sample_level/data/argos/08390_R/1.1.2/20230208_22_12_784560"
+  sampleID : "s_C_8XFJMJ_P001_d01"
   #geneAnnotation_path : dummy
 ---
 
@@ -38,26 +38,32 @@ knitr::opts_chunk$set(comment = NA)
 ```
 
 ```{r data_clinical, echo=FALSE}
-clinical_header_row_css<- "background-color: #8b8da3; color: #fff;"
+clinical_header_row_css<- "background-color: #00787A; color: #fff;"
+clinical_col_css<- "text-align: right; padding-right: 0.5em;"
 kable(data$tbl01, col.names = NULL) %>% 
   kable_styling(htmltable_class = "data_clinical_table_style", full_width = T, position = "left") %>% 
-  add_header_above(c( "Data clinical:" = 4), align= "l",extra_css= clinical_header_row_css )
+  add_header_above(c( "Data clinical:" = 4), align= "l",extra_css= clinical_header_row_css )%>%
+  column_spec(1, width = "7em", bold = TRUE, extra_css=clinical_col_css) %>%
+  column_spec(2, width = "1em") %>%
+  column_spec(3, width = "1em", bold = TRUE, extra_css=clinical_col_css) %>%
+  column_spec(4, width = "7em")
 ```
 
 ```{r summary, echo=FALSE}
 kable(data$summaryTbl, col.names = NULL) %>% 
   kable_styling(htmltable_class = "summary_table_style", full_width = T, position = "left") %>% 
-  column_spec(1, bold = T)
+  column_spec(1, width = "6em", bold = TRUE)
 ```
 
 
 ```{r mutations, echo=FALSE}
-row_top_css <- "background-color: #63a0e1; color: #fff; " #vertical-align: baseline;
-row_middle_css <- "background-color: #87CEFA; color: #fff;"
+row_top_css <- "background-color: #2875B4; color: #fff; " #vertical-align: baseline;
+row_middle_css <- "background-color: #9BDCFF; color: #fff;"
+mutation_table_class <- "border-bottom-style: solid;"
 n <- rbind(data$mafTbl,data$cnvTbl,data$fusionTbl)
 
 #htmltable_class = "table_class",
-kable(n, escape = FALSE) %>% kable_styling(htmltable_class = "table_class", full_width = T, position = "left")%>%
+kable(n, escape = FALSE) %>% kable_styling( full_width = T, position = "left")%>%
   add_header_above(c( "Somatic alterations detected in this sample:" = 5), align= "l",extra_css= row_top_css )%>%
   pack_rows("Mutations", 1, nrow(data$mafTbl), label_row_css = row_middle_css)%>%
   pack_rows("Copy Number Alterations", nrow(data$mafTbl)+1, nrow(data$mafTbl)+nrow(data$cnvTbl), label_row_css = row_middle_css) %>%
@@ -67,10 +73,10 @@ kable(n, escape = FALSE) %>% kable_styling(htmltable_class = "table_class", full
 ```{r methods, echo=FALSE}
 
 
-free_text_header_css <- "background-color: #FBEEC7; padding-left: 0px; " #color: #fff; 
+free_text_header_css <- "background-color: #FFBE19; padding-left: 0px; color: #fff; "
 
 kable(data$methods, col.names = NULL, align = "lc", escape = FALSE)%>%
-  kable_styling(htmltable_class = "summary_table_style", full_width = T, position = "left") %>% 
+  kable_styling(htmltable_class = "methods_table_style", full_width = T, position = "left") %>% 
   add_header_above(c( "Methods:" = 1), align= "l",extra_css= free_text_header_css ) %>%
   row_spec(1, extra_css = "text-align: justify; background-color: #fff;")
 
@@ -100,8 +106,7 @@ kable(data$glossaryTbl, escape = FALSE)%>%
 ```
 
 ```{r unfiltered_mutations, echo=FALSE}
-kable(data$mafTblFull)#%>%
-  #add_header_above(c( "Unfiltered set of Mutations:" = 5), align= "l",extra_css= row_top_css )
+kable(data$mafTblFull, escape = FALSE)
 ```
 ```{=html}
 </div>
@@ -121,8 +126,7 @@ kable(data$mafTblFull)#%>%
         <div class="content-inner">
 ```
 ```{r unfiltered_cnvs, echo=FALSE}
-kable(data$cnvTblFull)#%>%
-  #add_header_above(c( "Unfiltered set of Copy Number Alterations:" = 5), align= "l",extra_css= row_top_css )
+kable(data$cnvTblFull, escape = FALSE)
 ```
 ```{=html}
 </div>
@@ -134,6 +138,6 @@ kable(data$cnvTblFull)#%>%
 
 ```{r report_info, echo=FALSE}
 kable(data$reportTbl, col.names = NULL) %>% 
-  kable_styling( full_width = F, position = "left")%>% 
+  kable_styling(htmltable_class = "report_info_table_class", full_width = F, position = "left")%>% 
   column_spec(1, bold = T)
 ```

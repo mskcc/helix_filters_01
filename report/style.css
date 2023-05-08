@@ -1,9 +1,7 @@
 
 .inner {
-
-  width: 75%;
-  max-width: 80em;
-
+  width: 72%;
+  max-width: 70em;
 }
 
 header {
@@ -13,7 +11,8 @@ header {
 }
 
 table {
-  font-size: 12px;
+  font-size: 14px;
+  border-bottom: 2px solid #2875B4;
 }
 
 table th, table td {
@@ -28,34 +27,55 @@ table th {
   color: black;
 }
 
-table.summary_table_style tr:nth-child(odd) {
-  background-color: #fbf8c7;
-}
-
-table.summary_table_style {
-  border-top: 2px solid #FFA500;
-  border-bottom: 2px solid #FFA500;
-}
-
-table.summary_table_style td{
-  border-bottom: 1px solid #FFA500;
-}
-
-
-table.data_clinical_table_style tr:nth-child(odd) {
-  background-color: #DBDEFF;
-}
-
-table.data_clinical_table_style {
-    border-top: 2px solid #DBDEFF;
-    border-bottom: 2px solid #DBDEFF;
-}
-
 table thead tr th div {
   padding-bottom: 1px !important; /* had to put important because kable's add_header_above puts some styling, and seems can not be avoided */
   border-bottom: none !important; 
   padding: 1px;
 }
+
+
+
+/*clinical table styles */
+table.data_clinical_table_style tr:nth-child(odd) {
+  background-color: #D4E6AE;
+}
+table.data_clinical_table_style {
+    border-top: 2px solid #00787A;
+    border-bottom: 2px solid #00787A;
+}
+/*==========*==========*/
+
+/*summary table style */
+table.summary_table_style tr:nth-child(odd) {
+  background-color: #fbf8c7;
+}
+table.summary_table_style {
+  border-top: 2px solid #FFA500;
+  border-bottom: 2px solid #FFA500;
+}
+table.summary_table_style td{
+  border-bottom: 1px solid #FFA500;
+}
+/*==========*==========*/
+
+/*methods table style */
+table.methods_table_style td{
+  border-bottom: none;
+  background-color: #fff;
+}
+table.methods_table_style {
+  border-top: 2px solid #FFA500;
+  border-bottom: 2px solid #FFA500;
+}
+/*==========*==========*/
+
+
+table.report_info_table_class {
+  border-bottom: none;
+}
+
+
+
 
 @media screen and (max-width: 600px) {
   img.img_class {
@@ -78,7 +98,7 @@ display: none;
     display: block;
     cursor: pointer;
     transition: all 0.25s ease-out;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     background-color: #87CEFA; 
     color: #fff;
     padding-left: 0.3rem;
