@@ -38,7 +38,7 @@ knitr::opts_chunk$set(comment = NA)
 ```
 
 ```{r data_clinical, echo=FALSE}
-clinical_header_row_css<- "background-color: #00787A; color: #fff;"
+clinical_header_row_css<- "background-color: #737373; color: #fff;"
 clinical_col_css<- "text-align: right; padding-right: 0.5em;"
 kable(data$tbl01, col.names = NULL) %>% 
   kable_styling(htmltable_class = "data_clinical_table_style", full_width = T, position = "left") %>% 
