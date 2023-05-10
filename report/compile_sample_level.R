@@ -9,7 +9,7 @@ VERSION="0.2.1"
 parser <- ArgumentParser()
 parser$add_argument("--output_dir", help="Output directory") # ToDo: make default current working dir. default=default_output_dir, 
 parser$add_argument("--argosDir", help="argosDir Project path")
-#parser$add_argument("--geneAnnotation_path", help="Gene annotation file")
+parser$add_argument("--geneAnnotation_path", help="Gene annotation file")
 parser$add_argument("--sampleID", help="Sample id")
 
 
@@ -23,14 +23,12 @@ rmarkdown::render(
     input = "report_sample_level.Rmd", 
     params = list(
         argosDir = args$argosDir,
-        #geneAnnotation_path = args$geneAnnotation_path,
+        geneAnnotation_path = args$geneAnnotation_path,
         sampleID=args$sampleID
     ),
     output_file = paste0(args$sampleID,".html"),
     output_dir = args$output_dir,
-    # output_format="html_document", ##causes to ignore the template given in the Rmd file
     intermediates_dir=tempdir(),
     clean=T
 )
 
-# #paste0("rpt_",projectNo,"-",args$sampleID,"__",VERSION,".html"),

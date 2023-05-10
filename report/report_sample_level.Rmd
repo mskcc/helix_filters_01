@@ -13,7 +13,7 @@ self_contained: true
 params:
   argosDir : "~/Work/mutation_report_sample_level/data/argos/08390_R/1.1.2/20230208_22_12_784560"
   sampleID : "s_C_8XFJMJ_P001_d01"
-  #geneAnnotation_path : dummy
+  geneAnnotation_path : dummy
 ---
 
 ```{r loadData, echo=FALSE, include=FALSE}
