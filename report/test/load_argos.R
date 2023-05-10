@@ -42,22 +42,12 @@ load_argos<-function(odir) {
     adir=file.path(odir,"analysis")
 
     dpt=read_tsv(file.path(pdir,"data_clinical_patient.txt"),comment="#")
-
-    if(!("MSI_STATUS" %in% colnames(dpt))) {
-        dpt$MSI_STATUS <- 'unknown'
-        dpt$MSI_SCORE <- 'unknown'
-    }
-    if(!("CMO_TMB_SCORE" %in% colnames(dpt))) {
-        dpt$CMO_TMB_SCORE <- 'unknown'
-    }
-
-
+    
     maf=read_tsv(fs::dir_ls(adir,regex=".muts.maf$"),comment="#", col_types = cols(.default = "?", Chromosome = "character"))
 
     if(!("t_var_freq" %in% colnames(maf))) {
         maf$CMO_TMB_SCORE <- '0.1'
     }
-
 
 
 

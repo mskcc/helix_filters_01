@@ -48,12 +48,29 @@ load_data<-function(argos_dir,sampleID) {
     nFusion=number_of_events(fusionTbl)
     print('8')
 
+
     summaryTxt=glue("{nMut} mutations, {nCNV} copy number alterations, {nFusion} structural variant dectected")
+
+    print("############")
+    print(argos_data[[sampleID]]$MSI_STATUS)
+    print("############")
 
     if(!isUnMatched) {
 
-        msiTxt=glue("MSI Status = {MSI_STATUS}, score = {MSI_SCORE}",.envir=argos_data[[sampleID]])
-        tmbTxt=glue("The estimated tumor mutation burden (TMB) for this sample is {CMO_TMB_SCORE} mutations per megabase (mt/Mb).",.envir=argos_data[[sampleID]])
+        if(! is.null(argos_data[[sampleID]]$MSI_STATUS)){
+            msiTxt=glue("MSI Status = {MSI_STATUS}, score = {MSI_SCORE}",.envir=argos_data[[sampleID]])
+        }
+        else{
+            msiTxt=glue("MSI Status = unknown, score = unknown",.envir=argos_data[[sampleID]])    
+        }
+
+        if(! is.null(argos_data[[sampleID]]$CMO_TMB_SCORE)){
+            tmbTxt=glue("The estimated tumor mutation burden (TMB) for this sample is {CMO_TMB_SCORE} mutations per megabase (mt/Mb).",.envir=argos_data[[sampleID]])
+        }
+        else{
+            tmbTxt=glue("The estimated tumor mutation burden (TMB) for this sample is unkown mutations per megabase (mt/Mb).",.envir=argos_data[[sampleID]])
+        }
+
         summaryTbl=tribble(
             ~Section, ~Data,
             "Summary:", summaryTxt,
