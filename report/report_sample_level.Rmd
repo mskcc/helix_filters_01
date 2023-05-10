@@ -98,7 +98,7 @@ kable(data$glossaryTbl, escape = FALSE)%>%
     <input id="collapsible" class="toggle" type="checkbox"> 
     
     <label for="collapsible" class="lbl-toggle">
-        Unfiltered set of copy number alterations:
+        Unfiltered set of mutations:
     </label>
 
     <div class="collapsible-content">     
@@ -119,7 +119,7 @@ kable(data$mafTblFull, escape = FALSE)
     <input id="collapsible2" class="toggle" type="checkbox"> 
     
     <label for="collapsible2" class="lbl-toggle">
-        Unfiltered set of mutations:
+       Unfiltered set of copy number alterations:
     </label>
 
     <div class="collapsible-content">     
