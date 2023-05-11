@@ -54,25 +54,36 @@ kable(data$summaryTbl, col.names = NULL) %>%
   kable_styling(htmltable_class = "summary_table_style", full_width = T, position = "left") %>% 
   column_spec(1, width = "6em", bold = TRUE)
 ```
+<!---
+Collapsibles: https://www.digitalocean.com/community/tutorials/css-collapsible
+-->
+```{=html}
+<div class="wrap-collabsible"> 
+    <input id="collapsible_mafTbl" class="toggle" type="checkbox" checked> 
+    
+    <label for="collapsible_mafTbl" class="lbl-toggle">
+        Somatic alterations detected in this sample:
+    </label>
 
-
+    <div class="collapsible-content">     
+        <div class="content-inner">  
+```
 ```{r mutations, echo=FALSE}
-row_top_css <- "background-color: #2875B4; color: #fff; " #vertical-align: baseline;
 row_middle_css <- "background-color: #9BDCFF; color: #fff;"
-mutation_table_class <- "border-bottom-style: solid;"
 n <- rbind(data$mafTbl,data$cnvTbl,data$fusionTbl)
 
-#htmltable_class = "table_class",
 kable(n, escape = FALSE) %>% kable_styling( full_width = T, position = "left")%>%
-  add_header_above(c( "Somatic alterations detected in this sample:" = 5), align= "l",extra_css= row_top_css )%>%
   pack_rows("Mutations", 1, nrow(data$mafTbl), label_row_css = row_middle_css)%>%
   pack_rows("Copy Number Alterations", nrow(data$mafTbl)+1, nrow(data$mafTbl)+nrow(data$cnvTbl), label_row_css = row_middle_css) %>%
   pack_rows("Fusion events", nrow(data$mafTbl)+nrow(data$cnvTbl)+1, nrow(data$mafTbl)+nrow(data$cnvTbl)+nrow(data$fusionTbl), label_row_css = row_middle_css)
 ```
+```{=html}
+</div>
+</div>
+</div>
+```
 
 ```{r methods, echo=FALSE}
-
-
 free_text_header_css <- "background-color: #FFBE19; padding-left: 0px; color: #fff; "
 
 kable(data$methods, col.names = NULL, align = "lc", escape = FALSE)%>%
@@ -95,9 +106,9 @@ kable(data$glossaryTbl, escape = FALSE)%>%
 
 ```{=html}
 <div class="wrap-collabsible"> 
-    <input id="collapsible" class="toggle" type="checkbox"> 
+    <input id="collapsible_mafTblFull" class="toggle" type="checkbox"> 
     
-    <label for="collapsible" class="lbl-toggle">
+    <label for="collapsible_mafTblFull" class="lbl-toggle">
         Unfiltered set of mutations:
     </label>
 
@@ -116,9 +127,9 @@ kable(data$mafTblFull, escape = FALSE)
 
 ```{=html}
 <div class="wrap-collabsible"> 
-    <input id="collapsible2" class="toggle" type="checkbox"> 
+    <input id="collapsible_cnvTblFull" class="toggle" type="checkbox"> 
     
-    <label for="collapsible2" class="lbl-toggle">
+    <label for="collapsible_cnvTblFull" class="lbl-toggle">
        Unfiltered set of copy number alterations:
     </label>
 
